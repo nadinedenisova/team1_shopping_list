@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.jetbrainsKsp)
+    alias(libs.plugins.kotlin.compose)
 }
 
 android {
@@ -36,5 +38,11 @@ android {
 }
 
 dependencies {
+    implementation(libs.dagger)
+    implementation(libs.androidx.lifecycle.viewmodel.android)
+    implementation(libs.androidx.runtime.android)
+    implementation (libs.lifecycle.viewmodel.compose)
+    ksp(libs.dagger.compiler)
+
     implementation(libs.androidx.core.ktx)
 }
