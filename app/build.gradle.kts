@@ -64,7 +64,8 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
 
     // DB
-    implementation(libs.sqlite.driver)
+    implementation(libs.sqldelight.driver)
+    implementation(libs.sqldelight.coroutines)
 
     // Network
     implementation(libs.ktor.client.core)
@@ -75,4 +76,12 @@ dependencies {
 
     // Integration with ViewModels
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+}
+
+sqldelight {
+    databases {
+        create("ShoppingListDatabase") {
+            packageName.set("com.practicum.shoppinglist")
+        }
+    }
 }
