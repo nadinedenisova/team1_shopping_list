@@ -1,11 +1,6 @@
 package com.practicum.shoppinglist.di
 
-import android.content.Context
-import android.content.SharedPreferences
-import com.example.shoppinglist.R
 import dagger.Module
-import dagger.Provides
-import javax.inject.Singleton
 
 @Module
 class DataModule {
