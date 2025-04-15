@@ -9,11 +9,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.shoppinglist"
+    namespace = "com.practicum.shoppinglist"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.shoppinglist"
+        applicationId = "com.practicum.shoppinglist"
         minSdk = 29
         targetSdk = 35
         versionCode = 1
@@ -45,11 +45,7 @@ android {
 
 dependencies {
     implementation(libs.dagger)
-    implementation(libs.androidx.lifecycle.viewmodel.android)
     implementation(libs.androidx.runtime.android)
-    implementation (libs.lifecycle.viewmodel.compose)
-    implementation(libs.androidx.material3.android)
-    implementation(libs.androidx.ui.tooling.preview.android)
     ksp(libs.dagger.compiler)
 
     implementation(libs.androidx.core.ktx)
