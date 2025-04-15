@@ -42,6 +42,8 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.android)
     implementation(libs.androidx.runtime.android)
     implementation (libs.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.material3.android)
+    implementation(libs.androidx.ui.tooling.preview.android)
     ksp(libs.dagger.compiler)
 
     implementation(libs.androidx.core.ktx)
