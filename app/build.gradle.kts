@@ -64,7 +64,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
 
     // DB
-    implementation(libs.sqldelight.sqlite.driver)
+    implementation(libs.sqldelight.driver)
     implementation(libs.sqldelight.coroutines)
 
     // Network

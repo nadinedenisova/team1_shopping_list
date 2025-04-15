@@ -1,12 +1,12 @@
 CREATE TABLE listEntity (
-    id INTEGER NOT NULL PRIMARY KEY,
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     icon_res_id INTEGER NOT NULL DEFAULT -1
 );
 
 insert:
-    INSERT INTO listEntity(id, name, icon_res_id)
-    VALUES ?;
+    INSERT INTO listEntity(name, icon_res_id)
+    VALUES (:name, :icon_res_id);
 
 update:
     UPDATE listEntity

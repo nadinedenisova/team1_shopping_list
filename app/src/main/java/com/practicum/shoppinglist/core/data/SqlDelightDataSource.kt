@@ -17,7 +17,10 @@ class SqlDelightDataSource(
     }
 
     override suspend fun insertList(item: ListEntity) = withContext(Dispatchers.IO) {
-        db.listEntityQueries.insert(item)
+        db.listEntityQueries.insert(
+            name = item.name,
+            icon_res_id = item.icon_res_id,
+        )
     }
 
     override suspend fun updateList(item: ListEntity) = withContext(Dispatchers.IO) {
@@ -47,7 +50,6 @@ class SqlDelightDataSource(
     override suspend fun insertProduct(listId: Long, item: ProductEntity) = withContext(Dispatchers.IO) {
         db.productEntityQueries.insert(
             list_id = listId,
-            id = item.id,
             name = item.name,
             unit = item.unit,
             count = item.count,
