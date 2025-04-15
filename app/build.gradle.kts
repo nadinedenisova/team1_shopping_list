@@ -3,6 +3,9 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.jetbrainsKsp)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.sqldelight)
+    id("kotlin-parcelize")
+    kotlin("plugin.serialization") version "2.1.20"
 }
 
 android {
@@ -35,6 +38,9 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+    buildFeatures {
+        compose = true
+    }
 }
 
 dependencies {
@@ -45,4 +51,30 @@ dependencies {
     ksp(libs.dagger.compiler)
 
     implementation(libs.androidx.core.ktx)
+
+    val composeBom = platform("androidx.compose:compose-bom:2025.02.00")
+    implementation(composeBom)
+
+    // Material Design 3
+    implementation(libs.androidx.material3)
+
+    // Navigation
+    implementation(libs.androidx.navigation.compose)
+
+    // Preview support
+    implementation(libs.androidx.ui.tooling.preview)
+    debugImplementation(libs.androidx.ui.tooling)
+
+    // DB
+    implementation(libs.sqlite.driver)
+
+    // Network
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.okhttp)
+
+    // Additional
+    implementation(libs.kotlinx.serialization.json)
+
+    // Integration with ViewModels
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
 }
