@@ -21,7 +21,7 @@ import com.practicum.shoppinglist.R
 
 @Composable
 fun MyScaffold() {
-    val showAddShoppingListDialog = remember { mutableStateOf(true) }
+    val showAddShoppingListDialog = remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {

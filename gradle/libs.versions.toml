@@ -10,7 +10,7 @@ ktorClientCore = "3.1.2"
 ktorClientOkhttp = "3.1.2"
 lifecycleViewmodelCompose = "2.8.7"
 navigationCompose = "2.8.9"
-sqliteDriver = "2.0.2"
+sqldelight = "2.0.2"
 
 [libraries]
 dagger = { module = "com.google.dagger:dagger", version.ref = "dagger" }
@@ -25,11 +25,12 @@ androidx-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktorClientOkhttp" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktorClientCore" }
-sqlite-driver = { module = "app.cash.sqldelight:sqlite-driver", version.ref = "sqliteDriver" }
+sqldelight-sqlite-driver = { module = "app.cash.sqldelight:sqlite-driver", version.ref = "sqldelight" }
+sqldelight-coroutines = { module = "app.cash.sqldelight:coroutines-extensions", version.ref = "sqldelight" }
 
 [plugins]
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 jetbrainsKsp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-sqldelight = { id = "app.cash.sqldelight", version.ref = "sqliteDriver" }
+sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }

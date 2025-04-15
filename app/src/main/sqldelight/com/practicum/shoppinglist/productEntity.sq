@@ -1,0 +1,47 @@
+CREATE TABLE productEntity (
+    id INTEGER NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL,
+    unit TEXT NOT NULL,
+    count INTEGER NOT NULL DEFAULT 0,
+    completed INTEGER NOT NULL DEFAULT 0
+);
+
+insert {
+    INSERT INTO productEntity(id, name, unit, count, completed)
+    VALUES (
+        id = :id,
+        name = :name,
+        unit = :unit,
+        count = :count,
+        completed = :completed
+    );
+
+    INSERT INTO listAndProductEntity(list_id, product_id)
+    VALUES (list_id = :list_id, product_id = (SELECT last_insert_rowid()));
+}
+
+update:
+    UPDATE productEntity
+    SET name = :name,
+        unit = :unit,
+        count = :count,
+        completed = :completed
+    WHERE id = :id;
+
+getById:
+    SELECT *
+    FROM productEntity
+    WHERE productEntity.id = :id;
+
+getAllByListId:
+    SELECT productEntity.*
+    FROM productEntity INNER JOIN listAndProductEntity
+    WHERE listAndProductEntity.product_id = productEntity.id AND listAndProductEntity.list_id = :id;
+
+deleteById {
+    DELETE FROM productEntity
+    WHERE id = :id;
+
+    DELETE FROM listAndProductEntity
+    WHERE listAndProductEntity.product_id = :id;
+}
