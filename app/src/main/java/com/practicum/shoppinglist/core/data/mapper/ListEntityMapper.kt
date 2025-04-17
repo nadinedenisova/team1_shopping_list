@@ -8,3 +8,9 @@ fun ListEntity.toListItem(): ListItem = ListItem(
     name = name,
     iconResId = icon_res_id.toInt()
 )
+
+fun ListItem.toListEntity(): ListEntity = ListEntity(
+    id = id,
+    name = name,
+    icon_res_id = iconResId.toLong()
+)

@@ -33,7 +33,7 @@ fun ItemList(
     onClick: () -> Unit,
 ) {
     Card(
-        modifier = Modifier.padding(2.dp).fillMaxWidth()
+        modifier = Modifier.padding(top = dimensionResource(R.dimen.padding_8x)).fillMaxWidth()
             .wrapContentHeight()
             .shadow(
                 elevation = 2.dp,
