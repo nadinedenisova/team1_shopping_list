@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -29,6 +31,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import com.practicum.shoppinglist.R
+import com.practicum.shoppinglist.common.resources.ShoppingListState
+import com.practicum.shoppinglist.core.domain.models.ListItem
+import com.practicum.shoppinglist.main.ui.recycler.ItemList
 
 @Composable
 fun MainScreen(
@@ -41,12 +46,21 @@ fun MainScreen(
     }
     val viewModel = daggerViewModel<MainScreenViewModel>(factory)*/
 
+    val state = ShoppingListState.ShoppingList(
+        listOf(
+            ListItem(1, "Продукты", R.drawable.ic_products),
+            ListItem(2, "Для дома", R.drawable.ic_home),
+            ListItem(3, "Подарки к Новому году", R.drawable.ic_gift)
+        )
+    )
+
     Column(
         modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        NoShoppingLists(visible = true)
+        ShoppingList(visible = true, state = state)
+        NoShoppingLists(visible = false)
         AddShoppingListDialog(
             visible = showAddShoppingListDialog.value,
             onDismiss = { showAddShoppingListDialog.value = false },
@@ -54,6 +68,34 @@ fun MainScreen(
 
             }
         )
+    }
+}
+
+@Composable
+fun ShoppingList(
+    visible: Boolean,
+    state: ShoppingListState,
+) {
+    if (!visible) return
+
+    val items = if (state is ShoppingListState.ShoppingList) state.list else null
+
+    if (items == null) return
+
+    LazyColumn(
+        modifier = Modifier.padding(horizontal = dimensionResource(R.dimen.padding_8x))
+            .padding(top = dimensionResource(R.dimen.padding_7x))
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_7x)),
+    ) {
+        items(items) { item ->
+            ItemList(
+                list = item,
+                onClick =  {
+
+                }
+            )
+        }
     }
 }
 
