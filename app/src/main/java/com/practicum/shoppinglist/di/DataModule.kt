@@ -1,9 +1,19 @@
 package com.practicum.shoppinglist.di
 
+import com.practicum.shoppinglist.core.data.LocalDataSource
+import com.practicum.shoppinglist.core.data.SqlDelightDataSource
+import dagger.Binds
 import dagger.Module
+import javax.inject.Singleton
 
 @Module
-class DataModule {
+abstract class DataModule {
+
+    @Binds
+    @Singleton
+    abstract fun provideSqlDelightDataSource(
+        dataSource: SqlDelightDataSource
+    ): LocalDataSource
 
     /*@Provides
     @Singleton

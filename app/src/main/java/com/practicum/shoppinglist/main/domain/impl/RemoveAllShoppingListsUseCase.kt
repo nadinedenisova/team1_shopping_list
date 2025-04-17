@@ -1,9 +1,9 @@
 package com.practicum.shoppinglist.main.domain.impl
 
-import com.practicum.shoppinglist.main.data.impl.MainScreenRepositoryImpl
+import com.practicum.shoppinglist.main.domain.api.MainScreenRepository
 
 class RemoveAllShoppingListsUseCase(
-    private val repository: MainScreenRepositoryImpl
+    private val repository: MainScreenRepository
 ) {
     suspend operator fun invoke() {
         return repository.removeAllShoppingLists()
