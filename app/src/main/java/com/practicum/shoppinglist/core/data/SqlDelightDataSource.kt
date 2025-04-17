@@ -8,18 +8,19 @@ import com.practicum.shoppinglist.ShoppingListDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
-class SqlDelightDataSource(
+class SqlDelightDataSource @Inject constructor(
     private val db: ShoppingListDatabase,
 ) : LocalDataSource {
     override fun getAllLists(): Flow<List<ListEntity>> {
         return db.listEntityQueries.getAll().asFlow().mapToList(Dispatchers.IO)
     }
 
-    override suspend fun insertList(item: ListEntity) = withContext(Dispatchers.IO) {
+    override suspend fun insertList(name: String, icon: Long) = withContext(Dispatchers.IO) {
         db.listEntityQueries.insert(
-            name = item.name,
-            icon_res_id = item.icon_res_id,
+            name = name,
+            icon_res_id = icon,
         )
     }
 

@@ -1,5 +1,7 @@
 package com.practicum.shoppinglist.di
 
+import com.practicum.shoppinglist.main.data.impl.MainScreenRepositoryImpl
+import com.practicum.shoppinglist.main.domain.api.MainScreenRepository
 import dagger.Binds
 import dagger.Module
 import javax.inject.Singleton
@@ -7,10 +9,10 @@ import javax.inject.Singleton
 @Module
 abstract class RepositoryModule {
 
-    /*@Binds
+    @Binds
     @Singleton
-    abstract fun MainActivityRepository(
-        repository: MainActivityRepositoryImpl
-    ): MainActivityRepository*/
+    abstract fun MainScreenRepository(
+        repository: MainScreenRepositoryImpl
+    ): MainScreenRepository
 
 }

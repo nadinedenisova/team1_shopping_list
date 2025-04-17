@@ -30,10 +30,13 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.practicum.shoppinglist.App
 import com.practicum.shoppinglist.R
 import com.practicum.shoppinglist.common.resources.ShoppingListState
-import com.practicum.shoppinglist.core.domain.models.ListItem
+import com.practicum.shoppinglist.di.api.daggerViewModel
 import com.practicum.shoppinglist.main.ui.recycler.ItemList
+import com.practicum.shoppinglist.main.ui.view_model.MainScreenViewModel
 
 @Composable
 fun MainScreen(
@@ -41,31 +44,24 @@ fun MainScreen(
     showAddShoppingListDialog: MutableState<Boolean>,
 ) {
     val context = LocalContext.current
-    /*val factory = remember {
-        (context as App).appComponent.viewModelFactory()
+    val factory = remember {
+        (context.applicationContext as App).appComponent.viewModelFactory()
     }
-    val viewModel = daggerViewModel<MainScreenViewModel>(factory)*/
-
-    val state = ShoppingListState.ShoppingList(
-        listOf(
-            ListItem(1, "Продукты", R.drawable.ic_products),
-            ListItem(2, "Для дома", R.drawable.ic_home),
-            ListItem(3, "Подарки к Новому году", R.drawable.ic_gift)
-        )
-    )
+    val viewModel = daggerViewModel<MainScreenViewModel>(factory)
+    val state by viewModel.shoppingListStateFlow.collectAsStateWithLifecycle()
 
     Column(
         modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        ShoppingList(visible = true, state = state)
-        NoShoppingLists(visible = false)
+        ShoppingList(visible = state is ShoppingListState.ShoppingList, state = state)
+        NoShoppingLists(visible = state is ShoppingListState.NoShoppingLists)
         AddShoppingListDialog(
             visible = showAddShoppingListDialog.value,
             onDismiss = { showAddShoppingListDialog.value = false },
-            onConfirm = {
-
+            onConfirm = { name ->
+                viewModel.addShoppingList(name = name, icon = R.drawable.ic_list.toLong())
             }
         )
     }
@@ -128,7 +124,7 @@ fun AddShoppingListDialog(
 ) {
     if (!visible) return
 
-    var text by remember { mutableStateOf("") }
+    var shoppingListName by remember { mutableStateOf("") }
     val focusRequester = remember { FocusRequester() }
 
     LaunchedEffect(Unit) {
@@ -146,8 +142,8 @@ fun AddShoppingListDialog(
         title = { Text(stringResource(R.string.add_shopping_list)) },
         text = {
             OutlinedTextField(
-                value = text,
-                onValueChange = { text = it },
+                value = shoppingListName,
+                onValueChange = { shoppingListName = it },
                 label = { Text(stringResource(R.string.shopping_list_name)) },
                 placeholder = { Text(stringResource(R.string.new_shopping_list)) },
                 maxLines = 1,
@@ -170,7 +166,7 @@ fun AddShoppingListDialog(
         },
         confirmButton = {
             TextButton(onClick = {
-                onConfirm(text)
+                onConfirm(shoppingListName)
                 onDismiss()
             }) {
                 Text(stringResource(R.string.create))

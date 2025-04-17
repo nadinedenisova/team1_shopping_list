@@ -7,8 +7,9 @@ import com.practicum.shoppinglist.core.domain.models.ListItem
 import com.practicum.shoppinglist.main.domain.api.MainScreenRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import javax.inject.Inject
 
-class MainScreenRepositoryImpl(
+class MainScreenRepositoryImpl @Inject constructor(
     private val dataSource: SqlDelightDataSource,
 ) : MainScreenRepository {
 
@@ -24,8 +25,8 @@ class MainScreenRepositoryImpl(
         //TO-DO
     }
 
-    override suspend fun addShoppingList(list: ListItem) {
-        dataSource.insertList(list.toListEntity())
+    override suspend fun addShoppingList(name: String, icon: Long) {
+        dataSource.insertList(name, icon)
     }
 
     override suspend fun removeAllShoppingLists() {
