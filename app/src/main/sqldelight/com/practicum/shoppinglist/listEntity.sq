@@ -33,3 +33,8 @@ deleteById {
     DELETE FROM listAndProductEntity
     WHERE listAndProductEntity.list_id = :id;
 }
+
+searchByName:
+    SELECT *
+    FROM listEntity
+    WHERE name LIKE ('%' || :name || '%');
