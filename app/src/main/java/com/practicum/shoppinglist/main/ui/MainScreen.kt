@@ -84,14 +84,12 @@ fun ShoppingList(
 
     LazyColumn(
         modifier = Modifier.padding(horizontal = dimensionResource(R.dimen.padding_8x))
-            .padding(top = dimensionResource(R.dimen.padding_7x))
             .fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_7x)),
     ) {
         items(items) { item ->
             ItemList(
                 list = item,
-                onClick =  {
+                onClick = {
 
                 }
             )
