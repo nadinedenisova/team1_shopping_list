@@ -35,6 +35,10 @@ class SqlDelightDataSource(
         db.listEntityQueries.getById(id).executeAsOneOrNull()
     }
 
+    override fun searchListByName(name: String): Flow<List<ListEntity>> {
+        return db.listEntityQueries.searchByName(name = name).asFlow().mapToList(Dispatchers.IO)
+    }
+
     override suspend fun deleteListById(id: Long) = withContext(Dispatchers.IO) {
         db.listEntityQueries.deleteById(id)
     }

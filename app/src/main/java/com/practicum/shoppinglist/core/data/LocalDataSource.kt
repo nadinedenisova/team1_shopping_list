@@ -10,6 +10,7 @@ interface LocalDataSource {
     suspend fun updateList(item: ListEntity)
     suspend fun getListById(id: Long): ListEntity?
     suspend fun deleteListById(id: Long)
+    fun searchListByName(name: String): Flow<List<ListEntity>>
 
     fun getProductsByListId(id: Long): Flow<List<ProductEntity>>
     suspend fun getProductById(id: Long): ProductEntity?
