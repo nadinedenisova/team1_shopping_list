@@ -19,7 +19,7 @@ detekt {
 }
 
 tasks.withType<Detekt>().configureEach {
-    setSource(files("app/src/main/java", "app/src/main/java"))
+    setSource(files("app/src/main/java"))
     reports {
         html.required.set(true)
         xml.required.set(true)
