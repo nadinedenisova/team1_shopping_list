@@ -30,7 +30,8 @@ import com.practicum.shoppinglist.R
 @Composable
 fun ItemList(
     list: ListItem,
-    onClick: () -> Unit,
+    onItemClick: () -> Unit,
+    onIconClick: () -> Unit,
 ) {
     Card(
         modifier = Modifier.padding(top = dimensionResource(R.dimen.padding_8x)).fillMaxWidth()
@@ -39,7 +40,7 @@ fun ItemList(
                 elevation = 2.dp,
                 shape = RoundedCornerShape(12.dp)
             )
-            .clickable { onClick() },
+            .clickable { onItemClick() },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = colorResource(R.color.lightGray)
@@ -58,7 +59,8 @@ fun ItemList(
                     .background(
                         color = Color.Yellow,
                         shape = CircleShape
-                    ),
+                    )
+                    .clickable { onIconClick() },
                 contentAlignment = Alignment.Center
             ) {
                 Image(

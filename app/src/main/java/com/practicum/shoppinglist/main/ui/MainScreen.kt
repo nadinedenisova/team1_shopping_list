@@ -8,18 +8,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,28 +37,60 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.practicum.shoppinglist.App
 import com.practicum.shoppinglist.R
 import com.practicum.shoppinglist.common.resources.ShoppingListState
+import com.practicum.shoppinglist.core.domain.models.ListItem
 import com.practicum.shoppinglist.di.api.daggerViewModel
 import com.practicum.shoppinglist.main.ui.recycler.ItemList
 import com.practicum.shoppinglist.main.ui.view_model.MainScreenViewModel
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
     modifier: Modifier,
     showAddShoppingListDialog: MutableState<Boolean>,
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val factory = remember {
         (context.applicationContext as App).appComponent.viewModelFactory()
     }
     val viewModel = daggerViewModel<MainScreenViewModel>(factory)
     val state by viewModel.shoppingListStateFlow.collectAsStateWithLifecycle()
+    var showBottomSheet by remember { mutableStateOf(false) }
+    val bottomSheetState = rememberModalBottomSheetState()
+    var selectedList by remember { mutableStateOf<ListItem?>(null) }
 
+    IconsBottomSheet(
+        visible = showBottomSheet,
+        bottomSheetState = bottomSheetState,
+        onDismissRequest = { showBottomSheet = false },
+        hideBottomSheet = {
+            scope.launch { bottomSheetState.hide() }.invokeOnCompletion {
+                if (!bottomSheetState.isVisible) {
+                    showBottomSheet = false
+                }
+            }
+        },
+        onIconClick = { icon ->
+            viewModel.updateShoppingList(selectedList!!.copy(iconResId = icon))
+        },
+    )
     Column(
         modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        ShoppingList(visible = state is ShoppingListState.ShoppingList, state = state)
+        ShoppingList(
+            visible = state is ShoppingListState.ShoppingList,
+            state = state,
+            onItemClick = {
+                //TO-DO
+            },
+            onIconClick = { id ->
+                selectedList = id
+                showBottomSheet = true
+            }
+        )
         NoShoppingLists(visible = state is ShoppingListState.NoShoppingLists)
         AddShoppingListDialog(
             visible = showAddShoppingListDialog.value,
@@ -71,6 +106,8 @@ fun MainScreen(
 fun ShoppingList(
     visible: Boolean,
     state: ShoppingListState,
+    onItemClick: () -> Unit,
+    onIconClick: (ListItem) -> Unit,
 ) {
     if (!visible) return
 
@@ -85,9 +122,8 @@ fun ShoppingList(
         items(items) { item ->
             ItemList(
                 list = item,
-                onClick = {
-
-                }
+                onItemClick = { onItemClick() },
+                onIconClick = { onIconClick(item) },
             )
         }
     }
