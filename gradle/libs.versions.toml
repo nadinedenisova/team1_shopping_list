@@ -11,6 +11,9 @@ ktorClientOkhttp = "3.1.2"
 lifecycleViewmodelCompose = "2.8.7"
 navigationCompose = "2.8.9"
 sqldelight = "2.0.2"
+ktorClientCio = "3.1.2"
+ktorClientContentNegotiation = "3.1.2"
+ktorSerializationKotlinxJson = "3.1.2"
 
 [libraries]
 dagger = { module = "com.google.dagger:dagger", version.ref = "dagger" }
@@ -27,6 +30,9 @@ ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "kto
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktorClientCore" }
 sqldelight-driver = { module = "app.cash.sqldelight:android-driver", version.ref = "sqldelight" }
 sqldelight-coroutines = { module = "app.cash.sqldelight:coroutines-extensions", version.ref = "sqldelight" }
+ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "ktorClientCio" }
+ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktorClientContentNegotiation" }
+ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktorSerializationKotlinxJson" }
 
 [plugins]
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
