@@ -3,7 +3,6 @@ package com.practicum.shoppinglist.main.data.impl
 import com.practicum.shoppinglist.core.data.SqlDelightDataSource
 import com.practicum.shoppinglist.core.data.mapper.toListEntity
 import com.practicum.shoppinglist.core.data.mapper.toListItem
-import com.practicum.shoppinglist.core.data.network.NetworkClient
 import com.practicum.shoppinglist.core.domain.models.ListItem
 import com.practicum.shoppinglist.main.domain.api.MainScreenRepository
 import kotlinx.coroutines.flow.Flow
@@ -12,7 +11,6 @@ import javax.inject.Inject
 
 class MainScreenRepositoryImpl @Inject constructor(
     private val dataSource: SqlDelightDataSource,
-    private val networkClient: NetworkClient
 ) : MainScreenRepository {
 
     override suspend fun showShoppingLists(): Flow<List<ListItem>> {
