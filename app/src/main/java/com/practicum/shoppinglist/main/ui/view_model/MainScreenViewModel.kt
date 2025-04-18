@@ -7,6 +7,7 @@ import com.practicum.shoppinglist.core.domain.models.ListItem
 import com.practicum.shoppinglist.main.domain.api.MainScreenRepository
 import com.practicum.shoppinglist.main.domain.impl.AddShoppingListUseCase
 import com.practicum.shoppinglist.main.domain.impl.ShowShoppingListsUseCase
+import com.practicum.shoppinglist.main.domain.impl.UpdateShoppingListUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,6 +23,7 @@ class MainScreenViewModel @Inject constructor(
 
     private val showShoppingListsUseCase = ShowShoppingListsUseCase(mainScreenRepository)
     private val addShoppingListsUseCase = AddShoppingListUseCase(mainScreenRepository)
+    private val updateShoppingListsUseCase = UpdateShoppingListUseCase(mainScreenRepository)
 
     init {
         observeShoppingLists()
@@ -30,6 +32,12 @@ class MainScreenViewModel @Inject constructor(
     fun addShoppingList(name: String, icon: Long) {
         viewModelScope.launch {
             addShoppingListsUseCase(name, icon)
+        }
+    }
+
+    fun updateShoppingList(list: ListItem) {
+        viewModelScope.launch {
+            updateShoppingListsUseCase(list)
         }
     }
 
