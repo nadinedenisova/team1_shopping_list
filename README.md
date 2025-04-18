@@ -21,3 +21,5 @@ To check lint issues
 In folder `build/reports/detekt/detekt.html`
 
 Report details will be located
+
+In gradle tasks `detekt` is located under `verification` task
