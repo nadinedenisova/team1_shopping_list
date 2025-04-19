@@ -1,8 +1,9 @@
 [versions]
+detektCli = "1.23.8"
 ksp = "2.1.20-2.0.0"
 dagger = "2.52"
 agp = "8.9.1"
-kotlin = "2.0.21"
+kotlin = "2.1.20"
 coreKtx = "1.16.0"
 runtimeAndroid = "1.7.8"
 kotlinxSerializationJson = "1.8.1"
@@ -11,6 +12,9 @@ ktorClientOkhttp = "3.1.2"
 lifecycleViewmodelCompose = "2.8.7"
 navigationCompose = "2.8.9"
 sqldelight = "2.0.2"
+ktorClientCio = "3.1.2"
+ktorClientContentNegotiation = "3.1.2"
+ktorSerializationKotlinxJson = "3.1.2"
 
 [libraries]
 dagger = { module = "com.google.dagger:dagger", version.ref = "dagger" }
@@ -22,11 +26,15 @@ androidx-material3 = { module = "androidx.compose.material3:material3" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 androidx-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 androidx-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
+detekt-cli = { module = "io.gitlab.arturbosch.detekt:detekt-cli", version.ref = "detektCli" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktorClientOkhttp" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktorClientCore" }
 sqldelight-driver = { module = "app.cash.sqldelight:android-driver", version.ref = "sqldelight" }
 sqldelight-coroutines = { module = "app.cash.sqldelight:coroutines-extensions", version.ref = "sqldelight" }
+ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "ktorClientCio" }
+ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktorClientContentNegotiation" }
+ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktorSerializationKotlinxJson" }
 
 [plugins]
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
