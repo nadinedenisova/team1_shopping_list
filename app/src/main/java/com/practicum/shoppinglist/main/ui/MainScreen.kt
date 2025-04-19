@@ -1,6 +1,8 @@
 package com.practicum.shoppinglist.main.ui
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -42,11 +44,17 @@ import com.practicum.shoppinglist.di.api.daggerViewModel
 import com.practicum.shoppinglist.main.ui.recycler.ItemList
 import com.practicum.shoppinglist.main.ui.view_model.MainScreenViewModel
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.layout.*
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import com.practicum.shoppinglist.common.resources.SearchShoppingListState
+import com.practicum.shoppinglist.main.ui.recycler.ItemListSearch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
     modifier: Modifier,
+    isSearchActive: MutableState<Boolean>,
     showAddShoppingListDialog: MutableState<Boolean>,
 ) {
     val context = LocalContext.current
@@ -55,10 +63,12 @@ fun MainScreen(
         (context.applicationContext as App).appComponent.viewModelFactory()
     }
     val viewModel = daggerViewModel<MainScreenViewModel>(factory)
-    val state by viewModel.shoppingListStateFlow.collectAsStateWithLifecycle()
+    val contentState by viewModel.shoppingListStateFlow.collectAsStateWithLifecycle()
+    val searchState by viewModel.searchShoppingListStateFlow.collectAsStateWithLifecycle()
     var showBottomSheet by remember { mutableStateOf(false) }
     val bottomSheetState = rememberModalBottomSheetState()
     var selectedList by remember { mutableStateOf<ListItem?>(null) }
+    val searchQuery = remember { mutableStateOf("") }
 
     IconsBottomSheet(
         visible = showBottomSheet,
@@ -75,31 +85,100 @@ fun MainScreen(
             viewModel.updateShoppingList(selectedList!!.copy(iconResId = icon))
         },
     )
-    Column(
-        modifier = modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+
+    Box(
+        Modifier.fillMaxWidth()
     ) {
-        ShoppingList(
-            visible = state is ShoppingListState.ShoppingList,
-            state = state,
-            onItemClick = {
-                //TO-DO
-            },
-            onIconClick = { id ->
-                selectedList = id
-                showBottomSheet = true
+        Column(
+            modifier = modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Search(
+                visible = isSearchActive.value,
+                searchQuery = searchQuery,
+                onBackClick = {
+                    isSearchActive.value = false
+                    searchQuery.value = ""
+                    viewModel.clearSearchResults()
+                },
+                onValueChange = { newValue ->
+                    searchQuery.value = newValue
+                    viewModel.search(searchQuery.value)
+                },
+                onBtnClearClick = {
+                    searchQuery.value = ""
+                    viewModel.clearSearchResults()
+                },
+            )
+            SearchShoppingList(
+                visible = isSearchActive.value
+                        && searchQuery.value.isNotEmpty()
+                        && searchState is SearchShoppingListState.SearchResults,
+                state = searchState,
+                onItemClick = {
+                    //TO-DO
+                }
+            )
+            NoData(
+                visible = isSearchActive.value
+                        && searchQuery.value.isNotEmpty()
+                        && searchState is SearchShoppingListState.NothingFound,
+                modifier = Modifier.padding(top = 64.dp).fillMaxSize(),
+                image = R.drawable.nothing_found,
+                title = stringResource(R.string.nothing_found_title),
+                message = stringResource(R.string.no_shopping_lists_message),
+            )
+
+            Box {
+                ShoppingList(
+                    visible = contentState is ShoppingListState.ShoppingList,
+                    state = contentState,
+                    onItemClick = {
+                        //TO-DO
+                    },
+                    onIconClick = { id ->
+                        selectedList = id
+                        showBottomSheet = true
+                    }
+                )
+                NoData(
+                    visible = contentState is ShoppingListState.NoShoppingLists,
+                    image = R.drawable.no_shopping_lists,
+                    title = stringResource(R.string.no_shopping_lists_title),
+                    message = stringResource(R.string.no_shopping_lists_message),
+                )
+                AddShoppingListDialog(
+                    visible = showAddShoppingListDialog.value,
+                    onDismiss = { showAddShoppingListDialog.value = false },
+                    onConfirm = { name ->
+                        viewModel.addShoppingList(name = name, icon = R.drawable.ic_list.toLong())
+                    }
+                )
+                Scrim(
+                    visible = isSearchActive.value,
+                    isSearchActive = isSearchActive
+                )
             }
-        )
-        NoShoppingLists(visible = state is ShoppingListState.NoShoppingLists)
-        AddShoppingListDialog(
-            visible = showAddShoppingListDialog.value,
-            onDismiss = { showAddShoppingListDialog.value = false },
-            onConfirm = { name ->
-                viewModel.addShoppingList(name = name, icon = R.drawable.ic_list.toLong())
-            }
-        )
+        }
     }
+}
+
+@Composable
+fun Scrim(
+    visible: Boolean,
+    isSearchActive: MutableState<Boolean>,
+) {
+    if (!visible) return
+
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = .32f))
+            .clickable {
+                isSearchActive.value = false
+            }
+    )
 }
 
 @Composable
@@ -107,11 +186,14 @@ fun ShoppingList(
     visible: Boolean,
     state: ShoppingListState,
     onItemClick: () -> Unit,
-    onIconClick: (ListItem) -> Unit,
+    onIconClick: (ListItem) -> Unit = {},
 ) {
     if (!visible) return
 
-    val items = if (state is ShoppingListState.ShoppingList) state.list else null
+    val items = when(state) {
+        is ShoppingListState.ShoppingList -> state.list
+        else -> null
+    }
 
     if (items == null) return
 
@@ -130,26 +212,64 @@ fun ShoppingList(
 }
 
 @Composable
-fun NoShoppingLists(
+fun SearchShoppingList(
     visible: Boolean,
+    state: SearchShoppingListState,
+    onItemClick: () -> Unit,
 ) {
     if (!visible) return
 
-    Image(
-        alignment = Alignment.Center,
-        painter = painterResource(id = R.drawable.no_shopping_lists),
-        contentDescription = null,
-    )
-    Text(
-        text = stringResource(R.string.no_shopping_lists_title),
-        textAlign = TextAlign.Center,
-        modifier = Modifier.padding(top = dimensionResource(R.dimen.padding_image)),
-    )
-    Text(
-        text = stringResource(R.string.no_shopping_lists_message),
-        textAlign = TextAlign.Center,
-        modifier = Modifier.padding(top = dimensionResource(R.dimen.padding_4x)),
-    )
+    val items = when(state) {
+        is SearchShoppingListState.SearchResults -> state.list
+        else -> null
+    }
+
+    if (items == null) return
+
+    LazyColumn(
+        modifier = Modifier
+            .padding(top = dimensionResource(R.dimen.padding_4x))
+            .fillMaxSize(),
+    ) {
+        items(items) { item ->
+            ItemListSearch(
+                list = item,
+                onItemClick = { onItemClick() },
+            )
+        }
+    }
+}
+
+@Composable
+fun NoData(
+    visible: Boolean,
+    modifier: Modifier = Modifier,
+    image: Int,
+    title: String,
+    message: String,
+) {
+    if (!visible) return
+
+    Column(
+        modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Image(
+            alignment = Alignment.Center,
+            painter = painterResource(id = image),
+            contentDescription = null,
+        )
+        Text(
+            text = title,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = dimensionResource(R.dimen.padding_image)),
+        )
+        Text(
+            text = message,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = dimensionResource(R.dimen.padding_4x)),
+        )
+    }
 }
 
 @Composable
@@ -209,4 +329,5 @@ fun AddShoppingListDialog(
             }
         },
     )
+
 }

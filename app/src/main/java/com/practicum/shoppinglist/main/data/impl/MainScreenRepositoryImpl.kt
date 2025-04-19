@@ -21,8 +21,12 @@ class MainScreenRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun showShoppingListByName(name: String) {
-        //TO-DO
+    override suspend fun showShoppingListByName(name: String): Flow<List<ListItem>> {
+        return dataSource.searchListByName(name).map { list ->
+            list.map { item ->
+                item.toListItem()
+            }
+        }
     }
 
     override suspend fun addShoppingList(name: String, icon: Long) {

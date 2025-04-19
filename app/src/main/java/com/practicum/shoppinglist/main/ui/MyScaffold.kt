@@ -21,10 +21,15 @@ import com.practicum.shoppinglist.R
 @Composable
 fun MyScaffold() {
     val showAddShoppingListDialog = remember { mutableStateOf(false) }
+    val isSearchActive = remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
-            TopBar()
+            if (!isSearchActive.value) {
+                TopBar(
+                    onSearchClick = { isSearchActive.value = true }
+                )
+            }
         },
         floatingActionButton = {
             FloatingActionButton(
@@ -38,7 +43,8 @@ fun MyScaffold() {
     ) { innerPadding ->
         MainScreen(
             modifier = Modifier.padding(innerPadding),
-            showAddShoppingListDialog = showAddShoppingListDialog
+            isSearchActive = isSearchActive,
+            showAddShoppingListDialog = showAddShoppingListDialog,
         )
     }
 }
