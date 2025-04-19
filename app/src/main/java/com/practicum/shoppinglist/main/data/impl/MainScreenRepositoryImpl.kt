@@ -33,6 +33,10 @@ class MainScreenRepositoryImpl @Inject constructor(
         dataSource.insertList(name, icon)
     }
 
+    override suspend fun removeShoppingList(id: Long) {
+        dataSource.deleteListById(id)
+    }
+
     override suspend fun removeAllShoppingLists() {
         //TO-DO
     }
