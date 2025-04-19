@@ -9,6 +9,7 @@ import com.practicum.shoppinglist.common.utils.Debounce
 import com.practicum.shoppinglist.core.domain.models.ListItem
 import com.practicum.shoppinglist.main.domain.api.MainScreenRepository
 import com.practicum.shoppinglist.main.domain.impl.AddShoppingListUseCase
+import com.practicum.shoppinglist.main.domain.impl.RemoveShoppingListUseCase
 import com.practicum.shoppinglist.main.domain.impl.ShowShoppingListByNameUseCase
 import com.practicum.shoppinglist.main.domain.impl.ShowShoppingListsUseCase
 import com.practicum.shoppinglist.main.domain.impl.UpdateShoppingListUseCase
@@ -32,6 +33,7 @@ class MainScreenViewModel @Inject constructor(
     private val showShoppingListByNameUseCase = ShowShoppingListByNameUseCase(mainScreenRepository)
     private val addShoppingListsUseCase = AddShoppingListUseCase(mainScreenRepository)
     private val updateShoppingListsUseCase = UpdateShoppingListUseCase(mainScreenRepository)
+    private val removeShoppingListUseCase = RemoveShoppingListUseCase(mainScreenRepository)
 
     private val timer: Debounce<String> by lazy {
         Debounce(Constants.USER_INPUT_DELAY, viewModelScope) { term ->
@@ -52,6 +54,12 @@ class MainScreenViewModel @Inject constructor(
     fun updateShoppingList(list: ListItem) {
         viewModelScope.launch {
             updateShoppingListsUseCase(list)
+        }
+    }
+
+    fun removeShoppingList(id: Long) {
+        viewModelScope.launch {
+            removeShoppingListUseCase(id)
         }
     }
 

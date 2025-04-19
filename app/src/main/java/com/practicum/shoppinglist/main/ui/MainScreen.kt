@@ -140,7 +140,9 @@ fun MainScreen(
                     onIconClick = { id ->
                         selectedList = id
                         showBottomSheet = true
-                    }
+                    },
+                    onRemove = { id ->
+                        viewModel.removeShoppingList(id) }
                 )
                 NoData(
                     visible = contentState is ShoppingListState.NoShoppingLists,
@@ -187,6 +189,9 @@ fun ShoppingList(
     state: ShoppingListState,
     onItemClick: () -> Unit,
     onIconClick: (ListItem) -> Unit = {},
+    onRename: () -> Unit = {},
+    onCopy: () -> Unit = {},
+    onRemove: (Long) -> Unit,
 ) {
     if (!visible) return
 
@@ -197,15 +202,27 @@ fun ShoppingList(
 
     if (items == null) return
 
+    var openItemId by remember { mutableStateOf<Long?>(null) }
+
     LazyColumn(
         modifier = Modifier.padding(horizontal = dimensionResource(R.dimen.padding_8x))
             .fillMaxSize(),
     ) {
-        items(items) { item ->
+        items(items, key = { it.id }) { item ->
             ItemList(
                 list = item,
-                onItemClick = { onItemClick() },
+                itemId = item.id,
+                openItemId = openItemId,
+                onItemClick = {
+                    onItemClick()
+                    openItemId = null
+                },
                 onIconClick = { onIconClick(item) },
+                onItemOpened = { id -> openItemId = id },
+                onItemClosed = { if (openItemId == item.id) openItemId = null },
+                onRename = onRename,
+                onCopy = onCopy,
+                onRemove = { onRemove(item.id) },
             )
         }
     }
