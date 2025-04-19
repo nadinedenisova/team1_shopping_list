@@ -2,10 +2,14 @@ package com.practicum.shoppinglist.main.ui.view_model
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.practicum.shoppinglist.common.resources.SearchShoppingListState
 import com.practicum.shoppinglist.common.resources.ShoppingListState
+import com.practicum.shoppinglist.common.utils.Constants
+import com.practicum.shoppinglist.common.utils.Debounce
 import com.practicum.shoppinglist.core.domain.models.ListItem
 import com.practicum.shoppinglist.main.domain.api.MainScreenRepository
 import com.practicum.shoppinglist.main.domain.impl.AddShoppingListUseCase
+import com.practicum.shoppinglist.main.domain.impl.ShowShoppingListByNameUseCase
 import com.practicum.shoppinglist.main.domain.impl.ShowShoppingListsUseCase
 import com.practicum.shoppinglist.main.domain.impl.UpdateShoppingListUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,9 +25,19 @@ class MainScreenViewModel @Inject constructor(
     private val _shoppingListStateFlow = MutableStateFlow<ShoppingListState>(ShoppingListState.Default)
     val shoppingListStateFlow: StateFlow<ShoppingListState> = _shoppingListStateFlow.asStateFlow()
 
+    private val _searchShoppingListStateFlow = MutableStateFlow<SearchShoppingListState>(SearchShoppingListState.Default)
+    val searchShoppingListStateFlow: StateFlow<SearchShoppingListState> = _searchShoppingListStateFlow.asStateFlow()
+
     private val showShoppingListsUseCase = ShowShoppingListsUseCase(mainScreenRepository)
+    private val showShoppingListByNameUseCase = ShowShoppingListByNameUseCase(mainScreenRepository)
     private val addShoppingListsUseCase = AddShoppingListUseCase(mainScreenRepository)
     private val updateShoppingListsUseCase = UpdateShoppingListUseCase(mainScreenRepository)
+
+    private val timer: Debounce<String> by lazy {
+        Debounce(Constants.USER_INPUT_DELAY, viewModelScope) { term ->
+            doSearch(term)
+        }
+    }
 
     init {
         observeShoppingLists()
@@ -41,16 +55,46 @@ class MainScreenViewModel @Inject constructor(
         }
     }
 
-    private fun observeShoppingLists() {
+    fun search(term: String) {
+        timer.start(parameter = term)
+    }
+
+    fun clearSearchResults() {
+        setSearchState(SearchShoppingListState.Default)
+    }
+
+    private fun doSearch(term: String?) {
+        if (term.isNullOrEmpty()) return
+
         viewModelScope.launch {
-            showShoppingListsUseCase()
-                .collect {
-                    processResult(it)
+            showShoppingListByNameUseCase(term)
+                .collect { result ->
+                    processSearchResult(result, term)
                 }
         }
     }
 
-    private fun processResult(list: List<ListItem>) {
+    private fun processSearchResult(lists: List<ListItem>, term: String) {
+        setSearchState(
+            when {
+                lists.isNotEmpty() -> {
+                    SearchShoppingListState.SearchResults(lists, term)
+                }
+                else -> SearchShoppingListState.NothingFound(term)
+            }
+        )
+    }
+
+    private fun observeShoppingLists() {
+        viewModelScope.launch {
+            showShoppingListsUseCase()
+                .collect {
+                    processObserveShoppingListsResult(it)
+                }
+        }
+    }
+
+    private fun processObserveShoppingListsResult(list: List<ListItem>) {
         setState(
             when {
                 list.isNotEmpty() -> ShoppingListState.ShoppingList(list)
@@ -61,6 +105,10 @@ class MainScreenViewModel @Inject constructor(
 
     private fun setState(state: ShoppingListState) {
         _shoppingListStateFlow.value = state
+    }
+
+    private fun setSearchState(state: SearchShoppingListState) {
+        _searchShoppingListStateFlow.value = state
     }
 
 }
