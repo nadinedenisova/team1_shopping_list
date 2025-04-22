@@ -27,6 +27,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -43,22 +44,27 @@ import com.practicum.shoppinglist.core.domain.models.ListItem
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.practicum.shoppinglist.R
+import com.practicum.shoppinglist.common.resources.ShoppingListIntent
+import com.practicum.shoppinglist.main.ui.view_model.MainScreenViewModel
 import kotlinx.coroutines.launch
 
 @Composable
 fun ItemList(
+    viewModel: MainScreenViewModel,
     list: ListItem,
-    itemId: Long,
-    openItemId: Long?,
+    openList: ListItem?,
     onItemClick: () -> Unit,
     onIconClick: () -> Unit,
-    onItemOpened: (Long) -> Unit,
+    onItemOpened: (ListItem) -> Unit,
     onItemClosed: () -> Unit,
     onRename: () -> Unit,
     onCopy: () -> Unit,
-    onRemove: () -> Unit,
+    onStartRemove: () -> Unit,
+    onFinishRemove: () -> Unit,
 ) {
+    val state by viewModel.shoppingListStateFlow.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
     val buttonsSwipe = with(LocalDensity.current) { (screenWidth * 0.35f).toPx() }
@@ -67,15 +73,25 @@ fun ItemList(
     val swipeOffset = remember { Animatable(0f) }
     val visibleState = remember { MutableTransitionState(true) }
 
-    LaunchedEffect(openItemId) {
-        if (openItemId != itemId && swipeOffset.value != 0f) {
+    LaunchedEffect(openList) {
+        if (openList?.id != list.id && swipeOffset.value != 0f) {
             swipeOffset.animateTo(0f)
         }
     }
 
     LaunchedEffect(visibleState.currentState, visibleState.targetState) {
         if (!visibleState.currentState && !visibleState.targetState) {
-            onRemove()
+            onFinishRemove()
+        }
+    }
+
+    LaunchedEffect(state.isRemoving) {
+        if (openList?.id == list.id && state.isRemoving) {
+
+            viewModel.processIntent(ShoppingListIntent.IsRemoving(false))
+            visibleState.targetState = false
+            scope.launch { swipeOffset.animateTo(0f) }
+            onItemClosed()
         }
     }
 
@@ -88,7 +104,7 @@ fun ItemList(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color.Transparent)
-                .pointerInput(openItemId) {
+                .pointerInput(openList?.id) {
                     detectHorizontalDragGestures(
                         onHorizontalDrag = { change, dragAmount ->
                             change.consume()
@@ -100,12 +116,10 @@ fun ItemList(
                         onDragEnd = {
                             scope.launch {
                                 if (swipeOffset.value <= -maxSwipe + 20f) {
-                                    visibleState.targetState = false
-                                    swipeOffset.snapTo(0f)
-                                    onItemClosed()
+                                    onStartRemove()
                                 } else if (swipeOffset.value < -buttonsSwipe / 2) {
                                     swipeOffset.animateTo(-buttonsSwipe)
-                                    onItemOpened(itemId)
+                                    onItemOpened(list)
                                 } else {
                                     swipeOffset.animateTo(0f)
                                     onItemClosed()
@@ -161,9 +175,7 @@ fun ItemList(
                         IconButton(
                             modifier = Modifier.padding(start = dimensionResource(R.dimen.padding_2x)),
                             onClick = {
-                                visibleState.targetState = false
-                                scope.launch { swipeOffset.animateTo(0f) }
-                                onItemClosed()
+                                onStartRemove()
                             },
                             icon = R.drawable.ic_delete,
                         )

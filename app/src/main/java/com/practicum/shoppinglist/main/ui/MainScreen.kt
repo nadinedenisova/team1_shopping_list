@@ -30,20 +30,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.practicum.shoppinglist.App
 import com.practicum.shoppinglist.R
 import com.practicum.shoppinglist.core.domain.models.ListItem
-import com.practicum.shoppinglist.di.api.daggerViewModel
 import com.practicum.shoppinglist.main.ui.recycler.ItemList
 import com.practicum.shoppinglist.main.ui.view_model.MainScreenViewModel
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.Button
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -54,21 +52,18 @@ import com.practicum.shoppinglist.main.ui.recycler.ItemListSearch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
-    modifier: Modifier,
+    viewModel: MainScreenViewModel,
     isSearchActive: MutableState<Boolean>,
     showAddShoppingListDialog: MutableState<Boolean>,
 ) {
-    val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val factory = remember {
-        (context.applicationContext as App).appComponent.viewModelFactory()
-    }
-    val viewModel = daggerViewModel<MainScreenViewModel>(factory)
     val state by viewModel.shoppingListStateFlow.collectAsStateWithLifecycle()
     var showBottomSheet by remember { mutableStateOf(false) }
     val bottomSheetState = rememberModalBottomSheetState()
     var selectedList by rememberSaveable { mutableStateOf<ListItem?>(null) }
     val searchQuery = rememberSaveable { mutableStateOf("") }
+    val showEditShoppingListDialog = rememberSaveable { mutableStateOf(false) }
+    val showRemoveShoppingListDialog = rememberSaveable { mutableStateOf(false) }
 
     if (showBottomSheet) {
         IconsBottomSheet(
@@ -83,7 +78,7 @@ fun MainScreen(
             },
             onIconClick = { icon ->
                 selectedList?.let {
-                    viewModel.processIntent(ShoppingListIntent.UpdateShoppingList(list = it.copy(iconResId = icon)))
+                    /*selectedList =*/ viewModel.processIntent(ShoppingListIntent.UpdateShoppingList(list = it.copy(iconResId = icon)))
                 }
             },
         )
@@ -93,7 +88,7 @@ fun MainScreen(
         Modifier.fillMaxWidth()
     ) {
         Column(
-            modifier = modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -136,15 +131,30 @@ fun MainScreen(
             Box {
                 ShoppingList(
                     visible = state.status == ShoppingListState.Status.CONTENT,
+                    viewModel = viewModel,
                     state = state,
-                    onItemClick = {
-                        //TO-DO
+                    onItemClick = { list ->
+                        selectedList = list
                     },
-                    onIconClick = { id ->
-                        selectedList = id
+                    onIconClick = { list ->
+                        selectedList = list
                         showBottomSheet = true
                     },
-                    onRemove = { id ->
+                    onItemOpened = { list ->
+                        selectedList = list
+                    },
+                    onRename = {
+                        showEditShoppingListDialog.value = true
+                    },
+                    onCopy = {
+                        selectedList?.let {
+                            viewModel.processIntent(ShoppingListIntent.AddShoppingList(name = it.name, icon = it.iconResId.toLong()))
+                        }
+                    },
+                    onStartRemove = {
+                        showRemoveShoppingListDialog.value = true
+                    },
+                    onFinishRemove = { id ->
                         viewModel.processIntent(ShoppingListIntent.RemoveShoppingList(id = id))
                     }
                 )
@@ -154,11 +164,34 @@ fun MainScreen(
                     title = stringResource(R.string.no_shopping_lists_title),
                     message = stringResource(R.string.no_shopping_lists_message),
                 )
-                AddShoppingListDialog(
+                ShoppingListDialog(
                     visible = showAddShoppingListDialog.value,
+                    topIcon = R.drawable.ic_add_shopping_list,
+                    title = stringResource(R.string.add_shopping_list),
+                    confirmText = stringResource(R.string.create),
                     onDismiss = { showAddShoppingListDialog.value = false },
                     onConfirm = { name ->
                         viewModel.processIntent(ShoppingListIntent.AddShoppingList(name = name, icon = R.drawable.ic_list.toLong()))
+                    }
+                )
+                ShoppingListDialog(
+                    visible = showEditShoppingListDialog.value,
+                    title = stringResource(R.string.edit_shopping_list),
+                    confirmText = stringResource(R.string.edit),
+                    text = selectedList?.name,
+                    onDismiss = { showEditShoppingListDialog.value = false },
+                    onConfirm = { name ->
+                        selectedList?.let {
+                            /*selectedList =*/ viewModel.processIntent(ShoppingListIntent.UpdateShoppingList(list = it.copy(name = name)))
+                        }
+                    }
+                )
+                RemoveShoppingListDialog(
+                    visible = showRemoveShoppingListDialog.value,
+                    title = "${stringResource(R.string.remove_shopping_list)} ${selectedList?.name}?",
+                    onDismiss = { showRemoveShoppingListDialog.value = false },
+                    onConfirm = {
+                        viewModel.processIntent(ShoppingListIntent.IsRemoving(true))
                     }
                 )
                 Scrim(
@@ -190,12 +223,15 @@ fun Scrim(
 @Composable
 fun ShoppingList(
     visible: Boolean,
+    viewModel: MainScreenViewModel,
     state: ShoppingListState,
-    onItemClick: () -> Unit,
+    onItemClick: (ListItem) -> Unit,
     onIconClick: (ListItem) -> Unit = {},
+    onItemOpened: (ListItem) -> Unit,
     onRename: () -> Unit = {},
     onCopy: () -> Unit = {},
-    onRemove: (Long) -> Unit,
+    onStartRemove: () -> Unit,
+    onFinishRemove: (Long) -> Unit,
 ) {
     if (!visible) return
 
@@ -206,7 +242,7 @@ fun ShoppingList(
 
     if (items == null) return
 
-    var openItemId by remember { mutableStateOf<Long?>(null) }
+    var openList by remember { mutableStateOf<ListItem?>(null) }
 
     LazyColumn(
         modifier = Modifier.padding(horizontal = dimensionResource(R.dimen.padding_8x))
@@ -214,19 +250,24 @@ fun ShoppingList(
     ) {
         items(items, key = { it.id }) { item ->
             ItemList(
+                viewModel = viewModel,
                 list = item,
-                itemId = item.id,
-                openItemId = openItemId,
+                openList = openList,
                 onItemClick = {
-                    onItemClick()
-                    openItemId = null
+                    onItemClick(item)
+                    openList = null
                 },
                 onIconClick = { onIconClick(item) },
-                onItemOpened = { id -> openItemId = id },
-                onItemClosed = { if (openItemId == item.id) openItemId = null },
+                onItemOpened = { list ->
+                    openList = list
+                    onItemOpened(list)
+
+                },
+                onItemClosed = { if (openList?.id == item.id) openList = null },
                 onRename = onRename,
                 onCopy = onCopy,
-                onRemove = { onRemove(item.id) },
+                onStartRemove = onStartRemove,
+                onFinishRemove = { onFinishRemove(item.id) },
             )
         }
     }
@@ -294,14 +335,24 @@ fun NoData(
 }
 
 @Composable
-fun AddShoppingListDialog(
+fun ShoppingListDialog(
     visible: Boolean,
+    topIcon: Int? = null,
+    title: String,
+    confirmText: String,
+    text: String? = null,
     onDismiss: () -> Unit,
     onConfirm: (String) -> Unit
 ) {
     if (!visible) return
 
-    var shoppingListName by remember { mutableStateOf("") }
+    var shoppingListName by remember {
+        mutableStateOf(
+            text?.let {
+                text
+            } ?: ""
+        )
+    }
     val focusRequester = remember { FocusRequester() }
 
     LaunchedEffect(Unit) {
@@ -311,12 +362,14 @@ fun AddShoppingListDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         icon = {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_add_shopping_list),
-                contentDescription = null
-            )
+            topIcon?.let {
+                Icon(
+                    painter = painterResource(id = topIcon),
+                    contentDescription = null
+                )
+            }
         },
-        title = { Text(stringResource(R.string.add_shopping_list)) },
+        title = { Text(title) },
         text = {
             OutlinedTextField(
                 value = shoppingListName,
@@ -346,9 +399,42 @@ fun AddShoppingListDialog(
                 onConfirm(shoppingListName)
                 onDismiss()
             }) {
-                Text(stringResource(R.string.create))
+                Text(confirmText)
             }
         },
     )
+}
 
+@Composable
+fun RemoveShoppingListDialog(
+    visible: Boolean,
+    title: String,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    if (!visible) return
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_alert),
+                contentDescription = null
+            )
+        },
+        title = { Text(title) },
+        dismissButton = {
+            Button(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
+            }
+        },
+        confirmButton = {
+            Button(onClick = {
+                onConfirm()
+                onDismiss()
+            }) {
+                Text(stringResource(R.string.remove))
+            }
+        },
+    )
 }

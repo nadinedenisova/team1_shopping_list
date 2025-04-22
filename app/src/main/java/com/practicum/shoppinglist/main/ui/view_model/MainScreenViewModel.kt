@@ -6,7 +6,9 @@ import androidx.lifecycle.viewModelScope
 import com.practicum.shoppinglist.common.resources.ShoppingListIntent
 import com.practicum.shoppinglist.common.resources.ShoppingListState
 import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.content
+import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.darkTheme
 import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.default
+import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.isRemoving
 import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.noShoppingLists
 import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.nothingFound
 import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.searchResults
@@ -14,6 +16,8 @@ import com.practicum.shoppinglist.common.utils.Constants
 import com.practicum.shoppinglist.common.utils.Debounce
 import com.practicum.shoppinglist.core.domain.models.ListItem
 import com.practicum.shoppinglist.main.domain.impl.AddShoppingListUseCase
+import com.practicum.shoppinglist.main.domain.impl.ChangeThemeSettingsUseCase
+import com.practicum.shoppinglist.main.domain.impl.GetThemeSettingsUseCase
 import com.practicum.shoppinglist.main.domain.impl.RemoveShoppingListUseCase
 import com.practicum.shoppinglist.main.domain.impl.ShowShoppingListByNameUseCase
 import com.practicum.shoppinglist.main.domain.impl.ShowShoppingListsUseCase
@@ -31,6 +35,8 @@ class MainScreenViewModel @Inject constructor(
     private val addShoppingListsUseCase: AddShoppingListUseCase,
     private val updateShoppingListsUseCase: UpdateShoppingListUseCase,
     private val removeShoppingListUseCase: RemoveShoppingListUseCase,
+    private val getThemeSettingsUseCase: GetThemeSettingsUseCase,
+    private val changeThemeSettingsUseCase: ChangeThemeSettingsUseCase,
 ) : ViewModel() {
 
     private companion object {
@@ -48,6 +54,7 @@ class MainScreenViewModel @Inject constructor(
 
     init {
         observeShoppingLists()
+        processIntent(ShoppingListIntent.GetThemeSettings)
     }
 
     fun processIntent(intent: ShoppingListIntent) {
@@ -56,7 +63,25 @@ class MainScreenViewModel @Inject constructor(
             is ShoppingListIntent.UpdateShoppingList -> updateShoppingList(list = intent.list)
             is ShoppingListIntent.RemoveShoppingList -> removeShoppingList(id = intent.id)
             is ShoppingListIntent.Search -> search(searchQuery = intent.searchQuery)
+            is ShoppingListIntent.ChangeThemeSettings -> changeThemeSettings(intent.darkTheme)
+            is ShoppingListIntent.IsRemoving -> _shoppingListStateFlow.update { currentState ->
+                currentState.isRemoving(intent.isRemoving)
+            }
+            is ShoppingListIntent.GetThemeSettings -> getThemeSettings()
             is ShoppingListIntent.ClearSearchResults -> clearSearchResults()
+        }
+    }
+
+    private fun getThemeSettings() {
+        _shoppingListStateFlow.update { currentState ->
+            currentState.darkTheme(darkTheme = getThemeSettingsUseCase())
+        }
+    }
+
+    private fun changeThemeSettings(darkTheme: Boolean) {
+        changeThemeSettingsUseCase(darkTheme)
+        _shoppingListStateFlow.update { currentState ->
+            currentState.darkTheme(darkTheme = darkTheme)
         }
     }
 
