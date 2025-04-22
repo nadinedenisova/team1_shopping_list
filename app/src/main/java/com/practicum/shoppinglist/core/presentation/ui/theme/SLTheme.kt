@@ -4,6 +4,8 @@ import android.app.UiModeManager
 import android.content.Context
 import android.os.Build
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Shapes
+import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
@@ -410,18 +412,38 @@ fun SLTheme(
         else -> scheme
     }
 
-    ProvideSLColors(
-        colorScheme = replyColorScheme
+    val elevation = Elevation()
+
+    ProvideElevation(
+        elevation = elevation
     ) {
-        MaterialTheme(
-            colorScheme = LocalColorScheme.current.materialScheme,
-            shapes = shapes,
-            typography = typography,
-            content = content,
-        )
+        ProvideSLColors(
+            colorScheme = replyColorScheme
+        ) {
+            MaterialTheme(
+                colorScheme = LocalColorScheme.current.materialScheme,
+                shapes = shapes,
+                typography = typography,
+                content = content,
+            )
+        }
     }
 }
 
-val MaterialTheme.slColorScheme: SLColorScheme
-    @Composable
-    get() = LocalColorScheme.current
+object SLTheme {
+    val slColorScheme: SLColorScheme
+        @Composable
+        get() = LocalColorScheme.current
+
+    val elevation: Elevation
+        @Composable
+        get() = LocalElevation.current
+
+    val shapes: Shapes
+        @Composable
+        get() = MaterialTheme.shapes
+
+    val typography: Typography
+        @Composable
+        get() = MaterialTheme.typography
+}
