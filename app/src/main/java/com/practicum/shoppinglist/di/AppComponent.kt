@@ -12,7 +12,7 @@ import javax.inject.Singleton
 @Component(modules = [
     DatabaseModule::class,
     DataModule::class,
-    InteractorModule::class,
+    UseCaseModule::class,
     RepositoryModule::class,
     ViewModelModule::class,
     NetworkModule::class,

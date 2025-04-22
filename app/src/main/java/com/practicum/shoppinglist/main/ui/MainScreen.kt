@@ -38,16 +38,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.practicum.shoppinglist.App
 import com.practicum.shoppinglist.R
-import com.practicum.shoppinglist.common.resources.ShoppingListState
 import com.practicum.shoppinglist.core.domain.models.ListItem
 import com.practicum.shoppinglist.di.api.daggerViewModel
 import com.practicum.shoppinglist.main.ui.recycler.ItemList
 import com.practicum.shoppinglist.main.ui.view_model.MainScreenViewModel
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.practicum.shoppinglist.common.resources.SearchShoppingListState
+import com.practicum.shoppinglist.common.resources.ShoppingListIntent
+import com.practicum.shoppinglist.common.resources.ShoppingListState
 import com.practicum.shoppinglist.main.ui.recycler.ItemListSearch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,28 +64,30 @@ fun MainScreen(
         (context.applicationContext as App).appComponent.viewModelFactory()
     }
     val viewModel = daggerViewModel<MainScreenViewModel>(factory)
-    val contentState by viewModel.shoppingListStateFlow.collectAsStateWithLifecycle()
-    val searchState by viewModel.searchShoppingListStateFlow.collectAsStateWithLifecycle()
+    val state by viewModel.shoppingListStateFlow.collectAsStateWithLifecycle()
     var showBottomSheet by remember { mutableStateOf(false) }
     val bottomSheetState = rememberModalBottomSheetState()
-    var selectedList by remember { mutableStateOf<ListItem?>(null) }
-    val searchQuery = remember { mutableStateOf("") }
+    var selectedList by rememberSaveable { mutableStateOf<ListItem?>(null) }
+    val searchQuery = rememberSaveable { mutableStateOf("") }
 
-    IconsBottomSheet(
-        visible = showBottomSheet,
-        bottomSheetState = bottomSheetState,
-        onDismissRequest = { showBottomSheet = false },
-        hideBottomSheet = {
-            scope.launch { bottomSheetState.hide() }.invokeOnCompletion {
-                if (!bottomSheetState.isVisible) {
-                    showBottomSheet = false
+    if (showBottomSheet) {
+        IconsBottomSheet(
+            bottomSheetState = bottomSheetState,
+            onDismissRequest = { showBottomSheet = false },
+            hideBottomSheet = {
+                scope.launch { bottomSheetState.hide() }.invokeOnCompletion {
+                    if (!bottomSheetState.isVisible) {
+                        showBottomSheet = false
+                    }
                 }
-            }
-        },
-        onIconClick = { icon ->
-            viewModel.updateShoppingList(selectedList!!.copy(iconResId = icon))
-        },
-    )
+            },
+            onIconClick = { icon ->
+                selectedList?.let {
+                    viewModel.processIntent(ShoppingListIntent.UpdateShoppingList(list = it.copy(iconResId = icon)))
+                }
+            },
+        )
+    }
 
     Box(
         Modifier.fillMaxWidth()
@@ -100,22 +103,22 @@ fun MainScreen(
                 onBackClick = {
                     isSearchActive.value = false
                     searchQuery.value = ""
-                    viewModel.clearSearchResults()
+                    viewModel.processIntent(ShoppingListIntent.ClearSearchResults)
                 },
                 onValueChange = { newValue ->
                     searchQuery.value = newValue
-                    viewModel.search(searchQuery.value)
+                    viewModel.processIntent(ShoppingListIntent.Search(searchQuery = searchQuery.value))
                 },
                 onBtnClearClick = {
                     searchQuery.value = ""
-                    viewModel.clearSearchResults()
+                    viewModel.processIntent(ShoppingListIntent.ClearSearchResults)
                 },
             )
             SearchShoppingList(
                 visible = isSearchActive.value
                         && searchQuery.value.isNotEmpty()
-                        && searchState is SearchShoppingListState.SearchResults,
-                state = searchState,
+                        && state.status == ShoppingListState.Status.SEARCH_RESULTS,
+                state = state,
                 onItemClick = {
                     //TO-DO
                 }
@@ -123,7 +126,7 @@ fun MainScreen(
             NoData(
                 visible = isSearchActive.value
                         && searchQuery.value.isNotEmpty()
-                        && searchState is SearchShoppingListState.NothingFound,
+                        && state.status == ShoppingListState.Status.NOTHING_FOUND,
                 modifier = Modifier.padding(top = 64.dp).fillMaxSize(),
                 image = R.drawable.nothing_found,
                 title = stringResource(R.string.nothing_found_title),
@@ -132,8 +135,8 @@ fun MainScreen(
 
             Box {
                 ShoppingList(
-                    visible = contentState is ShoppingListState.ShoppingList,
-                    state = contentState,
+                    visible = state.status == ShoppingListState.Status.CONTENT,
+                    state = state,
                     onItemClick = {
                         //TO-DO
                     },
@@ -142,10 +145,11 @@ fun MainScreen(
                         showBottomSheet = true
                     },
                     onRemove = { id ->
-                        viewModel.removeShoppingList(id) }
+                        viewModel.processIntent(ShoppingListIntent.RemoveShoppingList(id = id))
+                    }
                 )
                 NoData(
-                    visible = contentState is ShoppingListState.NoShoppingLists,
+                    visible = state.status == ShoppingListState.Status.NO_SHOPPING_LISTS,
                     image = R.drawable.no_shopping_lists,
                     title = stringResource(R.string.no_shopping_lists_title),
                     message = stringResource(R.string.no_shopping_lists_message),
@@ -154,7 +158,7 @@ fun MainScreen(
                     visible = showAddShoppingListDialog.value,
                     onDismiss = { showAddShoppingListDialog.value = false },
                     onConfirm = { name ->
-                        viewModel.addShoppingList(name = name, icon = R.drawable.ic_list.toLong())
+                        viewModel.processIntent(ShoppingListIntent.AddShoppingList(name = name, icon = R.drawable.ic_list.toLong()))
                     }
                 )
                 Scrim(
@@ -195,8 +199,8 @@ fun ShoppingList(
 ) {
     if (!visible) return
 
-    val items = when(state) {
-        is ShoppingListState.ShoppingList -> state.list
+    val items = when(state.status) {
+        ShoppingListState.Status.CONTENT -> state.content
         else -> null
     }
 
@@ -231,13 +235,13 @@ fun ShoppingList(
 @Composable
 fun SearchShoppingList(
     visible: Boolean,
-    state: SearchShoppingListState,
+    state: ShoppingListState,
     onItemClick: () -> Unit,
 ) {
     if (!visible) return
 
-    val items = when(state) {
-        is SearchShoppingListState.SearchResults -> state.list
+    val items = when(state.status) {
+        ShoppingListState.Status.SEARCH_RESULTS -> state.results
         else -> null
     }
 
