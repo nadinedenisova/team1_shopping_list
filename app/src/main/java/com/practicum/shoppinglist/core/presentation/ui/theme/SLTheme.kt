@@ -369,7 +369,7 @@ fun selectSchemeForContrast(isDark: Boolean): SLColorScheme {
 @Composable
 fun SLTheme(
     darkTheme: Boolean = false,
-    dynamicColor: Boolean = false,
+    dynamicColor: Boolean = true,
     content: @Composable () -> Unit,
 ) {
 
