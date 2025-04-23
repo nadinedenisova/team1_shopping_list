@@ -145,7 +145,7 @@ private fun DetailsScreenUI(
         Spacer(Modifier.height(120.dp))
         Image(
             modifier = Modifier,
-            painter = painterResource(R.drawable.no_product_list),
+            painter = painterResource(SLTheme.images.noProductList),
             contentDescription = null,
         )
         Spacer(Modifier.height(48.dp))

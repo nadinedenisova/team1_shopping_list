@@ -4,8 +4,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -30,25 +32,25 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.practicum.shoppinglist.App
 import com.practicum.shoppinglist.R
+import com.practicum.shoppinglist.common.resources.SearchShoppingListState
 import com.practicum.shoppinglist.common.resources.ShoppingListState
 import com.practicum.shoppinglist.core.domain.models.ListItem
+import com.practicum.shoppinglist.core.presentation.ui.theme.SLTheme
 import com.practicum.shoppinglist.di.api.daggerViewModel
 import com.practicum.shoppinglist.main.ui.recycler.ItemList
+import com.practicum.shoppinglist.main.ui.recycler.ItemListSearch
 import com.practicum.shoppinglist.main.ui.view_model.MainScreenViewModel
 import kotlinx.coroutines.launch
-import androidx.compose.foundation.layout.*
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
-import com.practicum.shoppinglist.common.resources.SearchShoppingListState
-import com.practicum.shoppinglist.main.ui.recycler.ItemListSearch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -125,7 +127,7 @@ fun MainScreen(
                         && searchQuery.value.isNotEmpty()
                         && searchState is SearchShoppingListState.NothingFound,
                 modifier = Modifier.padding(top = 64.dp).fillMaxSize(),
-                image = R.drawable.nothing_found,
+                image = SLTheme.images.nothingFound,
                 title = stringResource(R.string.nothing_found_title),
                 message = stringResource(R.string.no_shopping_lists_message),
             )
@@ -146,7 +148,7 @@ fun MainScreen(
                 )
                 NoData(
                     visible = contentState is ShoppingListState.NoShoppingLists,
-                    image = R.drawable.no_shopping_lists,
+                    image = SLTheme.images.noShoppingList,
                     title = stringResource(R.string.no_shopping_lists_title),
                     message = stringResource(R.string.no_shopping_lists_message),
                 )
