@@ -13,6 +13,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
+import com.practicum.shoppinglist.R
 
 private val lightScheme = SLColorScheme(
     materialScheme = lightColorScheme(
@@ -338,6 +339,23 @@ private val mediumContrastDarkColorScheme = SLColorScheme(
     onTertiaryFixedVariant = dark_medium_contrast_on_tertiary_fixed_variant,
 )
 
+private val lightImages = SLImages(
+    onboardLogo = R.drawable.onboard_logo_light,
+    onboard = R.drawable.onboard_light,
+    noShoppingList = R.drawable.no_shopping_lists_light,
+    nothingFound = R.drawable.nothing_found_light,
+    noProductList = R.drawable.no_product_list_light,
+)
+
+private val darkImages = SLImages(
+    onboardLogo = R.drawable.onboard_logo_dark,
+    onboard = R.drawable.onboard_dark,
+    noShoppingList = R.drawable.no_shopping_list_dark,
+    nothingFound = R.drawable.nothing_found_dark,
+    noProductList = R.drawable.no_product_list_dark,
+)
+
+
 fun isContrastAvailable(): Boolean {
     return Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE
 }
@@ -413,6 +431,7 @@ fun SLTheme(
     }
 
     val elevation = Elevation()
+    val images = if (darkTheme) darkImages else lightImages
 
     ProvideElevation(
         elevation = elevation
@@ -420,12 +439,16 @@ fun SLTheme(
         ProvideSLColors(
             colorScheme = replyColorScheme
         ) {
-            MaterialTheme(
-                colorScheme = LocalColorScheme.current.materialScheme,
-                shapes = shapes,
-                typography = typography,
-                content = content,
-            )
+            ProvideSLImages(
+                slImages = images
+            ) {
+                MaterialTheme(
+                    colorScheme = LocalColorScheme.current.materialScheme,
+                    shapes = shapes,
+                    typography = typography,
+                    content = content,
+                )
+            }
         }
     }
 }
@@ -446,4 +469,8 @@ object SLTheme {
     val typography: Typography
         @Composable
         get() = MaterialTheme.typography
+
+    val images: SLImages
+        @Composable
+        get() = LocalImages.current
 }
