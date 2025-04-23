@@ -2,12 +2,14 @@ package com.practicum.shoppinglist.core.presentation.ui.components
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -22,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Devices.PIXEL_6
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -38,15 +41,17 @@ fun SLOutlineTextField(
     placeholder: String? = null,
     readOnly: Boolean = false,
     trailingIcon: @Composable (() -> Unit)? = null,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
 
     BasicTextField(
         modifier = modifier
-            .defaultMinSize(
-                minWidth = OutlinedTextFieldDefaults.MinWidth,
-                minHeight = OutlinedTextFieldDefaults.MinHeight
-            ),
+//            .defaultMinSize(
+//                minWidth = OutlinedTextFieldDefaults.MinWidth,
+//                minHeight = OutlinedTextFieldDefaults.MinHeight
+//            )
+        ,
         value = value,
         singleLine = true,
         maxLines = 1,
@@ -58,6 +63,7 @@ fun SLOutlineTextField(
                 color = SLTheme.slColorScheme.materialScheme.onSurface
             ),
         readOnly = readOnly,
+        keyboardOptions = keyboardOptions,
         decorationBox = @Composable { innerTextField ->
             OutlinedTextFieldDefaults.DecorationBox(
                 value = value,
@@ -83,6 +89,7 @@ fun SLOutlineTextField(
                 trailingIcon = trailingIcon,
                 container = {
                     OutlinedTextFieldDefaults.Container(
+                        modifier = Modifier.width(IntrinsicSize.Min),
                         enabled = true,
                         isError = false,
                         interactionSource = interactionSource,
@@ -104,7 +111,9 @@ private fun TFLabel(text: String) {
     Surface {
         Text(
             modifier = Modifier,
-            text = text
+            text = text,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }
@@ -113,7 +122,9 @@ private fun TFLabel(text: String) {
 private fun TFPlaceholder(text: String) {
     Text(
         text = text,
-        style = SLTheme.typography.bodyLarge
+        style = SLTheme.typography.bodyLarge,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
     )
 }
 

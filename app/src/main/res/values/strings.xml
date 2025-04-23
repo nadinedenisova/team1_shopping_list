@@ -19,4 +19,8 @@
     <string name="create">Создать</string>
     <string name="no_product_lists_title">В списке покупок пока пусто</string>
     <string name="no_product_lists_message">Нажмите на кнопку + ниже,\nчтобы добавить товары</string>
+    <string name="product_title">Товар</string>
+    <string name="add_new_product_title">Добавить новый товар</string>
+    <string name="quantity_title">Количество</string>
+    <string name="units_title">Единицы</string>
 </resources>
