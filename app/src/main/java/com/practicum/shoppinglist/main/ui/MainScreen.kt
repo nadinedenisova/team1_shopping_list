@@ -45,7 +45,6 @@ import com.practicum.shoppinglist.R
 import com.practicum.shoppinglist.common.resources.SearchShoppingListState
 import com.practicum.shoppinglist.common.resources.ShoppingListState
 import com.practicum.shoppinglist.core.domain.models.ListItem
-import com.practicum.shoppinglist.core.presentation.ui.theme.SLTheme
 import com.practicum.shoppinglist.di.api.daggerViewModel
 import com.practicum.shoppinglist.main.ui.recycler.ItemList
 import com.practicum.shoppinglist.main.ui.recycler.ItemListSearch
@@ -127,7 +126,7 @@ fun MainScreen(
                         && searchQuery.value.isNotEmpty()
                         && searchState is SearchShoppingListState.NothingFound,
                 modifier = Modifier.padding(top = 64.dp).fillMaxSize(),
-                image = SLTheme.images.nothingFound,
+                image = R.drawable.nothing_found_light,
                 title = stringResource(R.string.nothing_found_title),
                 message = stringResource(R.string.no_shopping_lists_message),
             )
@@ -148,7 +147,7 @@ fun MainScreen(
                 )
                 NoData(
                     visible = contentState is ShoppingListState.NoShoppingLists,
-                    image = SLTheme.images.noShoppingList,
+                    image = R.drawable.no_product_list_light,
                     title = stringResource(R.string.no_shopping_lists_title),
                     message = stringResource(R.string.no_shopping_lists_message),
                 )
