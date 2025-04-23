@@ -17,19 +17,29 @@ class SqlDelightDataSource @Inject constructor(
         return db.listEntityQueries.getAll().asFlow().mapToList(Dispatchers.IO)
     }
 
-    override suspend fun insertList(name: String, icon: Long) = withContext(Dispatchers.IO) {
-        db.listEntityQueries.insert(
-            name = name,
-            icon_res_id = icon,
-        )
+    override suspend fun insertList(name: String, icon: Long): Long = withContext(Dispatchers.IO) {
+        var lastInsertedRowId: Long = -1
+        db.transaction {
+            db.listEntityQueries.insert(
+                name = name,
+                icon_res_id = icon,
+            )
+            lastInsertedRowId = db.commonQueries.selectLastInsertedRowId().executeAsOne()
+        }
+        return@withContext lastInsertedRowId
     }
 
-    override suspend fun updateList(item: ListEntity) = withContext(Dispatchers.IO) {
-        db.listEntityQueries.update(
-            name = item.name,
-            icon_res_id = item.icon_res_id,
-            id = item.id
-        )
+    override suspend fun updateList(item: ListEntity): Long = withContext(Dispatchers.IO) {
+        var updatedRows: Long = -1
+        db.transaction {
+            db.listEntityQueries.update(
+                name = item.name,
+                icon_res_id = item.icon_res_id,
+                id = item.id
+            )
+            updatedRows = db.commonQueries.selectChanges().executeAsOne()
+        }
+        return@withContext updatedRows
     }
 
     override suspend fun getListById(id: Long): ListEntity? = withContext(Dispatchers.IO) {
@@ -40,8 +50,13 @@ class SqlDelightDataSource @Inject constructor(
         return db.listEntityQueries.searchByName(name = name).asFlow().mapToList(Dispatchers.IO)
     }
 
-    override suspend fun deleteListById(id: Long) = withContext(Dispatchers.IO) {
-        db.listEntityQueries.deleteById(id)
+    override suspend fun deleteListById(id: Long): Long = withContext(Dispatchers.IO) {
+        var deletedRows: Long = -1
+        db.transaction {
+            db.listEntityQueries.deleteById(id)
+            deletedRows = db.commonQueries.selectChanges().executeAsOne()
+        }
+        return@withContext deletedRows
     }
 
     override fun getProductsByListId(id: Long): Flow<List<ProductEntity>> {
@@ -62,17 +77,28 @@ class SqlDelightDataSource @Inject constructor(
         )
     }
 
-    override suspend fun updateProduct(item: ProductEntity) = withContext(Dispatchers.IO) {
-        db.productEntityQueries.update(
-            id = item.id,
-            name = item.name,
-            unit = item.unit,
-            count = item.count,
-            completed = item.completed,
-        )
+    override suspend fun updateProduct(item: ProductEntity): Long = withContext(Dispatchers.IO) {
+        var updatedRows: Long = -1
+        db.transaction {
+            db.productEntityQueries.update(
+                id = item.id,
+                name = item.name,
+                unit = item.unit,
+                count = item.count,
+                completed = item.completed,
+            )
+            updatedRows = db.commonQueries.selectChanges().executeAsOne()
+        }
+        return@withContext updatedRows
+
     }
 
-    override suspend fun deleteProductById(id: Long) = withContext(Dispatchers.IO) {
-        db.productEntityQueries.deleteById(id)
+    override suspend fun deleteProductById(id: Long): Long = withContext(Dispatchers.IO) {
+        var deletedRows: Long = -1
+        db.transaction {
+            db.productEntityQueries.deleteById(id)
+            deletedRows = db.commonQueries.selectChanges().executeAsOne()
+        }
+        return@withContext deletedRows
     }
 }
