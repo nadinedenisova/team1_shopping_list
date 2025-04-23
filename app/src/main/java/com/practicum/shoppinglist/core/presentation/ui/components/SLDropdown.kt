@@ -32,7 +32,8 @@ import com.practicum.shoppinglist.core.presentation.ui.theme.SLTheme
 fun SLDropdown(
     modifier: Modifier = Modifier,
     label: String? = null,
-    menuItems: List<String>,
+    placeholder: String? = null,
+    menuItems: List<String> = emptyList(),
     editable: Boolean = false,
     showTrailingIcon: Boolean = false,
 ) {
@@ -52,13 +53,24 @@ fun SLDropdown(
 
     val allowedExpand = expanded && (!editable || filteredItems.isNotEmpty())
 
+    val trailingIcon: @Composable (() -> Unit)? = if (showTrailingIcon) {
+        {
+            Icon(
+                Icons.Filled.ArrowDropDown,
+                null,
+                modifier.rotate(if (expanded) 180f else 0f),
+                tint = SLTheme.slColorScheme.materialScheme.onSurface,
+            )
+        }
+    } else null
+
     ExposedDropdownMenuBox(
         modifier = modifier,
         expanded = expanded,
         onExpandedChange = { expanded = true },
     ) {
         SLOutlineTextField(
-            modifier = Modifier
+            modifier = modifier
                 .menuAnchor(
                     MenuAnchorType.PrimaryNotEditable,
                     enabled = !editable
@@ -70,17 +82,9 @@ fun SLDropdown(
             value = text,
             onValueChange = { text = it },
             label = label,
+            placeholder = placeholder,
             readOnly = !editable,
-            trailingIcon = @Composable {
-                if (showTrailingIcon) {
-                    Icon(
-                        Icons.Filled.ArrowDropDown,
-                        null,
-                        modifier.rotate(if (expanded) 180f else 0f),
-                        tint = SLTheme.slColorScheme.materialScheme.onSurface,
-                    )
-                }
-            },
+            trailingIcon = trailingIcon,
         )
 
         ExposedDropdownMenu(
@@ -88,7 +92,6 @@ fun SLDropdown(
             onDismissRequest = {
                 expanded = false
             },
-            containerColor = SLTheme.slColorScheme.materialScheme.surfaceContainer,
             matchTextFieldWidth = showTrailingIcon
         ) {
             filteredItems.forEach { item ->
