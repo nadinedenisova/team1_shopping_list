@@ -14,7 +14,7 @@ interface LocalDataSource {
 
     fun getProductsByListId(id: Long): Flow<List<ProductEntity>>
     suspend fun getProductById(id: Long): ProductEntity?
-    suspend fun insertProduct(listId: Long, item: ProductEntity)
+    suspend fun insertProduct(listId: Long, item: ProductEntity): Long
     suspend fun updateProduct(item: ProductEntity): Long
     suspend fun deleteProductById(id: Long): Long
 }
