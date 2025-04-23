@@ -15,11 +15,11 @@ update:
     WHERE id = :id;
 
 getAll:
-    SELECT *
+    SELECT listEntity.id, listEntity.name, listEntity.icon_res_id
     FROM listEntity;
 
 getById:
-    SELECT *
+    SELECT listEntity.id, listEntity.name, listEntity.icon_res_id
     FROM listEntity
     WHERE id = :id;
 
@@ -35,6 +35,6 @@ deleteById {
 }
 
 searchByName:
-    SELECT *
+    SELECT listEntity.id, listEntity.name, listEntity.icon_res_id
     FROM listEntity
     WHERE name LIKE ('%' || :name || '%');

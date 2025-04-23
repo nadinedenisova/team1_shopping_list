@@ -23,12 +23,12 @@ update:
     WHERE id = :id;
 
 getById:
-    SELECT *
+    SELECT productEntity.id, productEntity.name, productEntity.unit, productEntity.count, productEntity.completed
     FROM productEntity
     WHERE productEntity.id = :id;
 
 getAllByListId:
-    SELECT productEntity.*
+    SELECT productEntity.id, productEntity.name, productEntity.unit, productEntity.count, productEntity.completed
     FROM productEntity INNER JOIN listAndProductEntity
     WHERE listAndProductEntity.product_id = productEntity.id AND listAndProductEntity.list_id = :id;
 
