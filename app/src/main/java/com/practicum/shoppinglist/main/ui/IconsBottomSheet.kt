@@ -1,24 +1,27 @@
 package com.practicum.shoppinglist.main.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SheetState
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SheetState
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.unit.dp
@@ -47,19 +50,25 @@ fun IconsBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
         sheetState = bottomSheetState,
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
         dragHandle = {
             Box(
                 modifier = Modifier.padding(top = dimensionResource(R.dimen.padding_8x))
-                    .width(50.dp)
-                    .height(6.dp)
-                    .clip(RoundedCornerShape(44))
-                    .background(Color.Black)
+                    .width(32.dp)
+                    .height(4.dp)
+                    .clip(RoundedCornerShape(100))
+                    .background(MaterialTheme.colorScheme.outline)
             )
-        }
+        },
+        shape = RoundedCornerShape(
+            topStart = dimensionResource(R.dimen.bottom_sheet_corner_radius),
+            topEnd = dimensionResource(R.dimen.bottom_sheet_corner_radius)
+        ),
+        modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
     ) {
         Box(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
                 .align(Alignment.CenterHorizontally),
         ) {
             LazyVerticalGrid(

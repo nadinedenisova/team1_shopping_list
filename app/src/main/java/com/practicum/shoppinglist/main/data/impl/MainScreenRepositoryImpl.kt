@@ -2,6 +2,7 @@ package com.practicum.shoppinglist.main.data.impl
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.core.content.edit
 import com.practicum.shoppinglist.R
 import com.practicum.shoppinglist.core.data.SqlDelightDataSource
 import com.practicum.shoppinglist.core.data.mapper.toListEntity
@@ -11,7 +12,6 @@ import com.practicum.shoppinglist.main.domain.api.MainScreenRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
-import androidx.core.content.edit
 
 class MainScreenRepositoryImpl @Inject constructor(
     context: Context,
@@ -46,7 +46,7 @@ class MainScreenRepositoryImpl @Inject constructor(
     }
 
     override suspend fun removeAllShoppingLists() {
-        //TO-DO
+        dataSource.deleteAll()
     }
 
     override suspend fun updateShoppingLIst(list: ListItem) {

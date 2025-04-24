@@ -18,6 +18,7 @@ import com.practicum.shoppinglist.core.domain.models.ListItem
 import com.practicum.shoppinglist.main.domain.impl.AddShoppingListUseCase
 import com.practicum.shoppinglist.main.domain.impl.ChangeThemeSettingsUseCase
 import com.practicum.shoppinglist.main.domain.impl.GetThemeSettingsUseCase
+import com.practicum.shoppinglist.main.domain.impl.RemoveAllShoppingListsUseCase
 import com.practicum.shoppinglist.main.domain.impl.RemoveShoppingListUseCase
 import com.practicum.shoppinglist.main.domain.impl.ShowShoppingListByNameUseCase
 import com.practicum.shoppinglist.main.domain.impl.ShowShoppingListsUseCase
@@ -35,6 +36,7 @@ class MainScreenViewModel @Inject constructor(
     private val addShoppingListsUseCase: AddShoppingListUseCase,
     private val updateShoppingListsUseCase: UpdateShoppingListUseCase,
     private val removeShoppingListUseCase: RemoveShoppingListUseCase,
+    private val removeAllShoppingListsUseCase: RemoveAllShoppingListsUseCase,
     private val getThemeSettingsUseCase: GetThemeSettingsUseCase,
     private val changeThemeSettingsUseCase: ChangeThemeSettingsUseCase,
 ) : ViewModel() {
@@ -62,6 +64,7 @@ class MainScreenViewModel @Inject constructor(
             is ShoppingListIntent.AddShoppingList -> addShoppingList(name = intent.name, icon = intent.icon)
             is ShoppingListIntent.UpdateShoppingList -> updateShoppingList(list = intent.list)
             is ShoppingListIntent.RemoveShoppingList -> removeShoppingList(id = intent.id)
+            is ShoppingListIntent.RemoveAllShoppingLists -> removeAllShoppingLists()
             is ShoppingListIntent.Search -> search(searchQuery = intent.searchQuery)
             is ShoppingListIntent.ChangeThemeSettings -> changeThemeSettings(intent.darkTheme)
             is ShoppingListIntent.IsRemoving -> _shoppingListStateFlow.update { currentState ->
@@ -111,6 +114,16 @@ class MainScreenViewModel @Inject constructor(
                 removeShoppingListUseCase(id)
             }.onFailure { error ->
                 Log.e(TAG, "error in remove shopping list -> $error")
+            }
+        }
+    }
+
+    private fun removeAllShoppingLists() {
+        viewModelScope.launch {
+            runCatching {
+                removeAllShoppingListsUseCase()
+            }.onFailure { error ->
+                Log.e(TAG, "error in remove all shopping lists -> $error")
             }
         }
     }

@@ -23,7 +23,7 @@ data class ShoppingListState(
         fun default() = ShoppingListState(Status.DEFAULT)
         fun ShoppingListState.darkTheme(darkTheme: Boolean) = this.copy(darkTheme = darkTheme)
         fun ShoppingListState.isRemoving(isRemoving: Boolean) = this.copy(isRemoving = isRemoving)
-        fun ShoppingListState.nothingFound(searchQuery: String) = this.copy(status = Status.SEARCH_RESULTS, searchQuery = searchQuery)
+        fun ShoppingListState.nothingFound(searchQuery: String) = this.copy(status = Status.NOTHING_FOUND, searchQuery = searchQuery)
         fun ShoppingListState.noShoppingLists() = this.copy(status = Status.NO_SHOPPING_LISTS)
         fun ShoppingListState.searchResults(searchQuery: String, results: List<ListItem>) = this.copy(status = Status.SEARCH_RESULTS, searchQuery = searchQuery, results = results)
         fun ShoppingListState.content(content: List<ListItem>) = this.copy(status = Status.CONTENT, content = content)

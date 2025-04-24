@@ -16,6 +16,7 @@ fun NavGraph(
     startDestination: String = Routes.MainScreen.name,
     isSearchActive: MutableState<Boolean>,
     showAddShoppingListDialog: MutableState<Boolean>,
+    showRemoveAllShoppingListsDialog: MutableState<Boolean>,
     modifier: Modifier,
     viewModel: MainScreenViewModel,
 ) {
@@ -27,6 +28,7 @@ fun NavGraph(
                 viewModel = viewModel,
                 isSearchActive = isSearchActive,
                 showAddShoppingListDialog = showAddShoppingListDialog,
+                showRemoveAllShoppingListsDialog = showRemoveAllShoppingListsDialog,
             )
         }
 

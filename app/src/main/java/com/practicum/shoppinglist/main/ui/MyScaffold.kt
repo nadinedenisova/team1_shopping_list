@@ -7,15 +7,15 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -33,6 +33,7 @@ import com.practicum.shoppinglist.main.ui.view_model.MainScreenViewModel
 fun MyScaffold() {
     val navController = rememberNavController()
     val showAddShoppingListDialog = remember { mutableStateOf(false) }
+    val showRemoveAllShoppingListsDialog = rememberSaveable { mutableStateOf(false) }
     val isSearchActive = remember { mutableStateOf(false) }
     val context = LocalContext.current
     val factory = remember {
@@ -40,22 +41,20 @@ fun MyScaffold() {
     }
     val viewModel = daggerViewModel<MainScreenViewModel>(factory)
     val state by viewModel.shoppingListStateFlow.collectAsStateWithLifecycle()
-    var darkTheme by remember { mutableStateOf(false) }
 
-    LaunchedEffect(state.darkTheme) {
-        darkTheme = state.darkTheme
-    }
-
-    SLTheme(darkTheme = darkTheme) {
+    SLTheme(darkTheme = state.darkTheme) {
 
         Scaffold(
             topBar = {
                 if (!isSearchActive.value) {
                     TopBar(
+                        darkTheme = state.darkTheme,
                         onSearchClick = { isSearchActive.value = true },
-                        onRemoveClick = {},
+                        onRemoveClick = {
+                            showRemoveAllShoppingListsDialog.value = true
+                        },
                         onDarkModeClick = {
-                            viewModel.processIntent(ShoppingListIntent.ChangeThemeSettings(!darkTheme))
+                            viewModel.processIntent(ShoppingListIntent.ChangeThemeSettings(!state.darkTheme))
                         }
                     )
                 }
@@ -64,7 +63,8 @@ fun MyScaffold() {
                 FloatingActionButton(
                     onClick = {
                         showAddShoppingListDialog.value = true
-                    }
+                    },
+                    shape = MaterialTheme.shapes.small
                 ) {
                     Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add))
                 }
@@ -74,6 +74,7 @@ fun MyScaffold() {
                 navController = navController,
                 isSearchActive = isSearchActive,
                 showAddShoppingListDialog = showAddShoppingListDialog,
+                showRemoveAllShoppingListsDialog = showRemoveAllShoppingListsDialog,
                 modifier = Modifier.padding(innerPadding),
                 viewModel = viewModel,
             )
@@ -84,6 +85,7 @@ fun MyScaffold() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBar(
+    darkTheme: Boolean,
     onSearchClick: () -> Unit,
     onRemoveClick: () -> Unit,
     onDarkModeClick: () -> Unit,
@@ -105,7 +107,7 @@ fun TopBar(
             }
             IconButton(onClick = onDarkModeClick) {
                 Icon(
-                    painter = painterResource(id = R.drawable.ic_dark_mode),
+                    painter = if (darkTheme) painterResource(id = R.drawable.ic_light_theme) else painterResource(id = R.drawable.ic_dark_mode),
                     contentDescription = stringResource(R.string.dark_mode)
                 )
             }

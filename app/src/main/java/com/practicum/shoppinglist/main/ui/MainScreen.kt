@@ -4,19 +4,21 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,29 +27,28 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.practicum.shoppinglist.R
-import com.practicum.shoppinglist.core.domain.models.ListItem
-import com.practicum.shoppinglist.main.ui.recycler.ItemList
-import com.practicum.shoppinglist.main.ui.view_model.MainScreenViewModel
-import kotlinx.coroutines.launch
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Button
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import com.practicum.shoppinglist.common.resources.ShoppingListIntent
 import com.practicum.shoppinglist.common.resources.ShoppingListState
+import com.practicum.shoppinglist.core.domain.models.ListItem
+import com.practicum.shoppinglist.main.ui.recycler.ItemList
 import com.practicum.shoppinglist.main.ui.recycler.ItemListSearch
+import com.practicum.shoppinglist.main.ui.view_model.MainScreenViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,6 +56,7 @@ fun MainScreen(
     viewModel: MainScreenViewModel,
     isSearchActive: MutableState<Boolean>,
     showAddShoppingListDialog: MutableState<Boolean>,
+    showRemoveAllShoppingListsDialog: MutableState<Boolean>,
 ) {
     val scope = rememberCoroutineScope()
     val state by viewModel.shoppingListStateFlow.collectAsStateWithLifecycle()
@@ -125,7 +127,7 @@ fun MainScreen(
                 modifier = Modifier.padding(top = 64.dp).fillMaxSize(),
                 image = R.drawable.nothing_found,
                 title = stringResource(R.string.nothing_found_title),
-                message = stringResource(R.string.no_shopping_lists_message),
+                message = stringResource(R.string.nothing_found_message),
             )
 
             Box {
@@ -166,6 +168,7 @@ fun MainScreen(
                 )
                 ShoppingListDialog(
                     visible = showAddShoppingListDialog.value,
+                    textStyle = MaterialTheme.typography.headlineSmall,
                     topIcon = R.drawable.ic_add_shopping_list,
                     title = stringResource(R.string.add_shopping_list),
                     confirmText = stringResource(R.string.create),
@@ -176,6 +179,7 @@ fun MainScreen(
                 )
                 ShoppingListDialog(
                     visible = showEditShoppingListDialog.value,
+                    modifier = Modifier.fillMaxWidth(),
                     title = stringResource(R.string.edit_shopping_list),
                     confirmText = stringResource(R.string.edit),
                     text = selectedList?.name,
@@ -192,6 +196,14 @@ fun MainScreen(
                     onDismiss = { showRemoveShoppingListDialog.value = false },
                     onConfirm = {
                         viewModel.processIntent(ShoppingListIntent.IsRemoving(true))
+                    }
+                )
+                RemoveShoppingListDialog(
+                    visible = showRemoveAllShoppingListsDialog.value,
+                    title = stringResource(R.string.remove_all_shopping_lists),
+                    onDismiss = { showRemoveAllShoppingListsDialog.value = false },
+                    onConfirm = {
+                        viewModel.processIntent(ShoppingListIntent.RemoveAllShoppingLists)
                     }
                 )
                 Scrim(
@@ -323,11 +335,13 @@ fun NoData(
         )
         Text(
             text = title,
+            style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = dimensionResource(R.dimen.padding_image)),
         )
         Text(
             text = message,
+            style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = dimensionResource(R.dimen.padding_4x)),
         )
@@ -337,6 +351,8 @@ fun NoData(
 @Composable
 fun ShoppingListDialog(
     visible: Boolean,
+    modifier: Modifier = Modifier,
+    textStyle: TextStyle = MaterialTheme.typography.bodyLarge,
     topIcon: Int? = null,
     title: String,
     confirmText: String,
@@ -361,6 +377,7 @@ fun ShoppingListDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        shape = MaterialTheme.shapes.large,
         icon = {
             topIcon?.let {
                 Icon(
@@ -369,7 +386,13 @@ fun ShoppingListDialog(
                 )
             }
         },
-        title = { Text(title) },
+        title = {
+            Text(
+                text = title,
+                style = textStyle,
+                modifier = modifier
+            )
+        },
         text = {
             OutlinedTextField(
                 value = shoppingListName,
@@ -377,15 +400,6 @@ fun ShoppingListDialog(
                 label = { Text(stringResource(R.string.shopping_list_name)) },
                 placeholder = { Text(stringResource(R.string.new_shopping_list)) },
                 maxLines = 1,
-                colors = TextFieldDefaults.colors(
-                    focusedTextColor = MaterialTheme.colorScheme.onBackground,
-                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.background,
-                    focusedContainerColor = MaterialTheme.colorScheme.background,
-                    unfocusedIndicatorColor = MaterialTheme.colorScheme.surface,
-                    focusedIndicatorColor = MaterialTheme.colorScheme.background,
-                    cursorColor = MaterialTheme.colorScheme.background,
-                ),
                 modifier = Modifier.focusRequester(focusRequester),
             )
         },
@@ -416,13 +430,19 @@ fun RemoveShoppingListDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        shape = MaterialTheme.shapes.large,
         icon = {
             Icon(
                 painter = painterResource(id = R.drawable.ic_alert),
                 contentDescription = null
             )
         },
-        title = { Text(title) },
+        title = {
+            Text(
+                text = title,
+                textAlign = TextAlign.Center
+            )
+        },
         dismissButton = {
             Button(onClick = onDismiss) {
                 Text(stringResource(R.string.cancel))

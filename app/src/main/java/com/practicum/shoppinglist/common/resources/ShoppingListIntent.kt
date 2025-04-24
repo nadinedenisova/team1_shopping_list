@@ -12,6 +12,7 @@ sealed class ShoppingListIntent {
     data class Search(val searchQuery: String) : ShoppingListIntent()
     data class ChangeThemeSettings(val darkTheme: Boolean) : ShoppingListIntent()
     data class IsRemoving(val isRemoving: Boolean) : ShoppingListIntent()
+    data object RemoveAllShoppingLists : ShoppingListIntent()
     data object GetThemeSettings : ShoppingListIntent()
     data object ClearSearchResults : ShoppingListIntent()
 }
