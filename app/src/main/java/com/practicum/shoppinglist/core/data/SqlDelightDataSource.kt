@@ -5,6 +5,7 @@ import app.cash.sqldelight.coroutines.mapToList
 import com.practicum.shoppinglist.ListEntity
 import com.practicum.shoppinglist.ProductEntity
 import com.practicum.shoppinglist.ShoppingListDatabase
+import com.practicum.shoppinglist.common.utils.withRetry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -74,5 +75,20 @@ class SqlDelightDataSource @Inject constructor(
 
     override suspend fun deleteProductById(id: Long) = withContext(Dispatchers.IO) {
         db.productEntityQueries.deleteById(id)
+    }
+
+    override suspend fun deleteAll(): Long = withContext(Dispatchers.IO){
+        var deletedRows: Long = withRetry(
+            times = 2,
+            delayMs = 300L,
+            onError = { -1 }
+        ) {
+            db.transactionWithResult {
+                db.commonQueries.deleteAll()
+                return@transactionWithResult db.commonQueries.selectChanges().executeAsOne()
+            }
+        }
+
+        return@withContext deletedRows
     }
 }
