@@ -125,7 +125,7 @@ fun MainScreen(
                         && searchQuery.value.isNotEmpty()
                         && state.status == ShoppingListState.Status.NOTHING_FOUND,
                 modifier = Modifier.padding(top = 64.dp).fillMaxSize(),
-                image = R.drawable.nothing_found,
+                image = R.drawable.nothing_found_light,
                 title = stringResource(R.string.nothing_found_title),
                 message = stringResource(R.string.nothing_found_message),
             )
