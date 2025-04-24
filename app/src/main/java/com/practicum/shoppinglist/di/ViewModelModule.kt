@@ -18,6 +18,8 @@ abstract class ViewModelModule {
     @Binds
     @IntoMap
     @ViewModelKey(MainScreenViewModel::class)
-    abstract fun bindMainActivityViewModel(myViewModel: MainScreenViewModel): ViewModel
+    abstract fun bindMainActivityViewModel(
+        myViewModel: MainScreenViewModel,
+    ): ViewModel
 
 }
