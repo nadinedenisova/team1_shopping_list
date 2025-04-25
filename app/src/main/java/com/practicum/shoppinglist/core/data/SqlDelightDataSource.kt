@@ -156,4 +156,19 @@ class SqlDelightDataSource @Inject constructor(
 
         return@withContext deletedRows
     }
+
+    override suspend fun deleteAll(): Long = withContext(Dispatchers.IO){
+        var deletedRows: Long = withRetry(
+            times = 2,
+            delayMs = 300L,
+            onError = { -1 }
+        ) {
+            db.transactionWithResult {
+                db.commonQueries.deleteAll()
+                return@transactionWithResult db.commonQueries.selectChanges().executeAsOne()
+            }
+        }
+
+        return@withContext deletedRows
+    }
 }

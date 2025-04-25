@@ -3,3 +3,9 @@ selectLastInsertedRowId:
 
 selectChanges:
     SELECT changes();
+
+deleteAll {
+    DELETE FROM listEntity;
+    DELETE FROM productEntity;
+    DELETE FROM listAndProductEntity;
+}

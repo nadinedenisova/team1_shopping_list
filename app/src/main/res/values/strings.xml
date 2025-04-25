@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">ShoppingList</string>
+    <string name="prefs_file_name">Settings</string>
+    <string name="theme_save_key">dark theme</string>
     <string name="main_screen_title">Мои списки</string>
     <string name="add">Добавить</string>
     <string name="search">Поиск</string>
@@ -7,14 +9,24 @@
     <string name="remove">Удалить</string>
     <string name="dark_mode">Тёмная тема</string>
     <string name="no_shopping_lists_title">У вас пока нет списков</string>
-    <string name="no_shopping_lists_message">Нажмите на кнопку + ниже, чтобы создать свой первый список</string>
+    <string name="no_shopping_lists_message">Нажмите на кнопку + ниже, чтобы создать\nсвой первый список</string>
 
-    <string name="nothing_found_title">Мы не cмогли найти то, что вы искали</string>
-    <string name="nothing_found_message">Попробуйте изменить запрос или проверить написание</string>
+    <string name="nothing_found_title">Мы не cмогли найти то,\nчто вы искали</string>
+    <string name="nothing_found_message">Попробуйте изменить запрос\nили проверить написание</string>
 
+    <string name="edit_shopping_list">Переименование списка</string>
     <string name="add_shopping_list">Добавление списка</string>
+    <string name="remove_shopping_list">Удалить список</string>
+    <string name="remove_all_shopping_lists">Удалить все списки?</string>
     <string name="shopping_list_name">Название списка</string>
     <string name="new_shopping_list">Новый список</string>
     <string name="cancel">Отмена</string>
     <string name="create">Создать</string>
+    <string name="edit">Переименовать</string>
+    <string name="no_product_lists_title">В списке покупок пока пусто</string>
+    <string name="no_product_lists_message">Нажмите на кнопку + ниже,\nчтобы добавить товары</string>
+    <string name="product_title">Товар</string>
+    <string name="add_new_product_title">Добавить новый товар</string>
+    <string name="quantity_title">Количество</string>
+    <string name="units_title">Единицы</string>
 </resources>
