@@ -1,7 +1,9 @@
 package com.practicum.shoppinglist.di
 
-import com.practicum.shoppinglist.core.data.network.KtorHttpClientImpl
-import com.practicum.shoppinglist.core.data.network.NetworkClient
+import com.android.ktorsample.feature.http.data.network.AuthResponse
+import com.practicum.shoppinglist.main.domain.api.auth.AuthorizationKtorNetworkClient
+import com.practicum.shoppinglist.core.data.network.HttpKtorNetworkClient
+import com.practicum.shoppinglist.main.domain.api.auth.dto.AuthRequest
 import dagger.Module
 import dagger.Provides
 import javax.inject.Singleton
@@ -10,7 +12,7 @@ import javax.inject.Singleton
 object NetworkModule {
     @Provides
     @Singleton
-    fun provideHttpClient(): NetworkClient {
-        return KtorHttpClientImpl()
+    fun provideHttpClient(): HttpKtorNetworkClient<AuthRequest, AuthResponse> {
+        return AuthorizationKtorNetworkClient()
     }
 }
