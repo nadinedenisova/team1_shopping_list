@@ -39,16 +39,13 @@ val icons = listOf(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun IconsBottomSheet(
-    visible: Boolean,
     bottomSheetState: SheetState,
     onDismissRequest: () -> Unit,
     hideBottomSheet: () -> Unit,
     onIconClick: (Int) -> Unit,
 ) {
-    if (!visible) return
-
     ModalBottomSheet(
-        onDismissRequest = { onDismissRequest() },
+        onDismissRequest = onDismissRequest,
         sheetState = bottomSheetState,
         containerColor = Color.White,
         dragHandle = {
