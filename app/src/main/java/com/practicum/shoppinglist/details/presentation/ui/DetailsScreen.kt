@@ -1,6 +1,7 @@
 package com.practicum.shoppinglist.details.presentation.ui
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,20 +11,29 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -31,7 +41,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices.PIXEL_6
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.PopupProperties
 import androidx.core.text.isDigitsOnly
 import com.practicum.shoppinglist.R
 import com.practicum.shoppinglist.core.presentation.ui.components.SLDropdown
@@ -41,14 +53,42 @@ import com.practicum.shoppinglist.core.presentation.ui.theme.SLTheme
 import com.practicum.shoppinglist.details.presentation.state.DetailsScreenIntent
 import com.practicum.shoppinglist.details.presentation.state.DetailsScreenState
 import com.practicum.shoppinglist.details.presentation.viewmodel.DetailsViewModel
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailsScreen(
     modifier: Modifier = Modifier,
+    showMenuBottomSheet: MutableState<Boolean>,
     showAddProductListDialog: MutableState<Boolean>,
-    viewModel: DetailsViewModel = remember { DetailsViewModel() }
+    viewModel: DetailsViewModel = remember { DetailsViewModel() },
+    shoppingListId: Long,
 ) {
     val state = viewModel.state.collectAsState().value
+    val bottomSheetState = rememberModalBottomSheetState()
+    val scope = rememberCoroutineScope()
+    val expanded = remember { mutableStateOf(false) }
+    val selectedOption = rememberSaveable { mutableStateOf("") }
+
+    if (showMenuBottomSheet.value) {
+        MenuBottomSheet(
+            bottomSheetState = bottomSheetState,
+            expanded = expanded,
+            selectedOption = selectedOption,
+            onDismissRequest =  { showMenuBottomSheet.value = false },
+            hideBottomSheet = {
+                scope.launch { bottomSheetState.hide() }.invokeOnCompletion {
+                    if (!bottomSheetState.isVisible) {
+                        showMenuBottomSheet.value = false
+                    }
+                }
+            },
+            onSortClick = { expanded.value = true },
+            onRemoveAll = {},
+            onClearClick = {},
+        )
+    }
+
     DetailsScreenUI(
         modifier = modifier,
         state = state,
@@ -56,7 +96,6 @@ fun DetailsScreen(
         showAddProductListDialog = showAddProductListDialog,
     )
 }
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -159,6 +198,75 @@ private fun DetailsScreenUI(
             style = SLTheme.typography.bodyMedium.copy(textAlign = TextAlign.Center),
         )
     }
+}
+
+@Composable
+fun ActionMenu(
+    expanded: MutableState<Boolean>,
+    selectedOption: MutableState<String>,
+    anchorBounds: Rect
+) {
+    if (!expanded.value) return
+
+    val density = LocalDensity.current
+    val x = with(density) { anchorBounds.right.toDp() }
+    val y = with(density) { anchorBounds.top.toDp() }
+
+    val options = mapOf(
+        stringResource(R.string.sort_alphabet_order) to R.drawable.ic_alphabet_order,
+        stringResource(R.string.sort_user_defined) to R.drawable.ic_user_defined,
+    )
+
+    DropdownMenu(
+        expanded = expanded.value,
+        onDismissRequest = { expanded.value = false },
+        offset = DpOffset(x, y),
+        properties = PopupProperties(focusable = true),
+    ) {
+        options.forEach { option ->
+            PopupMenuItem(
+                leadingIcon = option.value,
+                expanded = expanded,
+                option = option.key,
+                selectedOption = selectedOption,
+            )
+        }
+    }
+}
+
+@Composable
+fun PopupMenuItem(
+    leadingIcon: Int,
+    expanded: MutableState<Boolean>,
+    option: String,
+    selectedOption: MutableState<String>,
+) {
+    DropdownMenuItem(
+        leadingIcon = {
+            Icon(
+                painter = painterResource(id = leadingIcon),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSecondaryContainer
+            )
+        },
+        text = {
+            Text(
+                text = option,
+                style = MaterialTheme.typography.bodyLarge
+            )
+        },
+        trailingIcon = {
+            RadioButton(
+                selected = option == selectedOption.value,
+                onClick = {}
+            )
+        },
+        onClick = {
+            selectedOption.value = option
+            expanded.value = false
+        },
+        modifier = Modifier.background(MaterialTheme.colorScheme.surfaceContainer)
+    )
 }
 
 @Preview(name = "Светлая тема", showSystemUi = true, device = PIXEL_6)

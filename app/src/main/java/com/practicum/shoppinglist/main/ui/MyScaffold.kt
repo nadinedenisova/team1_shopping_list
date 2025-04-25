@@ -2,6 +2,7 @@ package com.practicum.shoppinglist.main.ui
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -21,6 +22,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.practicum.shoppinglist.App
 import com.practicum.shoppinglist.R
@@ -33,7 +35,9 @@ import com.practicum.shoppinglist.main.ui.view_model.MainScreenViewModel
 fun MyScaffold() {
     val navController = rememberNavController()
     val showAddShoppingListDialog = remember { mutableStateOf(false) }
+    val showAddProductListDialog = remember { mutableStateOf(false) }
     val showRemoveAllShoppingListsDialog = rememberSaveable { mutableStateOf(false) }
+    val showProductsScreenMenu = rememberSaveable { mutableStateOf(false) }
     val isSearchActive = remember { mutableStateOf(false) }
     val context = LocalContext.current
     val factory = remember {
@@ -41,6 +45,8 @@ fun MyScaffold() {
     }
     val viewModel = daggerViewModel<MainScreenViewModel>(factory)
     val state by viewModel.shoppingListStateFlow.collectAsStateWithLifecycle()
+    val currentBackStack by navController.currentBackStackEntryAsState()
+    val currentDestination = currentBackStack?.destination
 
     SLTheme(darkTheme = state.darkTheme) {
 
@@ -49,12 +55,17 @@ fun MyScaffold() {
                 if (!isSearchActive.value) {
                     TopBar(
                         darkTheme = state.darkTheme,
+                        currentDestination = currentDestination?.route,
+                        onBackClick = { navController.popBackStack() },
                         onSearchClick = { isSearchActive.value = true },
                         onRemoveClick = {
                             showRemoveAllShoppingListsDialog.value = true
                         },
                         onDarkModeClick = {
                             viewModel.processIntent(ShoppingListIntent.ChangeThemeSettings(!state.darkTheme))
+                        },
+                        onMenuClick = {
+                            showProductsScreenMenu.value = true
                         }
                     )
                 }
@@ -62,7 +73,11 @@ fun MyScaffold() {
             floatingActionButton = {
                 FloatingActionButton(
                     onClick = {
-                        showAddShoppingListDialog.value = true
+                        if (currentDestination?.route == Routes.MainScreen.name) {
+                            showAddShoppingListDialog.value = true
+                        } else {
+                            showAddProductListDialog.value = true
+                        }
                     },
                     shape = MaterialTheme.shapes.small
                 ) {
@@ -74,7 +89,9 @@ fun MyScaffold() {
                 navController = navController,
                 isSearchActive = isSearchActive,
                 showAddShoppingListDialog = showAddShoppingListDialog,
+                showAddProductListDialog = showAddProductListDialog,
                 showRemoveAllShoppingListsDialog = showRemoveAllShoppingListsDialog,
+                showMenuBottomSheet = showProductsScreenMenu,
                 modifier = Modifier.padding(innerPadding),
                 viewModel = viewModel,
             )
@@ -86,31 +103,67 @@ fun MyScaffold() {
 @Composable
 fun TopBar(
     darkTheme: Boolean,
-    onSearchClick: () -> Unit,
-    onRemoveClick: () -> Unit,
-    onDarkModeClick: () -> Unit,
+    currentDestination: String?,
+    onBackClick: () -> Unit,
+    onSearchClick: () -> Unit = {},
+    onRemoveClick: () -> Unit = {},
+    onDarkModeClick: () -> Unit = {},
+    onMenuClick: () -> Unit,
 ) {
+    val screensWithoutBackButton = listOf(Routes.MainScreen.name)
+    val showBackButton = currentDestination !in screensWithoutBackButton
+
     TopAppBar(
-        title = { Text(stringResource(R.string.main_screen_title)) },
+        title = {
+            Text(
+                when (currentDestination) {
+                    Routes.MainScreen.name -> stringResource(R.string.main_screen_title)
+                    else -> stringResource(R.string.products_screen_title)
+                }
+            )
+        },
+        navigationIcon = {
+            if (showBackButton) {
+                IconButton(onClick = onBackClick) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = ""
+                    )
+                }
+            }
+        },
         actions = {
-            IconButton(onClick = onSearchClick) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_search),
-                    contentDescription = stringResource(R.string.search)
-                )
+            when (currentDestination) {
+                Routes.MainScreen.name -> {
+                    IconButton(onClick = onSearchClick) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_search),
+                            contentDescription = stringResource(R.string.search)
+                        )
+                    }
+                    IconButton(onClick = onRemoveClick) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_remove),
+                            contentDescription = stringResource(R.string.remove)
+                        )
+                    }
+                    IconButton(onClick = onDarkModeClick) {
+                        Icon(
+                            painter = if (darkTheme) painterResource(id = R.drawable.ic_light_theme) else painterResource(id = R.drawable.ic_dark_mode),
+                            contentDescription = stringResource(R.string.dark_mode)
+                        )
+                    }
+                }
+                else -> {
+                    IconButton(onClick = onMenuClick) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_menu),
+                            contentDescription = null
+                        )
+                    }
+                }
             }
-            IconButton(onClick = onRemoveClick) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_remove),
-                    contentDescription = stringResource(R.string.remove)
-                )
-            }
-            IconButton(onClick = onDarkModeClick) {
-                Icon(
-                    painter = if (darkTheme) painterResource(id = R.drawable.ic_light_theme) else painterResource(id = R.drawable.ic_dark_mode),
-                    contentDescription = stringResource(R.string.dark_mode)
-                )
-            }
+
         }
     )
 }
