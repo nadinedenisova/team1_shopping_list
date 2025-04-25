@@ -76,6 +76,10 @@ fun MenuBottomSheet(
                 icon = R.drawable.ic_sort,
                 text = stringResource(R.string.sort),
                 subText = selectedOption.value,
+                onBounds = { bounds ->
+                    anchorBounds.value = bounds
+                },
+                trailingIcon = R.drawable.ic_right,
                 onClick = {
                     onSortClick()
                 },
@@ -83,9 +87,6 @@ fun MenuBottomSheet(
             MenuItem(
                 icon = R.drawable.ic_delete,
                 text = stringResource(R.string.remove_all),
-                onBounds = { bounds ->
-                    anchorBounds.value = bounds
-                },
                 onClick = {
                     onRemoveAll()
                     hideBottomSheet()

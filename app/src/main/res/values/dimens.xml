@@ -18,4 +18,5 @@
     <dimen name="padding_16x">32dp</dimen>
     <dimen name="icon_size">40dp</dimen>
     <dimen name="padding_image">48dp</dimen>
+    <dimen name="sort_menu_width">280dp</dimen>
 </resources>
