@@ -2,6 +2,7 @@ package com.practicum.shoppinglist.details.presentation.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,10 +10,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -33,16 +34,20 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices.PIXEL_6
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import androidx.core.text.isDigitsOnly
 import com.practicum.shoppinglist.R
@@ -208,20 +213,53 @@ fun ActionMenu(
 ) {
     if (!expanded.value) return
 
+    val context = LocalContext.current
     val density = LocalDensity.current
-    val x = with(density) { anchorBounds.right.toDp() }
-    val y = with(density) { anchorBounds.top.toDp() }
+    val options = remember {
+        mapOf(
+            context.resources.getString(R.string.sort_alphabet_order) to R.drawable.ic_alphabet_order,
+            context.resources.getString(R.string.sort_user_defined) to R.drawable.ic_user_defined,
+        )
+    }
+    val x = with(density) { (anchorBounds.right.toDp() - dimensionResource(R.dimen.sort_menu_width) + dimensionResource(R.dimen.padding_8x)).roundToPx() }
+    val y = with(density) { (anchorBounds.top.toDp() - dimensionResource(R.dimen.padding_4x)).roundToPx() }
 
-    val options = mapOf(
-        stringResource(R.string.sort_alphabet_order) to R.drawable.ic_alphabet_order,
-        stringResource(R.string.sort_user_defined) to R.drawable.ic_user_defined,
-    )
+    Popup(
+        alignment = Alignment.TopStart,
+        offset = IntOffset(x, y),
+        onDismissRequest = { expanded.value = false },
+        properties = PopupProperties(focusable = true),
+    ) {
+        Surface(
+            modifier = Modifier
+                .width(dimensionResource(R.dimen.sort_menu_width))
+                .shadow(8.dp, RoundedCornerShape(8.dp)),
+            color = MaterialTheme.colorScheme.surfaceContainer,
+            shape = RoundedCornerShape(8.dp)
+        ) {
+            Column {
+                options.forEach { option ->
+                    PopupMenuItem(
+                        leadingIcon = option.value,
+                        expanded = expanded,
+                        option = option.key,
+                        selectedOption = selectedOption,
+                    )
+                }
+            }
+        }
+    }
 
-    DropdownMenu(
+    /*DropdownMenu(
         expanded = expanded.value,
         onDismissRequest = { expanded.value = false },
         offset = DpOffset(x, y),
         properties = PopupProperties(focusable = true),
+        modifier = Modifier
+            .width(dimensionResource(R.dimen.sort_menu_width))
+            .onGloballyPositioned { coordinates ->
+                menuHeight = coordinates.size.height
+            }
     ) {
         options.forEach { option ->
             PopupMenuItem(
@@ -231,7 +269,7 @@ fun ActionMenu(
                 selectedOption = selectedOption,
             )
         }
-    }
+    }*/
 }
 
 @Composable
@@ -241,32 +279,34 @@ fun PopupMenuItem(
     option: String,
     selectedOption: MutableState<String>,
 ) {
-    DropdownMenuItem(
-        leadingIcon = {
-            Icon(
-                painter = painterResource(id = leadingIcon),
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSecondaryContainer
-            )
-        },
-        text = {
-            Text(
-                text = option,
-                style = MaterialTheme.typography.bodyLarge
-            )
-        },
-        trailingIcon = {
-            RadioButton(
-                selected = option == selectedOption.value,
-                onClick = {}
-            )
-        },
-        onClick = {
-            selectedOption.value = option
-            expanded.value = false
-        },
-        modifier = Modifier.background(MaterialTheme.colorScheme.surfaceContainer)
-    )
+    Row(
+        modifier = Modifier
+            .clickable {
+                selectedOption.value = option
+                expanded.value = false
+            }
+            .padding(start = dimensionResource(R.dimen.padding_6x), end = dimensionResource(R.dimen.padding_8x))
+            .padding(vertical = dimensionResource(R.dimen.padding_8x))
+            .background(MaterialTheme.colorScheme.surfaceContainer),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            painter = painterResource(id = leadingIcon),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+        )
+        Spacer(modifier = Modifier.width(dimensionResource(R.dimen.padding_6x)))
+        Text(
+            text = option,
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.weight(1f)
+        )
+        Spacer(modifier = Modifier.width(dimensionResource(R.dimen.padding_6x)))
+        RadioButton(
+            selected = option == selectedOption.value,
+            onClick = null
+        )
+    }
 }
 
 @Preview(name = "Светлая тема", showSystemUi = true, device = PIXEL_6)

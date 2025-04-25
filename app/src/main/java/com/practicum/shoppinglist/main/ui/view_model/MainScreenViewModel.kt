@@ -23,6 +23,7 @@ import com.practicum.shoppinglist.main.domain.impl.RemoveShoppingListUseCase
 import com.practicum.shoppinglist.main.domain.impl.ShowShoppingListByNameUseCase
 import com.practicum.shoppinglist.main.domain.impl.ShowShoppingListsUseCase
 import com.practicum.shoppinglist.main.domain.impl.UpdateShoppingListUseCase
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -89,7 +90,7 @@ class MainScreenViewModel @Inject constructor(
     }
 
     private fun addShoppingList(name: String, icon: Long) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             runCatching {
                 addShoppingListsUseCase(name, icon)
             }.onFailure { error ->
@@ -99,7 +100,7 @@ class MainScreenViewModel @Inject constructor(
     }
 
     private fun updateShoppingList(list: ListItem) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             runCatching {
                 updateShoppingListsUseCase(list)
             }.onFailure { error ->
@@ -109,7 +110,7 @@ class MainScreenViewModel @Inject constructor(
     }
 
     private fun removeShoppingList(id: Long) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             runCatching {
                 removeShoppingListUseCase(id)
             }.onFailure { error ->
@@ -119,7 +120,7 @@ class MainScreenViewModel @Inject constructor(
     }
 
     private fun removeAllShoppingLists() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             runCatching {
                 removeAllShoppingListsUseCase()
             }.onFailure { error ->
@@ -141,7 +142,7 @@ class MainScreenViewModel @Inject constructor(
     private fun doSearch(searchQuery: String?) {
         if (searchQuery.isNullOrEmpty()) return
 
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             runCatching {
                 showShoppingListByNameUseCase(searchQuery)
                     .collect { results ->
@@ -163,7 +164,7 @@ class MainScreenViewModel @Inject constructor(
     }
 
     private fun observeShoppingLists() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             runCatching {
                 showShoppingListsUseCase()
                     .collect {
