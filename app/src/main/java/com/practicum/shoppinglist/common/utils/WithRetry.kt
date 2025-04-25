@@ -20,5 +20,5 @@ suspend fun <T> withRetry(
             }
         }
     }
-    return body()
+    return onError(Exception("An error prevents the operation from being completed"))
 }
