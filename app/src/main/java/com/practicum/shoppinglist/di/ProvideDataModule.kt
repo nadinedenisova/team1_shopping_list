@@ -3,7 +3,6 @@ package com.practicum.shoppinglist.di
 import android.content.Context
 import android.content.SharedPreferences
 import com.practicum.shoppinglist.R
-import com.practicum.shoppinglist.core.data.network.KtorHttpClientImpl
 import com.practicum.shoppinglist.core.data.network.NetworkClient
 import dagger.Module
 import dagger.Provides
@@ -23,9 +22,5 @@ class ProvideDataModule {
         )
     }
 
-    @Provides
-    @Singleton
-    fun provideHttpClient(): NetworkClient {
-        return KtorHttpClientImpl()
-    }
+
 }
