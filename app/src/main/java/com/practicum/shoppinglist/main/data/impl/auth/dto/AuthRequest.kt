@@ -1,4 +1,4 @@
-package com.practicum.shoppinglist.main.domain.api.auth.dto
+package com.practicum.shoppinglist.main.data.impl.auth.dto
 
 sealed interface AuthRequest {
     data object Login : AuthRequest
