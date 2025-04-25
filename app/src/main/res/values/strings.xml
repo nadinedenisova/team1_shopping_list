@@ -3,6 +3,7 @@
     <string name="prefs_file_name">Settings</string>
     <string name="theme_save_key">dark theme</string>
     <string name="main_screen_title">Мои списки</string>
+    <string name="products_screen_title">Продукты</string>
     <string name="add">Добавить</string>
     <string name="search">Поиск</string>
     <string name="search_hint">Поиск списков</string>
@@ -13,6 +14,12 @@
 
     <string name="nothing_found_title">Мы не cмогли найти то,\nчто вы искали</string>
     <string name="nothing_found_message">Попробуйте изменить запрос\nили проверить написание</string>
+
+    <string name="sort">Сортировка</string>
+    <string name="sort_alphabet_order">По алфавиту</string>
+    <string name="sort_user_defined">Пользовательская</string>
+    <string name="remove_all">Удалить все</string>
+    <string name="clear">Очистить купленные</string>
 
     <string name="edit_shopping_list">Переименование списка</string>
     <string name="add_shopping_list">Добавление списка</string>

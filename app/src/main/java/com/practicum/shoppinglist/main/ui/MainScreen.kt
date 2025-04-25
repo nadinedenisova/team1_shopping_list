@@ -41,10 +41,13 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
 import com.practicum.shoppinglist.R
 import com.practicum.shoppinglist.common.resources.ShoppingListIntent
 import com.practicum.shoppinglist.common.resources.ShoppingListState
 import com.practicum.shoppinglist.core.domain.models.ListItem
+import com.practicum.shoppinglist.core.domain.models.listItemSaver
+import com.practicum.shoppinglist.core.presentation.ui.theme.SLTheme
 import com.practicum.shoppinglist.main.ui.recycler.ItemList
 import com.practicum.shoppinglist.main.ui.recycler.ItemListSearch
 import com.practicum.shoppinglist.main.ui.view_model.MainScreenViewModel
@@ -53,6 +56,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
+    navController: NavController,
     viewModel: MainScreenViewModel,
     isSearchActive: MutableState<Boolean>,
     showAddShoppingListDialog: MutableState<Boolean>,
@@ -62,7 +66,7 @@ fun MainScreen(
     val state by viewModel.shoppingListStateFlow.collectAsStateWithLifecycle()
     var showBottomSheet by remember { mutableStateOf(false) }
     val bottomSheetState = rememberModalBottomSheetState()
-    var selectedList by rememberSaveable { mutableStateOf<ListItem?>(null) }
+    var selectedList by rememberSaveable(stateSaver = listItemSaver) { mutableStateOf(null) }
     val searchQuery = rememberSaveable { mutableStateOf("") }
     val showEditShoppingListDialog = rememberSaveable { mutableStateOf(false) }
     val showRemoveShoppingListDialog = rememberSaveable { mutableStateOf(false) }
@@ -137,6 +141,7 @@ fun MainScreen(
                     state = state,
                     onItemClick = { list ->
                         selectedList = list
+                        navController.navigate("${Routes.ProductsScreen.name}/${list.id}")
                     },
                     onIconClick = { list ->
                         selectedList = list
@@ -162,7 +167,7 @@ fun MainScreen(
                 )
                 NoData(
                     visible = state.status == ShoppingListState.Status.NO_SHOPPING_LISTS,
-                    image = R.drawable.no_shopping_lists,
+                    image = SLTheme.images.noShoppingList,
                     title = stringResource(R.string.no_shopping_lists_title),
                     message = stringResource(R.string.no_shopping_lists_message),
                 )
