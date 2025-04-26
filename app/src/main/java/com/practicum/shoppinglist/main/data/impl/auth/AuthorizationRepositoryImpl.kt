@@ -1,12 +1,49 @@
 package com.practicum.shoppinglist.main.data.impl.auth
 
 import com.android.shoppinglist.feature.http.data.network.AuthResponse
-import com.practicum.shoppinglist.main.domain.api.AuthorizationRepository
+import com.android.shoppinglist.feature.http.data.network.mapToDomain
 import com.practicum.shoppinglist.core.data.network.HttpNetworkClient
+import com.practicum.shoppinglist.core.data.network.model.HttpMethodType
+import com.practicum.shoppinglist.core.data.network.model.mapToErrorType
+import com.practicum.shoppinglist.core.domain.models.auth.Login
+import com.practicum.shoppinglist.main.domain.api.AuthorizationRepository
+import com.practicum.shoppinglist.core.domain.models.auth.Registration
+import com.practicum.shoppinglist.core.domain.models.auth.Validation
+import com.practicum.shoppinglist.core.domain.models.network.ErrorType
+import com.practicum.shoppinglist.core.domain.models.network.Result
 import com.practicum.shoppinglist.main.data.impl.auth.dto.AuthRequest
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 
 class AuthorizationRepositoryImpl(
     private val httpNetworkClient: HttpNetworkClient<AuthRequest, AuthResponse>
 ): AuthorizationRepository {
+
+    override fun registration(): Flow<Result<Registration, ErrorType>> = flow {
+        val response = httpNetworkClient.getResponse(
+            HttpMethodType.POST,
+            AuthRequest.Registration
+        )
+        when (val body = response.body) {
+            is AuthResponse.Registration -> {
+                emit(Result.Success(body.mapToDomain()))
+            }
+            else -> {
+                emit(Result.Failure(response.resultCode.mapToErrorType()))
+            }
+        }
+    }
+
+    override fun login(): Flow<Result<Login, ErrorType>> {
+        TODO("Not yet implemented")
+    }
+
+    override fun validation(): Flow<Result<Validation, ErrorType>> {
+        TODO("Not yet implemented")
+    }
+
+    override fun refresh(): Flow<Result<AuthResponse.Refresh, ErrorType>> {
+        TODO("Not yet implemented")
+    }
 
 }
