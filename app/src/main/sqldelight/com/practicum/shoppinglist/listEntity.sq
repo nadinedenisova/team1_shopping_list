@@ -1,0 +1,40 @@
+CREATE TABLE listEntity (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    icon_res_id INTEGER NOT NULL DEFAULT -1
+);
+
+insert:
+    INSERT INTO listEntity(name, icon_res_id)
+    VALUES (:name, :icon_res_id);
+
+update:
+    UPDATE listEntity
+    SET name = :name,
+        icon_res_id = :icon_res_id
+    WHERE id = :id;
+
+getAll:
+    SELECT *
+    FROM listEntity;
+
+getById:
+    SELECT *
+    FROM listEntity
+    WHERE id = :id;
+
+deleteById {
+    DELETE FROM listEntity
+    WHERE id = :id;
+
+    DELETE FROM productEntity
+    WHERE id IN (SELECT id FROM listAndProductEntity WHERE listAndProductEntity.list_id = :id);
+
+    DELETE FROM listAndProductEntity
+    WHERE listAndProductEntity.list_id = :id;
+}
+
+searchByName:
+    SELECT *
+    FROM listEntity
+    WHERE name LIKE ('%' || :name || '%');
