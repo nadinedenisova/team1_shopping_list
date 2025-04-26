@@ -1,4 +1,4 @@
-package com.android.ktorsample.feature.http.domain.api
+package com.android.shoppinglist.feature.http.domain.api
 
 interface AuthorizationRepository {
 

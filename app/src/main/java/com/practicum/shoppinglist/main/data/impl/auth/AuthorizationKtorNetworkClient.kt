@@ -1,6 +1,6 @@
 package com.practicum.shoppinglist.main.data.impl.auth
 
-import com.android.ktorsample.feature.http.data.network.AuthResponse
+import com.android.shoppinglist.feature.http.data.network.AuthResponse
 import com.practicum.shoppinglist.core.data.network.HttpKtorNetworkClient
 import com.practicum.shoppinglist.main.data.impl.auth.dto.AuthRequest
 import io.ktor.client.request.get
