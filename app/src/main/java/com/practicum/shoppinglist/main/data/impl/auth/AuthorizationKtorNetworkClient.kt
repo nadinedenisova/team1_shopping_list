@@ -1,16 +1,40 @@
 package com.practicum.shoppinglist.main.data.impl.auth
 
-import com.android.ktorsample.feature.http.data.network.AuthResponse
+import com.android.shoppinglist.feature.http.data.network.AuthResponse
 import com.practicum.shoppinglist.core.data.network.HttpKtorNetworkClient
+import com.practicum.shoppinglist.core.data.network.model.HttpMethodType
 import com.practicum.shoppinglist.main.data.impl.auth.dto.AuthRequest
+import io.ktor.client.call.body
+import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.get
+import io.ktor.client.request.post
 import io.ktor.client.statement.HttpResponse
+import io.ktor.http.path
 
 class AuthorizationKtorNetworkClient : HttpKtorNetworkClient<AuthRequest, AuthResponse>() {
-    override suspend fun sendResponseByType(request: AuthRequest): HttpResponse {
-        return httpClient.get(BASE_URL) {
+
+    override suspend fun sendResponseByType(
+        httpMethod: HttpMethodType,
+        request: AuthRequest
+    ): HttpResponse {
+        return when (httpMethod) {
+            HttpMethodType.GET -> httpClient.get(BASE_URL) {
+                configureUrl(request)
+            }
+
+            HttpMethodType.POST -> httpClient.post(BASE_URL) {
+                configureUrl(request)
+            }
+        }
+    }
+
+    private fun HttpRequestBuilder.configureUrl(request: AuthRequest) {
+        url {
             when (request) {
-                AuthRequest.Login -> TODO()
+                AuthRequest.Registration -> path("auth/registration")
+                AuthRequest.Login -> path("auth/login")
+                AuthRequest.RefreshToken -> path("auth/refresh")
+                AuthRequest.Validation -> path("auth/check")
             }
         }
     }
@@ -20,11 +44,25 @@ class AuthorizationKtorNetworkClient : HttpKtorNetworkClient<AuthRequest, AuthRe
         httpResponse: HttpResponse
     ): AuthResponse {
         return when (requestType) {
-            AuthRequest.Login -> TODO()
+            is AuthRequest.Login -> {
+                httpResponse.body<AuthResponse.Login>()
+            }
+
+            is AuthRequest.Validation -> {
+                httpResponse.body<AuthResponse.Validation>()
+            }
+
+            is AuthRequest.RefreshToken -> {
+                httpResponse.body<AuthResponse.Refresh>()
+            }
+
+            is AuthRequest.Registration -> {
+                httpResponse.body<AuthResponse.Registration>()
+            }
         }
     }
 
     private companion object {
-        const val BASE_URL = "https:/test.url/"
+        const val BASE_URL = "http://130.193.44.66:8080/"
     }
 }

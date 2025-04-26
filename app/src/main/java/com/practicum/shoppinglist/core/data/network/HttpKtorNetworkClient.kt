@@ -1,8 +1,10 @@
 package com.practicum.shoppinglist.core.data.network
 
 import android.util.Log
+import com.practicum.shoppinglist.core.data.network.model.HttpMethodType
 import com.practicum.shoppinglist.core.data.network.model.Response
 import com.practicum.shoppinglist.core.data.network.model.StatusCode
+import com.practicum.shoppinglist.main.data.impl.auth.dto.AuthRequest
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -27,11 +29,11 @@ abstract class HttpKtorNetworkClient<SealedRequest, SealedResponse> :
         }
     }
 
-    override suspend fun getResponse(sealedRequest: SealedRequest): Response<SealedResponse> {
+    override suspend fun getResponse(httpMethod: HttpMethodType, sealedRequest: SealedRequest): Response<SealedResponse> {
         return runCatching {
             mapToResponse(
                 requestType = sealedRequest,
-                httpResponse = sendResponseByType(sealedRequest)
+                httpResponse = sendResponseByType(httpMethod, sealedRequest)
             )
         }.onFailure { error ->
             Log.v(TAG, "error -> ${error.localizedMessage}")
@@ -39,7 +41,10 @@ abstract class HttpKtorNetworkClient<SealedRequest, SealedResponse> :
         }.getOrNull() ?: Response()
     }
 
-    protected abstract suspend fun sendResponseByType(request: SealedRequest): HttpResponse
+    protected abstract suspend fun sendResponseByType(
+        httpMethod: HttpMethodType,
+        request: SealedRequest
+    ): HttpResponse
 
     protected abstract suspend fun getResponseBodyByRequestType(
         requestType: SealedRequest,
