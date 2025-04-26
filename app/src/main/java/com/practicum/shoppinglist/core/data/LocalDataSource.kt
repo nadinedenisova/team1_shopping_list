@@ -18,4 +18,6 @@ interface LocalDataSource {
     suspend fun updateProduct(item: ProductEntity)
     suspend fun deleteProductById(id: Long)
     suspend fun deleteAll(): Long
+    suspend fun deleteAllByListId(id: Long): Long
+    suspend fun deleteAllCompletedByListId(id: Long): Long
 }
