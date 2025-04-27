@@ -8,7 +8,10 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.practicum.shoppinglist.auth.ui.LoginScreen
 import com.practicum.shoppinglist.details.presentation.ui.DetailsScreen
+import com.practicum.shoppinglist.auth.ui.RegistrationScreen
+import com.practicum.shoppinglist.auth.viewmodel.RegistrationViewModel
 import com.practicum.shoppinglist.main.ui.view_model.MainScreenViewModel
 
 @Composable
@@ -22,6 +25,7 @@ fun NavGraph(
     showMenuBottomSheet: MutableState<Boolean>,
     modifier: Modifier,
     viewModel: MainScreenViewModel,
+    registrationViewModel: RegistrationViewModel,
 ) {
     NavHost(navController = navController, startDestination = startDestination, modifier = modifier) {
         composable(
@@ -47,6 +51,23 @@ fun NavGraph(
                 showMenuBottomSheet = showMenuBottomSheet,
                 showAddProductListDialog = showAddProductListDialog,
                 shoppingListId = shoppingListId
+            )
+        }
+
+        composable(
+            route = Routes.Registration.name,
+        ) {  navBackStackEntry ->
+            RegistrationScreen(
+                navController = navController,
+                registrationViewModel
+            )
+        }
+
+        composable(
+            route = Routes.Login.name,
+        ) {  navBackStackEntry ->
+            LoginScreen(
+                navController = navController,
             )
         }
     }

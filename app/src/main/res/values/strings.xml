@@ -3,9 +3,13 @@
     <string name="prefs_file_name">Settings</string>
     <string name="theme_save_key">dark theme</string>
     <string name="main_screen_title">Мои списки</string>
+    <string name="registration_screen_title">Регистрация</string>
+    <string name="login_screen_title">Логин</string>
     <string name="products_screen_title">Продукты</string>
     <string name="add">Добавить</string>
     <string name="search">Поиск</string>
+    <string name="registration">Зарегистрироваться</string>
+    <string name="login">Логин</string>
     <string name="search_hint">Поиск списков</string>
     <string name="remove">Удалить</string>
     <string name="dark_mode">Тёмная тема</string>
@@ -36,4 +40,10 @@
     <string name="add_new_product_title">Добавить новый товар</string>
     <string name="quantity_title">Количество</string>
     <string name="units_title">Единицы</string>
+    <string name="email">Email</string>
+    <string name="password">Пароль</string>
+    <string name="confirm_password">Повторить пароль</string>
+    <string name="password_too_short">Пароль слишком короткий</string>
+    <string name="invalid_email">Неверный email</string>
+    <string name="passwords_do_not_match">Пароль не совпадает</string>
 </resources>

@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -26,6 +27,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.practicum.shoppinglist.App
 import com.practicum.shoppinglist.R
+import com.practicum.shoppinglist.auth.viewmodel.RegistrationViewModel
 import com.practicum.shoppinglist.common.resources.ShoppingListIntent
 import com.practicum.shoppinglist.core.presentation.ui.theme.SLTheme
 import com.practicum.shoppinglist.di.api.daggerViewModel
@@ -44,6 +46,7 @@ fun MyScaffold() {
         (context.applicationContext as App).appComponent.viewModelFactory()
     }
     val viewModel = daggerViewModel<MainScreenViewModel>(factory)
+    val registrationViewModel = daggerViewModel<RegistrationViewModel>(factory)
     val state by viewModel.shoppingListStateFlow.collectAsStateWithLifecycle()
     val currentBackStack by navController.currentBackStackEntryAsState()
     val currentDestination = currentBackStack?.destination
@@ -66,6 +69,9 @@ fun MyScaffold() {
                         },
                         onMenuClick = {
                             showProductsScreenMenu.value = true
+                        },
+                        onRegistrationClick = {
+                            navController.navigate(Routes.Registration.name)
                         }
                     )
                 }
@@ -94,6 +100,7 @@ fun MyScaffold() {
                 showMenuBottomSheet = showProductsScreenMenu,
                 modifier = Modifier.padding(innerPadding),
                 viewModel = viewModel,
+                registrationViewModel = registrationViewModel
             )
         }
     }
@@ -106,6 +113,7 @@ fun TopBar(
     currentDestination: String?,
     onBackClick: () -> Unit,
     onSearchClick: () -> Unit = {},
+    onRegistrationClick: () -> Unit = {},
     onRemoveClick: () -> Unit = {},
     onDarkModeClick: () -> Unit = {},
     onMenuClick: () -> Unit,
@@ -118,6 +126,8 @@ fun TopBar(
             Text(
                 when (currentDestination) {
                     Routes.MainScreen.name -> stringResource(R.string.main_screen_title)
+                    Routes.Registration.name -> stringResource(R.string.registration_screen_title)
+                    Routes.Login.name -> stringResource(R.string.login_screen_title)
                     else -> stringResource(R.string.products_screen_title)
                 }
             )
@@ -135,6 +145,9 @@ fun TopBar(
         actions = {
             when (currentDestination) {
                 Routes.MainScreen.name -> {
+                    Button (onClick = onRegistrationClick) {
+                        Text(stringResource(R.string.registration))
+                    }
                     IconButton(onClick = onSearchClick) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_search),

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -21,6 +22,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.VisualTransformation
@@ -42,6 +44,8 @@ fun SLOutlineTextField(
     readOnly: Boolean = false,
     trailingIcon: @Composable (() -> Unit)? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    isError: Boolean = false,
+    errorMessage: String? = null,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
 
@@ -91,7 +95,7 @@ fun SLOutlineTextField(
                     OutlinedTextFieldDefaults.Container(
                         modifier = Modifier.width(IntrinsicSize.Min),
                         enabled = true,
-                        isError = false,
+                        isError = isError,
                         interactionSource = interactionSource,
                         focusedBorderThickness = 3.dp,
                         unfocusedBorderThickness = 1.dp,
@@ -104,6 +108,14 @@ fun SLOutlineTextField(
             )
         }
     )
+    if (isError && errorMessage != null) {
+        Text(
+            text = errorMessage,
+            color = Color.Red,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+        )
+    }
 }
 
 @Composable
