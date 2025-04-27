@@ -20,16 +20,18 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.practicum.shoppinglist.R
-import com.practicum.shoppinglist.auth.viewmodel.RegistrationViewModel
+import com.practicum.shoppinglist.auth.viewmodel.RegistrationScreenViewModel
 import com.practicum.shoppinglist.core.presentation.ui.components.SLOutlineTextField
 
 @Composable
 fun RegistrationScreen(
     navController: NavController,
-    viewModel: RegistrationViewModel
+    registrationViewModel: RegistrationScreenViewModel
 ) {
     RegistrationForm(
-        onRegistrationClick = {}
+        onRegistrationClick = {
+
+        }
     )
 }
 

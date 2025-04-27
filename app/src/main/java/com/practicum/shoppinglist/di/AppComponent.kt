@@ -2,7 +2,6 @@ package com.practicum.shoppinglist.di
 
 import android.content.Context
 import androidx.lifecycle.ViewModelProvider
-import com.practicum.shoppinglist.auth.viewmodel.RegistrationViewModel
 import com.practicum.shoppinglist.main.ui.view_model.MainScreenViewModel
 import dagger.BindsInstance
 import dagger.Component
@@ -30,6 +29,5 @@ interface AppComponent {
         fun build(): AppComponent
     }
 
-    fun inject(viewModel: MainScreenViewModel,
-               registrationViewModel: RegistrationViewModel,)
+    fun inject(viewModel: MainScreenViewModel)
 }

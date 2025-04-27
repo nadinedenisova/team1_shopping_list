@@ -15,8 +15,9 @@ import com.practicum.shoppinglist.core.domain.models.network.Result
 import com.practicum.shoppinglist.main.data.impl.auth.dto.AuthRequest
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import javax.inject.Inject
 
-class AuthorizationRepositoryImpl(
+class AuthorizationRepositoryImpl @Inject constructor(
     private val httpNetworkClient: HttpNetworkClient<AuthRequest, AuthResponse>
 ) : AuthorizationRepository {
 

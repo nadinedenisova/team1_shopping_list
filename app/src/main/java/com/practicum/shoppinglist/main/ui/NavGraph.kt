@@ -11,7 +11,7 @@ import androidx.navigation.navArgument
 import com.practicum.shoppinglist.auth.ui.LoginScreen
 import com.practicum.shoppinglist.details.presentation.ui.DetailsScreen
 import com.practicum.shoppinglist.auth.ui.RegistrationScreen
-import com.practicum.shoppinglist.auth.viewmodel.RegistrationViewModel
+import com.practicum.shoppinglist.auth.viewmodel.RegistrationScreenViewModel
 import com.practicum.shoppinglist.main.ui.view_model.MainScreenViewModel
 
 @Composable
@@ -25,7 +25,7 @@ fun NavGraph(
     showMenuBottomSheet: MutableState<Boolean>,
     modifier: Modifier,
     viewModel: MainScreenViewModel,
-    registrationViewModel: RegistrationViewModel,
+    registrationScreenViewModel: RegistrationScreenViewModel,
 ) {
     NavHost(navController = navController, startDestination = startDestination, modifier = modifier) {
         composable(
@@ -59,7 +59,7 @@ fun NavGraph(
         ) {  navBackStackEntry ->
             RegistrationScreen(
                 navController = navController,
-                registrationViewModel
+                registrationScreenViewModel
             )
         }
 
