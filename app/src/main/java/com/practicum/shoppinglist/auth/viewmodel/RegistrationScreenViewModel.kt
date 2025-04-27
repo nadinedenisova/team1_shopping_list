@@ -5,6 +5,7 @@ import com.practicum.shoppinglist.main.domain.impl.RegistrationUseCase
 import javax.inject.Inject
 
 class RegistrationScreenViewModel @Inject constructor(
+    private val registrationUseCase: RegistrationUseCase,
 ) : ViewModel() {
 
     private companion object {

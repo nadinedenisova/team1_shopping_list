@@ -21,7 +21,7 @@ class AuthorizationRepositoryImpl @Inject constructor(
     private val httpNetworkClient: HttpNetworkClient<AuthRequest, AuthResponse>
 ) : AuthorizationRepository {
 
-    override fun registration(): Flow<Result<Registration, ErrorType>> = flow {
+    override suspend fun registration(): Flow<Result<Registration, ErrorType>> = flow {
         val response = httpNetworkClient.getResponse(
             HttpMethodType.POST,
             AuthRequest.Registration
@@ -37,7 +37,7 @@ class AuthorizationRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun login(): Flow<Result<Login, ErrorType>> = flow {
+    override suspend fun login(): Flow<Result<Login, ErrorType>> = flow {
         val response = httpNetworkClient.getResponse(
             HttpMethodType.POST,
             AuthRequest.Login
@@ -53,7 +53,7 @@ class AuthorizationRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun validation(): Flow<Result<Validation, ErrorType>> = flow {
+    override suspend fun validation(): Flow<Result<Validation, ErrorType>> = flow {
         val response = httpNetworkClient.getResponse(
             HttpMethodType.POST,
             AuthRequest.Validation
@@ -69,7 +69,7 @@ class AuthorizationRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun refresh(): Flow<Result<Refresh, ErrorType>> = flow {
+    override suspend fun refresh(): Flow<Result<Refresh, ErrorType>> = flow {
         val response = httpNetworkClient.getResponse(
             HttpMethodType.POST,
             AuthRequest.RefreshToken
