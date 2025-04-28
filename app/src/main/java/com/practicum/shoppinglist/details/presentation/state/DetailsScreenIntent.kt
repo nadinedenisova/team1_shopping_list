@@ -1,10 +1,20 @@
 package com.practicum.shoppinglist.details.presentation.state
 
+import com.practicum.shoppinglist.core.domain.models.ProductItem
+
 sealed interface DetailsScreenIntent {
+    data class Init(val shoppingListId: Long) : DetailsScreenIntent
     data class ToggleProductSheet(val isOpen: Boolean): DetailsScreenIntent
     object ShowAddProductSheet: DetailsScreenIntent
     object CloseAddProductSheet: DetailsScreenIntent
     object AddUnits: DetailsScreenIntent
     object SubstractUnits: DetailsScreenIntent
-    data class EditUnits(val value: Int): DetailsScreenIntent
+
+    data class EditUnitsCount(val value: Int): DetailsScreenIntent
+    data class EditName(val value: String): DetailsScreenIntent
+    data class EditUnit(val value: String): DetailsScreenIntent
+    data class ToggleCompleted(val currentValue: ProductItem): DetailsScreenIntent
+    data object AddProduct: DetailsScreenIntent
+    data object DeleteAll: DetailsScreenIntent
+    data object DeteleCompleted: DetailsScreenIntent
 }
