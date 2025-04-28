@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
-class DetailsScreenRepository @Inject constructor(
+class DetailsScreenRepositoryImpl @Inject constructor(
     private val dataSource: SqlDelightDataSource,
 ) : DetailsScreenRepository {
     override suspend fun addProduct(shoppingListId: Long, item: ProductEntity): Long {

@@ -10,3 +10,11 @@ fun ProductEntity.toProductItem() = ProductItem(
     count = count.toInt(),
     completed = completed > 0,
 )
+
+fun ProductItem.toProductEntity() = ProductEntity(
+    id = id,
+    name = name,
+    unit = unit,
+    count = count.toLong(),
+    completed = if (completed) 1 else 0,
+)

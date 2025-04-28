@@ -49,11 +49,9 @@ deleteAllByListId {
 }
 
 deleteAllCompletedByListId {
-    DELETE FROM listAndProductEntity
-    WHERE listAndProductEntity.product_id IN
-    (SELECT productEntity.id FROM productEntity WHERE id IN
-    (SELECT listAndProductEntity.product_id FROM listAndProductEntity WHERE completed = 1 AND listAndProductEntity.list_id = :id));
-
     DELETE FROM productEntity
     WHERE completed = 1 AND id IN (SELECT listAndProductEntity.product_id FROM listAndProductEntity WHERE listAndProductEntity.list_id = :id);
+
+    DELETE FROM listAndProductEntity
+    WHERE listAndProductEntity.product_id NOT IN (SELECT productEntity.id FROM productEntity);
 }
