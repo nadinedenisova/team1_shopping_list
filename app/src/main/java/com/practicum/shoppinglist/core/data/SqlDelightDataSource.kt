@@ -53,15 +53,16 @@ class SqlDelightDataSource @Inject constructor(
         db.productEntityQueries.getById(id).executeAsOneOrNull()
     }
 
-    override suspend fun insertProduct(listId: Long, item: ProductEntity) = withContext(Dispatchers.IO) {
-        db.productEntityQueries.insert(
-            list_id = listId,
-            name = item.name,
-            unit = item.unit,
-            count = item.count,
-            completed = item.completed,
-        )
-    }
+    override suspend fun insertProduct(listId: Long, item: ProductEntity) =
+        withContext(Dispatchers.IO) {
+            db.productEntityQueries.insert(
+                list_id = listId,
+                name = item.name,
+                unit = item.unit,
+                count = item.count,
+                completed = item.completed,
+            )
+        }
 
     override suspend fun updateProduct(item: ProductEntity) = withContext(Dispatchers.IO) {
         db.productEntityQueries.update(
@@ -77,7 +78,7 @@ class SqlDelightDataSource @Inject constructor(
         db.productEntityQueries.deleteById(id)
     }
 
-    override suspend fun deleteAll(): Long = withContext(Dispatchers.IO){
+    override suspend fun deleteAll(): Long = withContext(Dispatchers.IO) {
         var deletedRows: Long = withRetry(
             times = 2,
             delayMs = 300L,
@@ -85,6 +86,36 @@ class SqlDelightDataSource @Inject constructor(
         ) {
             db.transactionWithResult {
                 db.commonQueries.deleteAll()
+                return@transactionWithResult db.commonQueries.selectChanges().executeAsOne()
+            }
+        }
+
+        return@withContext deletedRows
+    }
+
+    override suspend fun deleteAllByListId(id: Long): Long = withContext(Dispatchers.IO) {
+        var deletedRows: Long = withRetry(
+            times = 2,
+            delayMs = 300L,
+            onError = { -1 }
+        ) {
+            db.transactionWithResult {
+                db.productEntityQueries.deleteAllByListId(id)
+                return@transactionWithResult db.commonQueries.selectChanges().executeAsOne()
+            }
+        }
+
+        return@withContext deletedRows
+    }
+
+    override suspend fun deleteAllCompletedByListId(id: Long): Long = withContext(Dispatchers.IO) {
+        var deletedRows: Long = withRetry(
+            times = 2,
+            delayMs = 300L,
+            onError = { -1 }
+        ) {
+            db.transactionWithResult {
+                db.productEntityQueries.deleteAllCompletedByListId(id)
                 return@transactionWithResult db.commonQueries.selectChanges().executeAsOne()
             }
         }
