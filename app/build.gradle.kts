@@ -52,7 +52,6 @@ dependencies {
     ksp(libs.dagger.compiler)
 
     implementation(libs.androidx.core.ktx)
-    implementation(libs.gson)
 
     val composeBom = platform("androidx.compose:compose-bom:2025.02.00")
     implementation(composeBom)

@@ -4,8 +4,6 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ListItem(
-    @SerialName("list_item_id") override val id: Long,
-    val name: String,
-    val iconResId: Int,
-) : BaseItem(id)
+open class BaseItem(
+    @SerialName("base_id")open val id: Long,
+)

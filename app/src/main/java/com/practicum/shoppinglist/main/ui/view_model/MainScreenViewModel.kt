@@ -3,12 +3,13 @@ package com.practicum.shoppinglist.main.ui.view_model
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.practicum.shoppinglist.common.resources.BaseIntent
+import com.practicum.shoppinglist.common.resources.ListAction
 import com.practicum.shoppinglist.common.resources.ShoppingListIntent
 import com.practicum.shoppinglist.common.resources.ShoppingListState
 import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.content
 import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.darkTheme
 import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.default
-import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.isRemoving
 import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.noShoppingLists
 import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.nothingFound
 import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.searchResults
@@ -24,7 +25,9 @@ import com.practicum.shoppinglist.main.domain.impl.ShowShoppingListByNameUseCase
 import com.practicum.shoppinglist.main.domain.impl.ShowShoppingListsUseCase
 import com.practicum.shoppinglist.main.domain.impl.UpdateShoppingListUseCase
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -49,6 +52,9 @@ class MainScreenViewModel @Inject constructor(
     private val _shoppingListStateFlow = MutableStateFlow(default())
     val shoppingListStateFlow: StateFlow<ShoppingListState> = _shoppingListStateFlow.asStateFlow()
 
+    private val _action = MutableSharedFlow<ListAction>()
+    val action: SharedFlow<ListAction> = _action
+
     private val timer: Debounce<String> by lazy {
         Debounce(Constants.USER_INPUT_DELAY, viewModelScope) { term ->
             doSearch(term)
@@ -60,19 +66,20 @@ class MainScreenViewModel @Inject constructor(
         processIntent(ShoppingListIntent.GetThemeSettings)
     }
 
-    fun processIntent(intent: ShoppingListIntent) {
+    fun processIntent(intent: BaseIntent) {
         when (intent) {
             is ShoppingListIntent.AddShoppingList -> addShoppingList(name = intent.name, icon = intent.icon)
             is ShoppingListIntent.UpdateShoppingList -> updateShoppingList(list = intent.list)
-            is ShoppingListIntent.RemoveShoppingList -> removeShoppingList(id = intent.id)
+            is BaseIntent.RemoveListItem -> removeShoppingList(id = intent.id)
+            is BaseIntent.QueryRemoveShoppingList -> viewModelScope.launch {
+                _action.emit(ListAction.RemoveItem)
+            }
             is ShoppingListIntent.RemoveAllShoppingLists -> removeAllShoppingLists()
             is ShoppingListIntent.Search -> search(searchQuery = intent.searchQuery)
             is ShoppingListIntent.ChangeThemeSettings -> changeThemeSettings(intent.darkTheme)
-            is ShoppingListIntent.IsRemoving -> _shoppingListStateFlow.update { currentState ->
-                currentState.isRemoving(intent.isRemoving)
-            }
             is ShoppingListIntent.GetThemeSettings -> getThemeSettings()
             is ShoppingListIntent.ClearSearchResults -> clearSearchResults()
+            else -> {}
         }
     }
 

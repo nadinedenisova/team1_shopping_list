@@ -4,6 +4,7 @@ import com.practicum.shoppinglist.details.domain.api.DetailsScreenRepository
 import com.practicum.shoppinglist.details.domain.impl.AddProductUseCase
 import com.practicum.shoppinglist.details.domain.impl.DeleteAllProductsUseCase
 import com.practicum.shoppinglist.details.domain.impl.DeleteCompletedProductsUseCase
+import com.practicum.shoppinglist.details.domain.impl.DeleteProductUseCase
 import com.practicum.shoppinglist.details.domain.impl.GetProductListUseCase
 import com.practicum.shoppinglist.details.domain.impl.UpdateProductUseCase
 import com.practicum.shoppinglist.main.domain.api.MainScreenRepository
@@ -82,5 +83,10 @@ class UseCaseModule {
     @Provides
     fun provideDeleteCompletedProductsUseCase(repository: DetailsScreenRepository): DeleteCompletedProductsUseCase {
         return DeleteCompletedProductsUseCase(repository)
+    }
+
+    @Provides
+    fun provideDeleteProductUseCase(repository: DetailsScreenRepository): DeleteProductUseCase {
+        return DeleteProductUseCase(repository)
     }
 }

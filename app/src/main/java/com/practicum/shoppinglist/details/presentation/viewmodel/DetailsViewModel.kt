@@ -3,17 +3,22 @@ package com.practicum.shoppinglist.details.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.practicum.shoppinglist.ProductEntity
+import com.practicum.shoppinglist.common.resources.BaseIntent
+import com.practicum.shoppinglist.common.resources.DetailsScreenIntent
+import com.practicum.shoppinglist.common.resources.ListAction
 import com.practicum.shoppinglist.core.data.mapper.toProductEntity
 import com.practicum.shoppinglist.details.domain.impl.AddProductUseCase
 import com.practicum.shoppinglist.details.domain.impl.DeleteAllProductsUseCase
 import com.practicum.shoppinglist.details.domain.impl.DeleteCompletedProductsUseCase
+import com.practicum.shoppinglist.details.domain.impl.DeleteProductUseCase
 import com.practicum.shoppinglist.details.domain.impl.GetProductListUseCase
 import com.practicum.shoppinglist.details.domain.impl.UpdateProductUseCase
 import com.practicum.shoppinglist.details.presentation.models.ProductDetails
-import com.practicum.shoppinglist.details.presentation.state.DetailsScreenIntent
 import com.practicum.shoppinglist.details.presentation.state.DetailsScreenState
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -24,6 +29,7 @@ class DetailsViewModel @Inject constructor(
     private val getProductListUseCase: GetProductListUseCase,
     private val addProductUseCase: AddProductUseCase,
     private val updateProductUseCase: UpdateProductUseCase,
+    private val deleteProductUseCase: DeleteProductUseCase,
     private val deleteAllProductsUseCase: DeleteAllProductsUseCase,
     private val deleteCompletedProductsUseCase: DeleteCompletedProductsUseCase,
 ) : ViewModel() {
@@ -32,11 +38,14 @@ class DetailsViewModel @Inject constructor(
     val state: StateFlow<DetailsScreenState>
         get() = _state.asStateFlow()
 
+    private val _action = MutableSharedFlow<ListAction>()
+    val action: SharedFlow<ListAction> = _action
+
     init {
         observeProductList()
     }
 
-    fun onIntent(intent: DetailsScreenIntent) {
+    fun onIntent(intent: BaseIntent) {
         when (intent) {
             DetailsScreenIntent.CloseAddProductSheet -> {
                 _state.update { it.copy(showAddProductSheet = false) }
@@ -110,6 +119,18 @@ class DetailsViewModel @Inject constructor(
             is DetailsScreenIntent.EditUnit -> {
                 _state.update { it.copy(product = it.product.copy(unit = intent.value)) }
             }
+
+            is BaseIntent.QueryRemoveShoppingList -> viewModelScope.launch {
+                _action.emit(ListAction.RemoveItem)
+            }
+
+            is BaseIntent.RemoveListItem -> {
+                viewModelScope.launch(Dispatchers.IO) {
+                    deleteProductUseCase(intent.id)
+                }
+            }
+
+            else -> {}
         }
     }
 
