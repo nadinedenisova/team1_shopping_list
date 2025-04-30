@@ -260,7 +260,8 @@ fun ShoppingList(
     val openList = remember { mutableStateOf<ListItem?>(null) }
 
     LazyColumn(
-        modifier = Modifier.padding(horizontal = dimensionResource(R.dimen.padding_8x))
+        modifier = Modifier
+            .padding(top = dimensionResource(R.dimen.padding_4x))
             .fillMaxSize(),
     ) {
         items(items, key = { it.id }) { item ->

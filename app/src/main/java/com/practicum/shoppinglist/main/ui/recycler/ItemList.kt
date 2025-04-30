@@ -55,7 +55,8 @@ fun ItemList(
         Card(
             modifier = Modifier
                 .offset { IntOffset(swipeOffset.toInt(), 0) }
-                .padding(top = dimensionResource(R.dimen.padding_8x))
+                .padding(horizontal = dimensionResource(R.dimen.padding_8x))
+                .padding(vertical = dimensionResource(R.dimen.padding_4x))
                 .fillMaxWidth()
                 .wrapContentHeight()
                 .shadow(

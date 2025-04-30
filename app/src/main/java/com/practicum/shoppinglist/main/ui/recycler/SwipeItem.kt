@@ -117,7 +117,9 @@ fun SwipeItem(
         ) {
             Box(
                 modifier = Modifier
-                    .matchParentSize()
+                    .fillMaxSize()
+                    .padding(horizontal = dimensionResource(R.dimen.padding_10x))
+                    .padding(top = dimensionResource(R.dimen.padding_8x))
             ) {
                 val centerRemove = swipeOffset.value <= -centerRemoveSwipe
                 if (centerRemove) {
@@ -135,8 +137,7 @@ fun SwipeItem(
                 } else {
                     Row(
                         modifier = Modifier
-                            .padding(top = dimensionResource(R.dimen.padding_8x))
-                            .fillMaxSize(),
+                            .fillMaxWidth(),
                         horizontalArrangement = Arrangement.End,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
