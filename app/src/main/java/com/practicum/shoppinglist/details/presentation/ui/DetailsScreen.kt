@@ -33,10 +33,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -60,6 +62,12 @@ import androidx.compose.ui.zIndex
 import androidx.core.text.isDigitsOnly
 import com.practicum.shoppinglist.App
 import com.practicum.shoppinglist.R
+import com.practicum.shoppinglist.common.resources.BaseIntent
+import com.practicum.shoppinglist.common.resources.DetailsScreenIntent
+import com.practicum.shoppinglist.common.resources.ListAction
+import com.practicum.shoppinglist.common.utils.itemSaver
+import com.practicum.shoppinglist.core.domain.models.BaseItem
+import com.practicum.shoppinglist.core.domain.models.ProductItem
 import com.practicum.shoppinglist.core.presentation.ui.FabViewModel
 import com.practicum.shoppinglist.core.presentation.ui.components.SLDropdown
 import com.practicum.shoppinglist.core.presentation.ui.components.SLIconButton
@@ -67,11 +75,10 @@ import com.practicum.shoppinglist.core.presentation.ui.components.SLOutlineTextF
 import com.practicum.shoppinglist.core.presentation.ui.state.FabIntent
 import com.practicum.shoppinglist.core.presentation.ui.state.FabState
 import com.practicum.shoppinglist.core.presentation.ui.theme.SLTheme
-import com.practicum.shoppinglist.details.presentation.state.DetailsScreenIntent
 import com.practicum.shoppinglist.details.presentation.state.DetailsScreenState
 import com.practicum.shoppinglist.details.presentation.viewmodel.DetailsViewModel
-import com.practicum.shoppinglist.details.utils.mapper.toProductItemUi
 import com.practicum.shoppinglist.di.api.daggerViewModel
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -131,6 +138,7 @@ fun DetailsScreen(
         onIntent = { intent -> viewModel.onIntent(intent) },
         fabState = fabState,
         onFabIntent = { intent -> fabViewModel.onIntent(intent) },
+        action = viewModel.action,
     )
 }
 
@@ -141,8 +149,11 @@ fun DetailsScreenUI(
     state: DetailsScreenState = DetailsScreenState(),
     onFabIntent: (FabIntent) -> Unit = {},
     fabState: FabState,
-    onIntent: (DetailsScreenIntent) -> Unit = {},
+    onIntent: (BaseIntent) -> Unit = {},
+    action: SharedFlow<ListAction>,
 ) {
+    var selectedProduct by rememberSaveable(stateSaver = itemSaver(ProductItem.serializer())) { mutableStateOf(null) }
+    val openProduct = remember { mutableStateOf<ProductItem?>(null) }
     val density = LocalDensity.current
     val scaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = SheetState(
@@ -277,7 +288,28 @@ fun DetailsScreenUI(
         } else {
             LazyColumn {
                 items(state.productList) { item ->
-                    ProductItem(item = item.toProductItemUi(), onCheckedChange = { onIntent(DetailsScreenIntent.ToggleCompleted(item)) })
+                    ItemProduct(
+                        onIntent = { intent ->
+                            onIntent(intent)
+                        },
+                        action = action,
+                        item = item,
+                        openItem = openProduct as MutableState<BaseItem?>,
+                        onCheckedChange = { onIntent(DetailsScreenIntent.ToggleCompleted(item)) },
+                        onItemClick = {
+                            selectedProduct = item
+                            openProduct.value = null
+                        },
+                        onItemOpened = { product ->
+                            openProduct.value = product as ProductItem
+                            selectedProduct = product
+
+                        },
+                        onItemClosed = { if (openProduct.value?.id == item.id) openProduct.value = null },
+                        onRemove = {
+                            onIntent(BaseIntent.QueryRemoveShoppingList)
+                        }
+                    )
                 }
             }
         }
@@ -329,27 +361,6 @@ fun ActionMenu(
             }
         }
     }
-
-    /*DropdownMenu(
-        expanded = expanded.value,
-        onDismissRequest = { expanded.value = false },
-        offset = DpOffset(x, y),
-        properties = PopupProperties(focusable = true),
-        modifier = Modifier
-            .width(dimensionResource(R.dimen.sort_menu_width))
-            .onGloballyPositioned { coordinates ->
-                menuHeight = coordinates.size.height
-            }
-    ) {
-        options.forEach { option ->
-            PopupMenuItem(
-                leadingIcon = option.value,
-                expanded = expanded,
-                option = option.key,
-                selectedOption = selectedOption,
-            )
-        }
-    }*/
 }
 
 @Composable

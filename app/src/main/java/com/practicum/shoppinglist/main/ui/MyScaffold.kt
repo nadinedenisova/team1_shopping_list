@@ -48,7 +48,6 @@ import com.practicum.shoppinglist.core.presentation.ui.theme.SLTheme
 import com.practicum.shoppinglist.di.api.daggerViewModel
 import com.practicum.shoppinglist.main.ui.view_model.MainScreenViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyScaffold() {
     val navController = rememberNavController()

@@ -43,10 +43,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.practicum.shoppinglist.R
+import com.practicum.shoppinglist.common.resources.BaseIntent
 import com.practicum.shoppinglist.common.resources.ShoppingListIntent
 import com.practicum.shoppinglist.common.resources.ShoppingListState
+import com.practicum.shoppinglist.common.utils.itemSaver
+import com.practicum.shoppinglist.core.domain.models.BaseItem
 import com.practicum.shoppinglist.core.domain.models.ListItem
-import com.practicum.shoppinglist.core.domain.models.listItemSaver
 import com.practicum.shoppinglist.core.presentation.ui.theme.SLTheme
 import com.practicum.shoppinglist.main.ui.recycler.ItemList
 import com.practicum.shoppinglist.main.ui.recycler.ItemListSearch
@@ -66,7 +68,7 @@ fun MainScreen(
     val state by viewModel.shoppingListStateFlow.collectAsStateWithLifecycle()
     var showBottomSheet by remember { mutableStateOf(false) }
     val bottomSheetState = rememberModalBottomSheetState()
-    var selectedList by rememberSaveable(stateSaver = listItemSaver) { mutableStateOf(null) }
+    var selectedList by rememberSaveable(stateSaver = itemSaver(ListItem.serializer())) { mutableStateOf(null) }
     val searchQuery = rememberSaveable { mutableStateOf("") }
     val showEditShoppingListDialog = rememberSaveable { mutableStateOf(false) }
     val showRemoveShoppingListDialog = rememberSaveable { mutableStateOf(false) }
@@ -150,6 +152,9 @@ fun MainScreen(
                     onItemOpened = { list ->
                         selectedList = list
                     },
+                    onRemove = {
+                        showRemoveShoppingListDialog.value = true
+                    },
                     onRename = {
                         showEditShoppingListDialog.value = true
                     },
@@ -158,12 +163,6 @@ fun MainScreen(
                             viewModel.processIntent(ShoppingListIntent.AddShoppingList(name = it.name, icon = it.iconResId.toLong()))
                         }
                     },
-                    onStartRemove = {
-                        showRemoveShoppingListDialog.value = true
-                    },
-                    onFinishRemove = { id ->
-                        viewModel.processIntent(ShoppingListIntent.RemoveShoppingList(id = id))
-                    }
                 )
                 NoData(
                     visible = state.status == ShoppingListState.Status.NO_SHOPPING_LISTS,
@@ -200,7 +199,7 @@ fun MainScreen(
                     title = "${stringResource(R.string.remove_shopping_list)} ${selectedList?.name}?",
                     onDismiss = { showRemoveShoppingListDialog.value = false },
                     onConfirm = {
-                        viewModel.processIntent(ShoppingListIntent.IsRemoving(true))
+                        viewModel.processIntent(BaseIntent.QueryRemoveShoppingList)
                     }
                 )
                 RemoveShoppingListDialog(
@@ -245,10 +244,9 @@ fun ShoppingList(
     onItemClick: (ListItem) -> Unit,
     onIconClick: (ListItem) -> Unit = {},
     onItemOpened: (ListItem) -> Unit,
+    onRemove: () -> Unit,
     onRename: () -> Unit = {},
     onCopy: () -> Unit = {},
-    onStartRemove: () -> Unit,
-    onFinishRemove: (Long) -> Unit,
 ) {
     if (!visible) return
 
@@ -259,7 +257,7 @@ fun ShoppingList(
 
     if (items == null) return
 
-    var openList by remember { mutableStateOf<ListItem?>(null) }
+    val openList = remember { mutableStateOf<ListItem?>(null) }
 
     LazyColumn(
         modifier = Modifier.padding(horizontal = dimensionResource(R.dimen.padding_8x))
@@ -267,24 +265,28 @@ fun ShoppingList(
     ) {
         items(items, key = { it.id }) { item ->
             ItemList(
-                viewModel = viewModel,
-                list = item,
-                openList = openList,
+                onIntent = { intent ->
+                    viewModel.processIntent(intent as ShoppingListIntent)
+                },
+                action = viewModel.action,
+                item = item,
+                openList = openList as MutableState<BaseItem?>,
                 onItemClick = {
-                    onItemClick(item)
-                    openList = null
+                    if (openList.value?.id != item.id) {
+                        onItemClick(item)
+                    }
+                    openList.value = null
                 },
                 onIconClick = { onIconClick(item) },
                 onItemOpened = { list ->
-                    openList = list
+                    openList.value = list as ListItem
                     onItemOpened(list)
 
                 },
-                onItemClosed = { if (openList?.id == item.id) openList = null },
+                onItemClosed = { if (openList.value?.id == item.id) openList.value = null },
+                onRemove = onRemove,
                 onRename = onRename,
                 onCopy = onCopy,
-                onStartRemove = onStartRemove,
-                onFinishRemove = { onFinishRemove(item.id) },
             )
         }
     }

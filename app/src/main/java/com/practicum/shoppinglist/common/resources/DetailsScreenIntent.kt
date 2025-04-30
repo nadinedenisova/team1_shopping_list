@@ -1,8 +1,8 @@
-package com.practicum.shoppinglist.details.presentation.state
+package com.practicum.shoppinglist.common.resources
 
 import com.practicum.shoppinglist.core.domain.models.ProductItem
 
-sealed interface DetailsScreenIntent {
+sealed interface DetailsScreenIntent : BaseIntent {
     data class Init(val shoppingListId: Long) : DetailsScreenIntent
     data class ToggleProductSheet(val isOpen: Boolean): DetailsScreenIntent
     object ShowAddProductSheet: DetailsScreenIntent

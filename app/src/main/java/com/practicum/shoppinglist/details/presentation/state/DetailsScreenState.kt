@@ -5,6 +5,7 @@ import com.practicum.shoppinglist.details.presentation.models.ProductDetails
 
 data class DetailsScreenState(
     val shoppingListId: Long = -1,
+    val productId: Long = -1,
     val showAddProductSheet: Boolean = false,
     val productList: List<ProductItem> = emptyList(),
     val unitList: List<String> = emptyList(),
