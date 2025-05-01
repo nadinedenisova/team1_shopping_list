@@ -56,11 +56,7 @@ class MainScreenViewModel @Inject constructor(
     private val _isLoggedIn = MutableStateFlow(false)
     val isLoggedIn: StateFlow<Boolean> = _isLoggedIn
 
-    init {
-        checkLoginStatus()
-    }
-
-    private fun checkLoginStatus() {
+    fun checkLoginStatus() {
         _isLoggedIn.value = isUserLoggedInUseCase()
     }
 
@@ -77,6 +73,7 @@ class MainScreenViewModel @Inject constructor(
     }
 
     init {
+        checkLoginStatus()
         observeShoppingLists()
         processIntent(ShoppingListIntent.GetThemeSettings)
     }
