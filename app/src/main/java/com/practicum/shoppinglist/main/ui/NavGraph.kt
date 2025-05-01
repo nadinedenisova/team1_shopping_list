@@ -28,9 +28,8 @@ fun NavGraph(
     modifier: Modifier,
     viewModel: MainScreenViewModel,
     fabViewModel: FabViewModel,
-    ) {
     registrationScreenViewModel: RegistrationScreenViewModel,
-) {
+    ) {
     NavHost(navController = navController, startDestination = startDestination, modifier = modifier) {
         composable(
             route = Routes.MainScreen.name
