@@ -1,11 +1,19 @@
 package com.practicum.shoppinglist.details.presentation.ui
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,7 +22,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.LazyItemScope
+import androidx.compose.foundation.lazy.LazyListItemInfo
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -33,15 +45,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -71,7 +90,10 @@ import com.practicum.shoppinglist.details.presentation.state.DetailsScreenIntent
 import com.practicum.shoppinglist.details.presentation.state.DetailsScreenState
 import com.practicum.shoppinglist.details.presentation.viewmodel.DetailsViewModel
 import com.practicum.shoppinglist.details.utils.mapper.toProductItemUi
+import com.practicum.shoppinglist.details.utils.model.ProductSortOrder
 import com.practicum.shoppinglist.di.api.daggerViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -94,8 +116,13 @@ fun DetailsScreen(
     val bottomSheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
     val expanded = remember { mutableStateOf(false) }
-    val selectedOption = rememberSaveable { mutableStateOf("") }
     val keyboardController = LocalSoftwareKeyboardController.current
+    val menuSortOptions = remember {
+        listOf(
+            ProductSortOrder.ASC,
+            ProductSortOrder.Manual,
+        )
+    }
 
     LaunchedEffect(fabState.addProduct) {
         if (fabState.addProduct) {
@@ -110,7 +137,9 @@ fun DetailsScreen(
         MenuBottomSheet(
             bottomSheetState = bottomSheetState,
             expanded = expanded,
-            selectedOption = selectedOption,
+            options = menuSortOptions,
+            selectedOption = state.sortOrderMode,
+            onSelectionChanged = { viewModel.onIntent(DetailsScreenIntent.SortOrder(sortOrder = it)) },
             onDismissRequest = { showMenuBottomSheet.value = false },
             hideBottomSheet = {
                 scope.launch { bottomSheetState.hide() }.invokeOnCompletion {
@@ -156,6 +185,20 @@ fun DetailsScreenUI(
             density = density
         )
     )
+
+    val lazyListState = rememberLazyListState()
+
+    var productList by remember { mutableStateOf(state.productList) }
+
+    LaunchedEffect(state.productList) {
+        productList = state.productList
+    }
+
+    val dragDropState = rememberDragDropState(lazyListState) { fromIndex, toIndex ->
+        productList = productList.toMutableList().apply { add(toIndex, removeAt(fromIndex)) }
+        onIntent(DetailsScreenIntent.UpdateManualSortOrder(productList.mapIndexed { index, item -> item.id to index.toLong() }
+            .toMap()))
+    }
 
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
@@ -275,9 +318,48 @@ fun DetailsScreenUI(
                 )
             }
         } else {
-            LazyColumn {
-                items(state.productList) { item ->
-                    ProductItem(item = item.toProductItemUi(), onCheckedChange = { onIntent(DetailsScreenIntent.ToggleCompleted(item)) })
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .then(
+                        if (state.sortOrderMode is ProductSortOrder.Manual) {
+                            Modifier.dragContainer(dragDropState)
+                        } else {
+                            Modifier
+                        }
+                    ),
+                state = lazyListState,
+            ) {
+                itemsIndexed(productList, key = { _, item -> item }) { index, item ->
+                    DraggableItem(dragDropState, index) { isDragging ->
+                        val color by animateColorAsState(
+                            if (isDragging) SLTheme.slColorScheme.materialScheme.onSurface.copy(
+                                alpha = 0.16f
+                            ) else SLTheme.slColorScheme.materialScheme.surface
+                        )
+                        val elevation by animateDpAsState(
+                            if (isDragging) SLTheme.elevation.level5
+                            else SLTheme.elevation.level0
+                        )
+                        Surface(
+                            shape = RectangleShape,
+                            color = SLTheme.slColorScheme.materialScheme.surface,
+                            shadowElevation = elevation
+                        ) {
+                            ProductItem(
+                                modifier = Modifier.background(color),
+                                item = item.toProductItemUi(),
+                                onCheckedChange = {
+                                    onIntent(
+                                        DetailsScreenIntent.ToggleCompleted(
+                                            item
+                                        )
+                                    )
+                                },
+                                manualSort = state.sortOrderMode is ProductSortOrder.Manual,
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -286,23 +368,176 @@ fun DetailsScreenUI(
 
 
 @Composable
+fun rememberDragDropState(lazyListState: LazyListState, onMove: (Int, Int) -> Unit): DragDropState {
+    val scope = rememberCoroutineScope()
+    val state = remember(lazyListState) {
+        DragDropState(state = lazyListState, onMove = onMove, scope = scope)
+    }
+    LaunchedEffect(state) {
+        while (true) {
+            val diff = state.scrollChannel.receive()
+            lazyListState.scrollBy(diff)
+        }
+    }
+    return state
+}
+
+class DragDropState internal constructor(
+    private val state: LazyListState,
+    private val scope: CoroutineScope,
+    private val onMove: (Int, Int) -> Unit
+) {
+    var draggingItemIndex by mutableStateOf<Int?>(null)
+        private set
+
+    internal val scrollChannel = Channel<Float>()
+
+    private var draggingItemDraggedDelta by mutableFloatStateOf(0f)
+    private var draggingItemInitialOffset by mutableIntStateOf(0)
+    internal val draggingItemOffset: Float
+        get() =
+            draggingItemLayoutInfo?.let { item ->
+                draggingItemInitialOffset + draggingItemDraggedDelta - item.offset
+            } ?: 0f
+
+    private val draggingItemLayoutInfo: LazyListItemInfo?
+        get() = state.layoutInfo.visibleItemsInfo.firstOrNull { it.index == draggingItemIndex }
+
+    internal var previousIndexOfDraggedItem by mutableStateOf<Int?>(null)
+        private set
+
+    internal var previousItemOffset = Animatable(0f)
+        private set
+
+    internal fun onDragStart(offset: Offset) {
+        state.layoutInfo.visibleItemsInfo
+            .firstOrNull { item -> offset.y.toInt() in item.offset..(item.offset + item.size) }
+            ?.also {
+                draggingItemIndex = it.index
+                draggingItemInitialOffset = it.offset
+            }
+    }
+
+    internal fun onDragInterrupted() {
+        if (draggingItemIndex != null) {
+            previousIndexOfDraggedItem = draggingItemIndex
+            val startOffset = draggingItemOffset
+            scope.launch {
+                previousItemOffset.snapTo(startOffset)
+                previousItemOffset.animateTo(
+                    0f,
+                    spring(stiffness = Spring.StiffnessMediumLow, visibilityThreshold = 1f)
+                )
+                previousIndexOfDraggedItem = null
+            }
+        }
+        draggingItemDraggedDelta = 0f
+        draggingItemIndex = null
+        draggingItemInitialOffset = 0
+    }
+
+    internal fun onDrag(offset: Offset) {
+        draggingItemDraggedDelta += offset.y
+
+        val draggingItem = draggingItemLayoutInfo ?: return
+        val startOffset = draggingItem.offset + draggingItemOffset
+        val endOffset = startOffset + draggingItem.size
+        val middleOffset = startOffset + (endOffset - startOffset) / 2f
+
+        val targetItem =
+            state.layoutInfo.visibleItemsInfo.find { item ->
+                middleOffset.toInt() in item.offset..item.offsetEnd &&
+                        draggingItem.index != item.index
+            }
+        if (targetItem != null) {
+            if (
+                draggingItem.index == state.firstVisibleItemIndex ||
+                targetItem.index == state.firstVisibleItemIndex
+            ) {
+                state.requestScrollToItem(
+                    state.firstVisibleItemIndex,
+                    state.firstVisibleItemScrollOffset
+                )
+            }
+            onMove.invoke(draggingItem.index, targetItem.index)
+            draggingItemIndex = targetItem.index
+        } else {
+            val overscroll =
+                when {
+                    draggingItemDraggedDelta > 0 ->
+                        (endOffset - state.layoutInfo.viewportEndOffset).coerceAtLeast(0f)
+
+                    draggingItemDraggedDelta < 0 ->
+                        (startOffset - state.layoutInfo.viewportStartOffset).coerceAtMost(0f)
+
+                    else -> 0f
+                }
+            if (overscroll != 0f) {
+                scrollChannel.trySend(overscroll)
+            }
+        }
+    }
+
+    private val LazyListItemInfo.offsetEnd: Int
+        get() = this.offset + this.size
+}
+
+@Composable
+fun LazyItemScope.DraggableItem(
+    dragDropState: DragDropState,
+    index: Int,
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.(isDragging: Boolean) -> Unit
+) {
+    val dragging = index == dragDropState.draggingItemIndex
+    val draggingModifier =
+        if (dragging) {
+            Modifier
+                .zIndex(1f)
+                .graphicsLayer { translationY = dragDropState.draggingItemOffset }
+        } else if (index == dragDropState.previousIndexOfDraggedItem) {
+            Modifier
+                .zIndex(1f)
+                .graphicsLayer {
+                    translationY = dragDropState.previousItemOffset.value
+                }
+        } else {
+            Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null)
+        }
+    Column(modifier = modifier.then(draggingModifier)) { content(dragging) }
+}
+
+fun Modifier.dragContainer(dragDropState: DragDropState): Modifier {
+    return pointerInput(dragDropState) {
+        detectDragGesturesAfterLongPress(
+            onDrag = { change, offset ->
+                change.consume()
+                dragDropState.onDrag(offset = offset)
+            },
+            onDragStart = { offset -> dragDropState.onDragStart(offset) },
+            onDragEnd = { dragDropState.onDragInterrupted() },
+            onDragCancel = { dragDropState.onDragInterrupted() }
+        )
+    }
+}
+
+@Composable
 fun ActionMenu(
     expanded: MutableState<Boolean>,
-    selectedOption: MutableState<String>,
+    selectedOption: ProductSortOrder,
+    onSelectionChanged: (ProductSortOrder) -> Unit,
+    options: List<ProductSortOrder>,
     anchorBounds: Rect
 ) {
     if (!expanded.value) return
-
-    val context = LocalContext.current
     val density = LocalDensity.current
-    val options = remember {
-        mapOf(
-            context.resources.getString(R.string.sort_alphabet_order) to R.drawable.ic_alphabet_order,
-            context.resources.getString(R.string.sort_user_defined) to R.drawable.ic_user_defined,
-        )
+    val x = with(density) {
+        (anchorBounds.right.toDp() - dimensionResource(R.dimen.sort_menu_width) + dimensionResource(
+            R.dimen.padding_8x
+        )).roundToPx()
     }
-    val x = with(density) { (anchorBounds.right.toDp() - dimensionResource(R.dimen.sort_menu_width) + dimensionResource(R.dimen.padding_8x)).roundToPx() }
-    val y = with(density) { (anchorBounds.top.toDp() - dimensionResource(R.dimen.padding_4x)).roundToPx() }
+    val y =
+        with(density) { (anchorBounds.top.toDp() - dimensionResource(R.dimen.padding_4x)).roundToPx() }
 
     Popup(
         alignment = Alignment.TopStart,
@@ -318,12 +553,12 @@ fun ActionMenu(
             shape = RoundedCornerShape(8.dp)
         ) {
             Column {
-                options.forEach { option ->
+                options.forEach {
                     PopupMenuItem(
-                        leadingIcon = option.value,
                         expanded = expanded,
-                        option = option.key,
-                        selectedOption = selectedOption,
+                        option = it,
+                        selected = it == selectedOption,
+                        onSelected = onSelectionChanged,
                     )
                 }
             }
@@ -354,36 +589,39 @@ fun ActionMenu(
 
 @Composable
 fun PopupMenuItem(
-    leadingIcon: Int,
     expanded: MutableState<Boolean>,
-    option: String,
-    selectedOption: MutableState<String>,
+    option: ProductSortOrder,
+    selected: Boolean = false,
+    onSelected: (ProductSortOrder) -> Unit,
 ) {
     Row(
         modifier = Modifier
             .clickable {
-                selectedOption.value = option
                 expanded.value = false
+                onSelected(option)
             }
-            .padding(start = dimensionResource(R.dimen.padding_6x), end = dimensionResource(R.dimen.padding_8x))
+            .padding(
+                start = dimensionResource(R.dimen.padding_6x),
+                end = dimensionResource(R.dimen.padding_8x)
+            )
             .padding(vertical = dimensionResource(R.dimen.padding_8x))
             .background(MaterialTheme.colorScheme.surfaceContainer),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
-            painter = painterResource(id = leadingIcon),
+            painter = painterResource(option.leadingIcon),
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSecondaryContainer,
         )
         Spacer(modifier = Modifier.width(dimensionResource(R.dimen.padding_6x)))
         Text(
-            text = option,
+            text = stringResource(option.name),
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.weight(1f)
         )
         Spacer(modifier = Modifier.width(dimensionResource(R.dimen.padding_6x)))
         RadioButton(
-            selected = option == selectedOption.value,
+            selected = selected,
             onClick = null
         )
     }

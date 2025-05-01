@@ -23,13 +23,16 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.practicum.shoppinglist.R
+import com.practicum.shoppinglist.details.utils.model.ProductSortOrder
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MenuBottomSheet(
     bottomSheetState: SheetState,
     expanded: MutableState<Boolean>,
-    selectedOption: MutableState<String>,
+    options: List<ProductSortOrder>,
+    selectedOption: ProductSortOrder,
+    onSelectionChanged: (ProductSortOrder) -> Unit,
     onDismissRequest: () -> Unit,
     hideBottomSheet: () -> Unit,
     onSortClick: () -> Unit,
@@ -68,21 +71,21 @@ fun MenuBottomSheet(
                     ActionMenu(
                         expanded = expanded,
                         selectedOption = selectedOption,
-                        anchorBounds = bounds
+                        onSelectionChanged = onSelectionChanged,
+                        anchorBounds = bounds,
+                        options = options,
                     )
                 }
             }
             MenuItem(
                 icon = R.drawable.ic_sort,
                 text = stringResource(R.string.sort),
-                subText = selectedOption.value,
+                subText = if (selectedOption.name > 0) stringResource(selectedOption.name) else null,
                 onBounds = { bounds ->
                     anchorBounds.value = bounds
                 },
                 trailingIcon = R.drawable.ic_right,
-                onClick = {
-                    onSortClick()
-                },
+                onClick = { onSortClick() },
             )
             MenuItem(
                 icon = R.drawable.ic_delete,

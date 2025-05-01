@@ -1,6 +1,7 @@
 package com.practicum.shoppinglist.details.presentation.state
 
 import com.practicum.shoppinglist.core.domain.models.ProductItem
+import com.practicum.shoppinglist.details.utils.model.ProductSortOrder
 
 sealed interface DetailsScreenIntent {
     data class Init(val shoppingListId: Long) : DetailsScreenIntent
@@ -17,4 +18,7 @@ sealed interface DetailsScreenIntent {
     data object AddProduct: DetailsScreenIntent
     data object DeleteAll: DetailsScreenIntent
     data object DeteleCompleted: DetailsScreenIntent
+
+    class SortOrder(val sortOrder: ProductSortOrder): DetailsScreenIntent
+    class UpdateManualSortOrder(val sortOrder: Map<Long, Long>): DetailsScreenIntent
 }

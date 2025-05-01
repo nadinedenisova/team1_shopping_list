@@ -2,6 +2,7 @@ package com.practicum.shoppinglist.core.data
 
 import com.practicum.shoppinglist.ListEntity
 import com.practicum.shoppinglist.ProductEntity
+import com.practicum.shoppinglist.ProductSortEntity
 import kotlinx.coroutines.flow.Flow
 
 interface LocalDataSource {
@@ -20,4 +21,7 @@ interface LocalDataSource {
     suspend fun deleteAll(): Long
     suspend fun deleteAllByListId(id: Long): Long
     suspend fun deleteAllCompletedByListId(id: Long): Long
+
+    fun getSortOrderByListId(listId: Long): Flow<List<ProductSortEntity>>
+    suspend fun addProductSortOrder(listId: Long, sortOrder: Map<Long, Long>): Long
 }

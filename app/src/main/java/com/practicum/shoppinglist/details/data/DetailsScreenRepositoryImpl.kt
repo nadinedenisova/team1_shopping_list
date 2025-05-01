@@ -1,6 +1,7 @@
 package com.practicum.shoppinglist.details.data
 
 import com.practicum.shoppinglist.ProductEntity
+import com.practicum.shoppinglist.ProductSortEntity
 import com.practicum.shoppinglist.core.data.SqlDelightDataSource
 import com.practicum.shoppinglist.core.data.mapper.toProductItem
 import com.practicum.shoppinglist.core.domain.models.ProductItem
@@ -37,5 +38,16 @@ class DetailsScreenRepositoryImpl @Inject constructor(
 
     override suspend fun removeCompletedProducts(shoppingListId: Long): Long {
         return dataSource.deleteAllCompletedByListId(shoppingListId)
+    }
+
+    override fun getSortOrderByShoppingListId(shoppingListId: Long): Flow<List<ProductSortEntity>> {
+        return dataSource.getSortOrderByListId(shoppingListId)
+    }
+
+    override suspend fun addItemSortOrder(
+        shoppingListId: Long,
+        itemSortOrder: Map<Long, Long>
+    ): Long {
+        return dataSource.addProductSortOrder(shoppingListId, itemSortOrder)
     }
 }

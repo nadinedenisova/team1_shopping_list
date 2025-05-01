@@ -56,7 +56,9 @@ fun ProductItem(
             )
 
             Column(
-                modifier = Modifier.weight(1f).padding(vertical = 8.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(vertical = 8.dp),
                 verticalArrangement = Arrangement.Center,
             ) {
                 Text(
@@ -116,7 +118,10 @@ fun ProductItemUiPreviewLight() {
             Column(modifier = Modifier.padding(it)) {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     items(productMock.size) {
-                        ProductItem(item = productMock[it], manualSort = it % 2 == 0)
+                        ProductItem(
+                            item = productMock[it],
+                            manualSort = it % 2 == 0,
+                        )
                     }
                 }
             }
