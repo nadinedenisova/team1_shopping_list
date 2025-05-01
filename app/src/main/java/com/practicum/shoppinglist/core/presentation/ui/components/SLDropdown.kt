@@ -22,9 +22,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Devices.PIXEL_6
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.practicum.shoppinglist.R
 import com.practicum.shoppinglist.core.presentation.ui.theme.SLTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -32,20 +34,21 @@ import com.practicum.shoppinglist.core.presentation.ui.theme.SLTheme
 fun SLDropdown(
     modifier: Modifier = Modifier,
     label: String? = null,
+    value: String = "",
     placeholder: String? = null,
     menuItems: List<String> = emptyList(),
     editable: Boolean = false,
     showTrailingIcon: Boolean = false,
+    onValueChanged: (String) -> Unit = {},
 ) {
-    var text by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
 
     var filteredItems =
         if (editable) {
-            if (!showTrailingIcon && text.isEmpty()) {
+            if (!showTrailingIcon && value.isEmpty()) {
                 emptyList()
             } else {
-                menuItems.filter { it.contains(text) }
+                menuItems.filter { it.contains(value) }
             }
         } else {
             menuItems
@@ -79,8 +82,8 @@ fun SLDropdown(
                     MenuAnchorType.PrimaryEditable,
                     enabled = editable
                 ),
-            value = text,
-            onValueChange = { text = it },
+            value = value,
+            onValueChange = { onValueChanged(it) },
             label = label,
             placeholder = placeholder,
             readOnly = !editable,
@@ -104,7 +107,7 @@ fun SLDropdown(
                         )
                     },
                     onClick = {
-                        text = item
+                        onValueChanged(item)
                         expanded = false
                     },
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
@@ -133,69 +136,30 @@ fun SLDropdownPreviewLight() {
 
                 SLDropdown(
                     label = "read only",
+                    menuItems = options,
                     showTrailingIcon = true,
-                    menuItems = options
+                    onValueChanged = { },
+                    placeholder = stringResource(R.string.add_new_product_title)
                 )
 
                 Spacer(Modifier.height(16.dp))
 
                 SLDropdown(
                     label = "edit with icon",
-                    showTrailingIcon = true,
                     menuItems = options,
                     editable = true,
+                    showTrailingIcon = true,
+                    onValueChanged = { },
+                    placeholder = stringResource(R.string.add_new_product_title),
                 )
                 Spacer(Modifier.height(16.dp))
 
                 SLDropdown(
                     label = "edit no icon",
-                    showTrailingIcon = false,
                     menuItems = options,
                     editable = true,
-                )
-            }
-        }
-    }
-}
-
-@Preview(name = "Темная тема", showSystemUi = true, device = PIXEL_6)
-@Composable
-fun SLDropdownPreviewDark() {
-    SLTheme(darkTheme = true) {
-        Scaffold(
-            containerColor = SLTheme.slColorScheme.materialScheme.surfaceContainerHigh
-        ) { innerPadding ->
-            Column(
-                Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize()
-                    .padding(16.dp)
-            ) {
-                val options: List<String> = listOf("один", "два", "три", "четыре", "пять")
-
-                Spacer(Modifier.height(32.dp))
-
-                SLDropdown(
-                    label = "read only",
-                    showTrailingIcon = true,
-                    menuItems = options
-                )
-
-                Spacer(Modifier.height(16.dp))
-
-                SLDropdown(
-                    label = "edit with icon",
-                    showTrailingIcon = true,
-                    menuItems = options,
-                    editable = true,
-                )
-                Spacer(Modifier.height(16.dp))
-
-                SLDropdown(
-                    label = "edit no icon",
-                    showTrailingIcon = false,
-                    menuItems = options,
-                    editable = true,
+                    onValueChanged = { },
+                    placeholder = stringResource(R.string.add_new_product_title),
                 )
             }
         }

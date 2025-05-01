@@ -1,5 +1,12 @@
 package com.practicum.shoppinglist.di
 
+import com.practicum.shoppinglist.details.domain.api.DetailsScreenRepository
+import com.practicum.shoppinglist.details.domain.impl.AddProductUseCase
+import com.practicum.shoppinglist.details.domain.impl.DeleteAllProductsUseCase
+import com.practicum.shoppinglist.details.domain.impl.DeleteCompletedProductsUseCase
+import com.practicum.shoppinglist.details.domain.impl.DeleteProductUseCase
+import com.practicum.shoppinglist.details.domain.impl.GetProductListUseCase
+import com.practicum.shoppinglist.details.domain.impl.UpdateProductUseCase
 import com.practicum.shoppinglist.main.domain.api.AuthorizationRepository
 import com.practicum.shoppinglist.main.domain.api.MainScreenRepository
 import com.practicum.shoppinglist.main.domain.impl.AddShoppingListUseCase
@@ -55,6 +62,34 @@ class UseCaseModule {
     @Provides
     fun provideGetThemeSettingsUseCase(repository: MainScreenRepository): GetThemeSettingsUseCase {
         return GetThemeSettingsUseCase(repository)
+    }
+
+    @Provides
+    fun provideGetProductListUseCase(repository: DetailsScreenRepository): GetProductListUseCase {
+        return GetProductListUseCase(repository)
+    }
+
+    @Provides
+    fun provideAddProductUseCase(repository: DetailsScreenRepository): AddProductUseCase {
+        return AddProductUseCase(repository)
+    }
+
+    @Provides
+    fun provideUpdateProductUseCase(repository: DetailsScreenRepository): UpdateProductUseCase {
+        return UpdateProductUseCase(repository)
+    }
+    @Provides
+    fun provideDeleteAllProductsUseCase(repository: DetailsScreenRepository): DeleteAllProductsUseCase {
+        return DeleteAllProductsUseCase(repository)
+    }
+    @Provides
+    fun provideDeleteCompletedProductsUseCase(repository: DetailsScreenRepository): DeleteCompletedProductsUseCase {
+        return DeleteCompletedProductsUseCase(repository)
+    }
+
+    @Provides
+    fun provideDeleteProductUseCase(repository: DetailsScreenRepository): DeleteProductUseCase {
+        return DeleteProductUseCase(repository)
     }
 
     @Provides
