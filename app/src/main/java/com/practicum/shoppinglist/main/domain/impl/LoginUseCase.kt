@@ -22,12 +22,4 @@ class LoginUseCase(
             }
         }
     }
-
-    fun logout() {
-        tokenStorage.clearToken()
-    }
-
-    fun hasToken(): Boolean {
-        return tokenStorage.getToken() != null
-    }
 }

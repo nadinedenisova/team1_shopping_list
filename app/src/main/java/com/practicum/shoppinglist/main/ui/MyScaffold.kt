@@ -74,6 +74,7 @@ fun MyScaffold() {
 
     val fabViewModel = daggerViewModel<FabViewModel>(factory)
     val fabState = fabViewModel.fabState.collectAsState().value
+    val isLoggedIn by viewModel.isLoggedIn.collectAsState()
 
     SLTheme(darkTheme = state.darkTheme) {
         Scaffold(
@@ -112,7 +113,11 @@ fun MyScaffold() {
                         },
                         onLoginClick = {
                             navController.navigate(Routes.Login.name)
-                        }
+                        },
+                        onLogoutClick = {
+                            viewModel.logout()
+                        },
+                        isLoggedIn = isLoggedIn
                     )
                 }
             },
@@ -170,9 +175,11 @@ fun TopBar(
     onBackClick: () -> Unit,
     onSearchClick: () -> Unit = {},
     onLoginClick: () -> Unit = {},
+    onLogoutClick: () -> Unit = {},
     onRemoveClick: () -> Unit = {},
     onDarkModeClick: () -> Unit = {},
     onMenuClick: () -> Unit,
+    isLoggedIn: Boolean
 ) {
     val screensWithoutBackButton = listOf(Routes.MainScreen.name)
     val showBackButton = currentDestination !in screensWithoutBackButton
@@ -222,8 +229,14 @@ fun TopBar(
                             contentDescription = stringResource(R.string.dark_mode)
                         )
                     }
-                    Button (onClick = onLoginClick) {
-                        Text(stringResource(R.string.login))
+                    if (!isLoggedIn) {
+                        Button (onClick = onLoginClick) {
+                            Text(stringResource(R.string.login))
+                        }
+                    } else {
+                        Button (onClick = onLogoutClick) {
+                            Text(stringResource(R.string.logout))
+                        }
                     }
                 }
 

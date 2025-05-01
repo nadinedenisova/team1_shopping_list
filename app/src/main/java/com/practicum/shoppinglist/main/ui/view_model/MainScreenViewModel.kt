@@ -19,6 +19,8 @@ import com.practicum.shoppinglist.core.domain.models.ListItem
 import com.practicum.shoppinglist.main.domain.impl.AddShoppingListUseCase
 import com.practicum.shoppinglist.main.domain.impl.ChangeThemeSettingsUseCase
 import com.practicum.shoppinglist.main.domain.impl.GetThemeSettingsUseCase
+import com.practicum.shoppinglist.main.domain.impl.IsUserLoggedInUseCase
+import com.practicum.shoppinglist.main.domain.impl.LogoutUseCase
 import com.practicum.shoppinglist.main.domain.impl.RemoveAllShoppingListsUseCase
 import com.practicum.shoppinglist.main.domain.impl.RemoveShoppingListUseCase
 import com.practicum.shoppinglist.main.domain.impl.ShowShoppingListByNameUseCase
@@ -43,10 +45,23 @@ class MainScreenViewModel @Inject constructor(
     private val removeAllShoppingListsUseCase: RemoveAllShoppingListsUseCase,
     private val getThemeSettingsUseCase: GetThemeSettingsUseCase,
     private val changeThemeSettingsUseCase: ChangeThemeSettingsUseCase,
+    private val isUserLoggedInUseCase: IsUserLoggedInUseCase,
+    private val logoutUseCase: LogoutUseCase,
 ) : ViewModel() {
 
     private companion object {
         const val TAG = "MainScreenViewModel"
+    }
+
+    private val _isLoggedIn = MutableStateFlow(false)
+    val isLoggedIn: StateFlow<Boolean> = _isLoggedIn
+
+    init {
+        checkLoginStatus()
+    }
+
+    private fun checkLoginStatus() {
+        _isLoggedIn.value = isUserLoggedInUseCase()
     }
 
     private val _shoppingListStateFlow = MutableStateFlow(default())
@@ -64,6 +79,11 @@ class MainScreenViewModel @Inject constructor(
     init {
         observeShoppingLists()
         processIntent(ShoppingListIntent.GetThemeSettings)
+    }
+
+    fun logout() {
+        logoutUseCase()
+        checkLoginStatus()
     }
 
     fun processIntent(intent: BaseIntent) {

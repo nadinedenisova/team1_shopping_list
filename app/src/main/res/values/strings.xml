@@ -13,6 +13,7 @@
     <string name="enter">Логин</string>
     <string name="restore_password">Восстановить пароль</string>
     <string name="login">Логин</string>
+    <string name="logout">Выйти</string>
     <string name="not_implemented">Функция не реализована</string>
     <string name="search_hint">Поиск списков</string>
     <string name="remove">Удалить</string>

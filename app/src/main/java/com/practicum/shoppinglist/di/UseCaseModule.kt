@@ -13,7 +13,9 @@ import com.practicum.shoppinglist.main.domain.api.TokenStorage
 import com.practicum.shoppinglist.main.domain.impl.AddShoppingListUseCase
 import com.practicum.shoppinglist.main.domain.impl.ChangeThemeSettingsUseCase
 import com.practicum.shoppinglist.main.domain.impl.GetThemeSettingsUseCase
+import com.practicum.shoppinglist.main.domain.impl.IsUserLoggedInUseCase
 import com.practicum.shoppinglist.main.domain.impl.LoginUseCase
+import com.practicum.shoppinglist.main.domain.impl.LogoutUseCase
 import com.practicum.shoppinglist.main.domain.impl.RegistrationUseCase
 import com.practicum.shoppinglist.main.domain.impl.RemoveAllShoppingListsUseCase
 import com.practicum.shoppinglist.main.domain.impl.RemoveShoppingListUseCase
@@ -102,6 +104,16 @@ class UseCaseModule {
     @Provides
     fun provideLoginUseCase(repository: AuthorizationRepository, tokenStorage: TokenStorage): LoginUseCase {
         return LoginUseCase(repository, tokenStorage)
+    }
+
+    @Provides
+    fun provideLogoutUseCase(tokenStorage: TokenStorage): LogoutUseCase {
+        return LogoutUseCase(tokenStorage)
+    }
+
+    @Provides
+    fun provideIsUserLoggedInUseCase(tokenStorage: TokenStorage): IsUserLoggedInUseCase {
+        return IsUserLoggedInUseCase(tokenStorage)
     }
 
 }
