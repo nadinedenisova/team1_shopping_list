@@ -16,10 +16,11 @@ class FabViewModel @Inject constructor() : ViewModel() {
 
     fun onIntent(intent: FabIntent) {
         when(intent) {
-            FabIntent.CloseDetailsBottomSheet -> { _fabState.update { it.copy(isOpenDetailsBottomSheetState = false) } }
-            FabIntent.OpenDetailsBottomSheet -> { _fabState.update { it.copy(isOpenDetailsBottomSheetState = true) } }
+            FabIntent.CloseDetailsBottomSheet -> { _fabState.update { it.copy(isOpenDetailsBottomSheetState = null) } }
+            is FabIntent.OpenDetailsBottomSheet -> { _fabState.update { it.copy(isOpenDetailsBottomSheetState = intent.state) } }
             is FabIntent.OffsetY -> { _fabState.update { it.copy(offsetY = intent.offset) } }
             is FabIntent.AddProduct -> { _fabState.update { it.copy(addProduct = intent.active) } }
+            is FabIntent.EditProduct -> { _fabState.update { it.copy(editProduct = intent.active) } }
         }
     }
 }

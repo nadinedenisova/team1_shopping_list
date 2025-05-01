@@ -7,14 +7,15 @@ import com.practicum.shoppinglist.common.resources.BaseIntent
 import com.practicum.shoppinglist.common.resources.DetailsScreenIntent
 import com.practicum.shoppinglist.common.resources.ListAction
 import com.practicum.shoppinglist.core.data.mapper.toProductEntity
+import com.practicum.shoppinglist.core.domain.models.ProductItem
 import com.practicum.shoppinglist.details.domain.impl.AddProductUseCase
 import com.practicum.shoppinglist.details.domain.impl.DeleteAllProductsUseCase
 import com.practicum.shoppinglist.details.domain.impl.DeleteCompletedProductsUseCase
 import com.practicum.shoppinglist.details.domain.impl.DeleteProductUseCase
 import com.practicum.shoppinglist.details.domain.impl.GetProductListUseCase
 import com.practicum.shoppinglist.details.domain.impl.UpdateProductUseCase
-import com.practicum.shoppinglist.details.presentation.models.ProductDetails
 import com.practicum.shoppinglist.details.presentation.state.DetailsScreenState
+import com.practicum.shoppinglist.details.presentation.state.DetailsScreenState.Companion.editProduct
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -60,7 +61,9 @@ class DetailsViewModel @Inject constructor(
             }
 
             DetailsScreenIntent.AddUnits -> {
-                _state.update { it.copy(product = it.product.copy(count = it.product.count + 1)) }
+                _state.update {
+                    it.copy(product = it.product.copy(count = it.product.count + 1))
+                }
             }
 
             DetailsScreenIntent.SubstractUnits -> {
@@ -87,7 +90,19 @@ class DetailsViewModel @Inject constructor(
                             completed = 0
                         )
                     )
-                    _state.update { it.copy(product = ProductDetails()) }
+                    _state.update { it.copy(product = ProductItem()) }
+                }
+            }
+
+            is DetailsScreenIntent.QueryEditProduct -> {
+                _state.update {
+                    it.editProduct(intent.product)
+                }
+            }
+
+            is DetailsScreenIntent.EditProduct -> {
+                viewModelScope.launch(Dispatchers.IO) {
+                    updateProductUseCase( _state.value.product.toProductEntity())
                 }
             }
 

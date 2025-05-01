@@ -104,6 +104,15 @@ fun DetailsScreen(
     val selectedOption = rememberSaveable { mutableStateOf("") }
     val keyboardController = LocalSoftwareKeyboardController.current
 
+    LaunchedEffect(fabState.editProduct) {
+        if (fabState.editProduct) {
+            viewModel.onIntent(DetailsScreenIntent.EditProduct)
+            fabViewModel.onIntent(FabIntent.EditProduct(false))
+            fabViewModel.onIntent(FabIntent.CloseDetailsBottomSheet)
+            keyboardController?.hide()
+        }
+    }
+
     LaunchedEffect(fabState.addProduct) {
         if (fabState.addProduct) {
             viewModel.onIntent(DetailsScreenIntent.AddProduct)
@@ -157,7 +166,7 @@ fun DetailsScreenUI(
     val density = LocalDensity.current
     val scaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = SheetState(
-            initialValue = if (fabState.isOpenDetailsBottomSheetState) SheetValue.Expanded else SheetValue.Hidden,
+            initialValue = if (fabState.isOpenDetailsBottomSheetState != null) SheetValue.Expanded else SheetValue.Hidden,
             confirmValueChange = { sheetValue ->
                 onFabIntent(FabIntent.CloseDetailsBottomSheet)
                 true
@@ -207,9 +216,14 @@ fun DetailsScreenUI(
                         modifier = Modifier,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
+                        val count = when {
+                            state.product.count == 0 -> null
+                            else -> state.product.count
+                        }
+
                         SLOutlineTextField(
                             modifier = Modifier.weight(1f),
-                            value = if (state.product.count == 0) "" else state.product.count.toString(),
+                            value = count?.toString() ?: "",
                             onValueChange = {
                                 if (it.isNotEmpty() && it.trim().isDigitsOnly()) {
                                     onIntent(DetailsScreenIntent.EditUnitsCount(it.trim().toInt()))
@@ -233,7 +247,7 @@ fun DetailsScreenUI(
                         )
                         SLIconButton(
                             modifier = Modifier,
-                            enabled = state.product.count > 0,
+                            enabled = count?.let { it > 0 } ?: false,
                             icon = painterResource(R.drawable.ic_minus),
                             onClick = { onIntent(DetailsScreenIntent.SubstractUnits) }
                         )
@@ -248,7 +262,7 @@ fun DetailsScreenUI(
             }
         }
     ) { innerPadding ->
-        if (fabState.isOpenDetailsBottomSheetState) {
+        if (fabState.isOpenDetailsBottomSheetState != null) {
             Box(
                 Modifier
                     .fillMaxSize()
@@ -306,6 +320,10 @@ fun DetailsScreenUI(
 
                         },
                         onItemClosed = { if (openProduct.value?.id == item.id) openProduct.value = null },
+                        onRename = {
+                            onFabIntent(FabIntent.OpenDetailsBottomSheet(state = FabState.State.EditProduct.name))
+                            onIntent(DetailsScreenIntent.QueryEditProduct(selectedProduct ?: ProductItem()))
+                       },
                         onRemove = {
                             onIntent(BaseIntent.QueryRemoveShoppingList)
                         }
@@ -315,7 +333,6 @@ fun DetailsScreenUI(
         }
     }
 }
-
 
 @Composable
 fun ActionMenu(
