@@ -79,6 +79,11 @@ import androidx.compose.ui.zIndex
 import androidx.core.text.isDigitsOnly
 import com.practicum.shoppinglist.App
 import com.practicum.shoppinglist.R
+import com.practicum.shoppinglist.common.resources.BaseIntent
+import com.practicum.shoppinglist.common.resources.DetailsScreenIntent
+import com.practicum.shoppinglist.common.resources.ListAction
+import com.practicum.shoppinglist.core.domain.models.BaseItem
+import com.practicum.shoppinglist.core.domain.models.ProductItem
 import com.practicum.shoppinglist.core.presentation.ui.FabViewModel
 import com.practicum.shoppinglist.core.presentation.ui.components.SLDropdown
 import com.practicum.shoppinglist.core.presentation.ui.components.SLIconButton
@@ -86,14 +91,13 @@ import com.practicum.shoppinglist.core.presentation.ui.components.SLOutlineTextF
 import com.practicum.shoppinglist.core.presentation.ui.state.FabIntent
 import com.practicum.shoppinglist.core.presentation.ui.state.FabState
 import com.practicum.shoppinglist.core.presentation.ui.theme.SLTheme
-import com.practicum.shoppinglist.details.presentation.state.DetailsScreenIntent
 import com.practicum.shoppinglist.details.presentation.state.DetailsScreenState
 import com.practicum.shoppinglist.details.presentation.viewmodel.DetailsViewModel
-import com.practicum.shoppinglist.details.utils.mapper.toProductItemUi
 import com.practicum.shoppinglist.details.utils.model.ProductSortOrder
 import com.practicum.shoppinglist.di.api.daggerViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -122,6 +126,15 @@ fun DetailsScreen(
             ProductSortOrder.ASC,
             ProductSortOrder.Manual,
         )
+    }
+
+    LaunchedEffect(fabState.editProduct) {
+        if (fabState.editProduct) {
+            viewModel.onIntent(DetailsScreenIntent.EditProduct)
+            fabViewModel.onIntent(FabIntent.EditProduct(false))
+            fabViewModel.onIntent(FabIntent.CloseDetailsBottomSheet)
+            keyboardController?.hide()
+        }
     }
 
     LaunchedEffect(fabState.addProduct) {
@@ -160,6 +173,7 @@ fun DetailsScreen(
         onIntent = { intent -> viewModel.onIntent(intent) },
         fabState = fabState,
         onFabIntent = { intent -> fabViewModel.onIntent(intent) },
+        action = viewModel.action,
     )
 }
 
@@ -171,11 +185,13 @@ fun DetailsScreenUI(
     onFabIntent: (FabIntent) -> Unit = {},
     fabState: FabState,
     onIntent: (DetailsScreenIntent) -> Unit = {},
+    action: SharedFlow<ListAction>,
 ) {
+    val openProduct = remember { mutableStateOf<ProductItem?>(null) }
     val density = LocalDensity.current
     val scaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = SheetState(
-            initialValue = if (fabState.isOpenDetailsBottomSheetState) SheetValue.Expanded else SheetValue.Hidden,
+            initialValue = if (fabState.isOpenDetailsBottomSheetState != null) SheetValue.Expanded else SheetValue.Hidden,
             confirmValueChange = { sheetValue ->
                 onFabIntent(FabIntent.CloseDetailsBottomSheet)
                 true
@@ -185,6 +201,12 @@ fun DetailsScreenUI(
             density = density
         )
     )
+
+    LaunchedEffect(fabState.isOpenDetailsBottomSheetState) {
+        if (fabState.isOpenDetailsBottomSheetState == FabState.State.AddProduct.name) {
+            onIntent(DetailsScreenIntent.SelectedProduct(ProductItem()))
+        }
+    }
 
     val lazyListState = rememberLazyListState()
 
@@ -239,9 +261,14 @@ fun DetailsScreenUI(
                         modifier = Modifier,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
+                        val count = when {
+                            state.product.count == 0 -> ""
+                            else -> state.product.count.toString()
+                        }
+
                         SLOutlineTextField(
                             modifier = Modifier.weight(1f),
-                            value = if (state.product.count == 0) "" else state.product.count.toString(),
+                            value = count,
                             onValueChange = {
                                 if (it.isNotEmpty() && it.trim().isDigitsOnly()) {
                                     onIntent(DetailsScreenIntent.EditUnitsCount(it.trim().toInt()))
@@ -280,7 +307,7 @@ fun DetailsScreenUI(
             }
         }
     ) { innerPadding ->
-        if (fabState.isOpenDetailsBottomSheetState) {
+        if (fabState.isOpenDetailsBottomSheetState != null) {
             Box(
                 Modifier
                     .fillMaxSize()
@@ -343,12 +370,12 @@ fun DetailsScreenUI(
                         )
                         Surface(
                             shape = RectangleShape,
-                            color = SLTheme.slColorScheme.materialScheme.surface,
+                            color = Color.Transparent,
                             shadowElevation = elevation
                         ) {
                             ProductItem(
-                                modifier = Modifier.background(color),
-                                item = item.toProductItemUi(),
+                                modifier = Modifier,
+                                item = item,
                                 onCheckedChange = {
                                     onIntent(
                                         DetailsScreenIntent.ToggleCompleted(
@@ -357,6 +384,24 @@ fun DetailsScreenUI(
                                     )
                                 },
                                 manualSort = state.sortOrderMode is ProductSortOrder.Manual,
+                                onItemClick = {
+                                    openProduct.value = null
+                                },
+                                onItemOpened = {
+                                    openProduct.value = item
+
+                                },
+                                onItemClosed = {
+                                    if (openProduct.value?.id == item.id) openProduct.value = null
+                                },
+                                onRename = {
+                                    onFabIntent(FabIntent.OpenDetailsBottomSheet(state = FabState.State.EditProduct.name))
+                                    onIntent(DetailsScreenIntent.SelectedProduct(item))
+                                },
+                                onRemove = { onIntent(BaseIntent.QueryRemoveShoppingList) },
+                                action = action,
+                                openItem = openProduct as MutableState<BaseItem?>,
+                                onIntent = { intent -> onIntent(intent) },
                             )
                         }
                     }
@@ -564,27 +609,6 @@ fun ActionMenu(
             }
         }
     }
-
-    /*DropdownMenu(
-        expanded = expanded.value,
-        onDismissRequest = { expanded.value = false },
-        offset = DpOffset(x, y),
-        properties = PopupProperties(focusable = true),
-        modifier = Modifier
-            .width(dimensionResource(R.dimen.sort_menu_width))
-            .onGloballyPositioned { coordinates ->
-                menuHeight = coordinates.size.height
-            }
-    ) {
-        options.forEach { option ->
-            PopupMenuItem(
-                leadingIcon = option.value,
-                expanded = expanded,
-                option = option.key,
-                selectedOption = selectedOption,
-            )
-        }
-    }*/
 }
 
 @Composable

@@ -3,15 +3,17 @@ package com.practicum.shoppinglist.main.ui.view_model
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.practicum.shoppinglist.common.resources.BaseIntent
+import com.practicum.shoppinglist.common.resources.ListAction
 import com.practicum.shoppinglist.common.resources.ShoppingListIntent
 import com.practicum.shoppinglist.common.resources.ShoppingListState
 import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.content
 import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.darkTheme
 import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.default
-import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.isRemoving
 import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.noShoppingLists
 import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.nothingFound
 import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.searchResults
+import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.selectedList
 import com.practicum.shoppinglist.common.utils.Constants
 import com.practicum.shoppinglist.common.utils.Debounce
 import com.practicum.shoppinglist.core.domain.models.ListItem
@@ -24,7 +26,9 @@ import com.practicum.shoppinglist.main.domain.impl.ShowShoppingListByNameUseCase
 import com.practicum.shoppinglist.main.domain.impl.ShowShoppingListsUseCase
 import com.practicum.shoppinglist.main.domain.impl.UpdateShoppingListUseCase
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -49,6 +53,9 @@ class MainScreenViewModel @Inject constructor(
     private val _shoppingListStateFlow = MutableStateFlow(default())
     val shoppingListStateFlow: StateFlow<ShoppingListState> = _shoppingListStateFlow.asStateFlow()
 
+    private val _action = MutableSharedFlow<ListAction>()
+    val action: SharedFlow<ListAction> = _action
+
     private val timer: Debounce<String> by lazy {
         Debounce(Constants.USER_INPUT_DELAY, viewModelScope) { term ->
             doSearch(term)
@@ -64,13 +71,14 @@ class MainScreenViewModel @Inject constructor(
         when (intent) {
             is ShoppingListIntent.AddShoppingList -> addShoppingList(name = intent.name, icon = intent.icon)
             is ShoppingListIntent.UpdateShoppingList -> updateShoppingList(list = intent.list)
-            is ShoppingListIntent.RemoveShoppingList -> removeShoppingList(id = intent.id)
+            is BaseIntent.RemoveListItem -> removeShoppingList(id = intent.id)
+            is BaseIntent.QueryRemoveShoppingList -> viewModelScope.launch {
+                _action.emit(ListAction.RemoveItem)
+            }
             is ShoppingListIntent.RemoveAllShoppingLists -> removeAllShoppingLists()
             is ShoppingListIntent.Search -> search(searchQuery = intent.searchQuery)
+            is ShoppingListIntent.SelectedList -> selectedList(intent.selectedList)
             is ShoppingListIntent.ChangeThemeSettings -> changeThemeSettings(intent.darkTheme)
-            is ShoppingListIntent.IsRemoving -> _shoppingListStateFlow.update { currentState ->
-                currentState.isRemoving(intent.isRemoving)
-            }
             is ShoppingListIntent.GetThemeSettings -> getThemeSettings()
             is ShoppingListIntent.ClearSearchResults -> clearSearchResults()
         }
@@ -103,6 +111,7 @@ class MainScreenViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             runCatching {
                 updateShoppingListsUseCase(list)
+                selectedList(list)
             }.onFailure { error ->
                 Log.e(TAG, "error in update shopping list -> $error")
             }
@@ -131,6 +140,12 @@ class MainScreenViewModel @Inject constructor(
 
     private fun search(searchQuery: String) {
         timer.start(parameter = searchQuery)
+    }
+
+    private fun selectedList(selectedList: ListItem) {
+        _shoppingListStateFlow.update { currentState ->
+            currentState.selectedList(selectedList)
+        }
     }
 
     private fun clearSearchResults() {

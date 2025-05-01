@@ -13,6 +13,7 @@ import javax.inject.Inject
 class DetailsScreenRepositoryImpl @Inject constructor(
     private val dataSource: SqlDelightDataSource,
 ) : DetailsScreenRepository {
+
     override suspend fun addProduct(shoppingListId: Long, item: ProductEntity): Long {
         dataSource.insertProduct(shoppingListId, item)
         return -1

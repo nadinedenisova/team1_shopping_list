@@ -44,11 +44,11 @@ import com.practicum.shoppinglist.R
 import com.practicum.shoppinglist.common.resources.ShoppingListIntent
 import com.practicum.shoppinglist.core.presentation.ui.FabViewModel
 import com.practicum.shoppinglist.core.presentation.ui.state.FabIntent
+import com.practicum.shoppinglist.core.presentation.ui.state.FabState
 import com.practicum.shoppinglist.core.presentation.ui.theme.SLTheme
 import com.practicum.shoppinglist.di.api.daggerViewModel
 import com.practicum.shoppinglist.main.ui.view_model.MainScreenViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyScaffold() {
     val navController = rememberNavController()
@@ -73,7 +73,7 @@ fun MyScaffold() {
             topBar = {
                 if (!isSearchActive.value) {
 
-                    if (fabState.isOpenDetailsBottomSheetState) {
+                    if (fabState.isOpenDetailsBottomSheetState != null) {
                         val height = WindowInsets.statusBars.asPaddingValues()
 
                         Box(
@@ -111,7 +111,7 @@ fun MyScaffold() {
                     targetValue = -fabState.offsetY,
                 )
 
-                val icon = if (fabState.isOpenDetailsBottomSheetState) Icons.Default.Done else Icons.Default.Add
+                val icon = if (fabState.isOpenDetailsBottomSheetState != null) Icons.Default.Done else Icons.Default.Add
 
                 FloatingActionButton(
                     modifier = Modifier.offset(y = offset),
@@ -119,10 +119,10 @@ fun MyScaffold() {
                         if (currentDestination?.route == Routes.MainScreen.name) {
                             showAddShoppingListDialog.value = true
                         } else {
-                            if (fabState.isOpenDetailsBottomSheetState) {
-                                fabViewModel.onIntent(FabIntent.AddProduct(true))
-                            } else {
-                                fabViewModel.onIntent(FabIntent.OpenDetailsBottomSheet)
+                            when (fabState.isOpenDetailsBottomSheetState) {
+                                FabState.State.AddProduct.name -> fabViewModel.onIntent(FabIntent.AddProduct(true))
+                                FabState.State.EditProduct.name -> fabViewModel.onIntent(FabIntent.EditProduct(true))
+                                else -> fabViewModel.onIntent(FabIntent.OpenDetailsBottomSheet(state = FabState.State.AddProduct.name))
                             }
                         }
                     },
