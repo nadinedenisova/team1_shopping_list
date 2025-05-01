@@ -21,32 +21,30 @@ class AuthorizationRepositoryImpl @Inject constructor(
     private val httpNetworkClient: HttpNetworkClient<AuthRequest, AuthResponse>
 ) : AuthorizationRepository {
 
-    override suspend fun registration(): Flow<Result<Registration, ErrorType>> = flow {
+    override suspend fun registration(email: String, password: String): Flow<Result<Registration, ErrorType>> = flow {
         val response = httpNetworkClient.getResponse(
             HttpMethodType.POST,
-            AuthRequest.Registration
+            AuthRequest.Registration(email, password)
         )
         when (val body = response.body) {
             is AuthResponse.Registration -> {
                 emit(Result.Success(body.mapToDomain()))
             }
-
             else -> {
                 emit(Result.Failure(response.resultCode.mapToErrorType()))
             }
         }
     }
 
-    override suspend fun login(): Flow<Result<Login, ErrorType>> = flow {
+    override suspend fun login(email: String, password: String): Flow<Result<Login, ErrorType>> = flow {
         val response = httpNetworkClient.getResponse(
             HttpMethodType.POST,
-            AuthRequest.Login
+            AuthRequest.Login(email, password)
         )
         when (val body = response.body) {
             is AuthResponse.Login -> {
                 emit(Result.Success(body.mapToDomain()))
             }
-
             else -> {
                 emit(Result.Failure(response.resultCode.mapToErrorType()))
             }

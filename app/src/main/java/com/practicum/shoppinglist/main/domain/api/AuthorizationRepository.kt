@@ -9,8 +9,8 @@ import com.practicum.shoppinglist.core.domain.models.network.Result
 import kotlinx.coroutines.flow.Flow
 
 interface AuthorizationRepository {
-    suspend fun registration(): Flow<Result<Registration, ErrorType>>
-    suspend fun login(): Flow<Result<Login, ErrorType>>
+    suspend fun registration(email: String, password: String): Flow<Result<Registration, ErrorType>>
+    suspend fun login(email: String, password: String): Flow<Result<Login, ErrorType>>
     suspend fun validation(): Flow<Result<Validation, ErrorType>>
     suspend fun refresh(): Flow<Result<Refresh, ErrorType>>
 }

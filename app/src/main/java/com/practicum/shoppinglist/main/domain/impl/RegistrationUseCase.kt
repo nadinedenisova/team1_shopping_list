@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 class RegistrationUseCase(
     private val repository: AuthorizationRepository
 ) {
-    suspend operator fun invoke(): Flow<Result<Registration, ErrorType>> {
-        return repository.registration()
+    suspend operator fun invoke(email: String, password: String): Flow<Result<Registration, ErrorType>> {
+        return repository.registration(email, password)
     }
 }

@@ -23,6 +23,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.practicum.shoppinglist.R
+import com.practicum.shoppinglist.common.resources.AuthIntent
 import com.practicum.shoppinglist.common.utils.Constants.PASSWORD_LENGTH
 import com.practicum.shoppinglist.core.presentation.ui.components.PasswordTextField
 import com.practicum.shoppinglist.core.presentation.ui.components.SLOutlineTextField
@@ -31,17 +32,20 @@ import com.practicum.shoppinglist.main.ui.Routes
 @Composable
 fun LoginScreen(
     navController: NavController,
+//    loginViewModel: LoginViewModel,
 ) {
     LoginForm(
         navController = navController,
-        onLoginClick = {}
+        onLoginClick = {email, password ->
+            //loginViewModel.processIntent(AuthIntent.Login(email, password))
+        }
     )
 }
 
 @Composable
 fun LoginForm(
     navController: NavController,
-    onLoginClick: () -> Unit = {},
+    onLoginClick: (email: String, password: String) -> Unit,
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -88,7 +92,9 @@ fun LoginForm(
         )
         Spacer(modifier = Modifier.height(16.dp))
         Button(
-            onClick = onLoginClick,
+            onClick = {
+                onLoginClick(email, password)
+            },
             modifier = Modifier.fillMaxWidth(),
             enabled = isButtonEnabled
         ) {
