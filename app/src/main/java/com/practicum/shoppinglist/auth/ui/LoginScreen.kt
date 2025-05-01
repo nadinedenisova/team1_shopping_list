@@ -21,6 +21,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.practicum.shoppinglist.R
+import com.practicum.shoppinglist.common.utils.Constants.PASSWORD_LENGTH
 import com.practicum.shoppinglist.core.presentation.ui.components.SLOutlineTextField
 import com.practicum.shoppinglist.main.ui.Routes
 
@@ -75,7 +76,7 @@ fun LoginForm(
             value = password,
             onValueChange = {
                 password = it
-                isPasswordError = it.isEmpty()
+                isPasswordError = it.length < PASSWORD_LENGTH && it.isNotEmpty()
             },
             label = stringResource(R.string.password),
             placeholder = stringResource(R.string.password),

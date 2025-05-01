@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.practicum.shoppinglist.R
 import com.practicum.shoppinglist.auth.viewmodel.RegistrationScreenViewModel
+import com.practicum.shoppinglist.common.utils.Constants.PASSWORD_LENGTH
 import com.practicum.shoppinglist.core.presentation.ui.components.SLOutlineTextField
 
 @Composable
@@ -78,7 +79,7 @@ fun RegistrationForm(
             value = password,
             onValueChange = {
                 password = it
-                isPasswordError = it.length < 6 && it.isNotEmpty()
+                isPasswordError = it.length < PASSWORD_LENGTH && it.isNotEmpty()
             },
             label = stringResource(R.string.password),
             placeholder = stringResource(R.string.password),
