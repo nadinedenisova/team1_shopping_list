@@ -11,7 +11,7 @@ data class DetailsScreenState(
     val unitList: List<String> = emptyList(),
     val productMenuList: List<String> = emptyList(),
     val product: ProductItem = ProductItem(),
-    val sortOrderMode: ProductSortOrder = ProductSortOrder.ASC,
+    val sortOrderMode: ProductSortOrder = ProductSortOrder.Default,
     val sortOrder: Map<Long, Long> = emptyMap()
 ) {
     companion object {

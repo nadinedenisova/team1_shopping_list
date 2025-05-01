@@ -171,6 +171,7 @@ class DetailsViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             getProductListUseCase.invoke(_state.value.shoppingListId).transform {
                 val sortedItems = when (_state.value.sortOrderMode) {
+                    ProductSortOrder.Default -> it
                     is ProductSortOrder.ASC -> it.sortedBy { item -> item.name }
                     is ProductSortOrder.Manual -> {
                         if (_state.value.sortOrder.isNotEmpty()) {
@@ -179,6 +180,7 @@ class DetailsViewModel @Inject constructor(
                             it
                         }
                     }
+
                 }
                 emit(sortedItems)
             }.collect { productList ->
