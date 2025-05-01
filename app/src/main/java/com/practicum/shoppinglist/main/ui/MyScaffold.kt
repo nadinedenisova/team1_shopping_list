@@ -42,6 +42,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.practicum.shoppinglist.App
 import com.practicum.shoppinglist.R
+import com.practicum.shoppinglist.auth.viewmodel.LoginScreenViewModel
 import com.practicum.shoppinglist.auth.viewmodel.RegistrationScreenViewModel
 import com.practicum.shoppinglist.common.resources.ShoppingListIntent
 import com.practicum.shoppinglist.core.presentation.ui.FabViewModel
@@ -66,6 +67,7 @@ fun MyScaffold() {
     }
     val viewModel = daggerViewModel<MainScreenViewModel>(factory)
     val registrationScreenViewModel = daggerViewModel<RegistrationScreenViewModel>(factory)
+    val loginViewModel = daggerViewModel<LoginScreenViewModel>(factory)
     val state by viewModel.shoppingListStateFlow.collectAsStateWithLifecycle()
     val currentBackStack by navController.currentBackStackEntryAsState()
     val currentDestination = currentBackStack?.destination
@@ -153,7 +155,8 @@ fun MyScaffold() {
                 modifier = Modifier.padding(innerPadding),
                 viewModel = viewModel,
                 fabViewModel = fabViewModel,
-                registrationScreenViewModel = registrationScreenViewModel
+                registrationScreenViewModel = registrationScreenViewModel,
+                loginViewModel = loginViewModel,
             )
         }
     }

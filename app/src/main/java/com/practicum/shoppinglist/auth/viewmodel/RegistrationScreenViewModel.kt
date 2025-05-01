@@ -7,6 +7,7 @@ import com.practicum.shoppinglist.common.resources.AuthIntent
 import com.practicum.shoppinglist.common.resources.AuthState
 import com.practicum.shoppinglist.common.resources.AuthState.Companion.default
 import com.practicum.shoppinglist.common.resources.BaseIntent
+import com.practicum.shoppinglist.core.domain.models.network.Result
 import com.practicum.shoppinglist.main.domain.impl.RegistrationUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -48,8 +49,14 @@ class RegistrationScreenViewModel @Inject constructor(
                     AuthState(AuthState.Status.IN_PROGRESS)
                 }
                 registrationUseCase(email, password).collect { response ->
-                    _registrationStateFlow.update {
-                        AuthState(AuthState.Status.REGISTERED)
+                    if (response is Result.Success) {
+                        _registrationStateFlow.update {
+                            AuthState(AuthState.Status.REGISTERED)
+                        }
+                    } else {
+                        _registrationStateFlow.update {
+                            AuthState(AuthState.Status.ERROR)
+                        }
                     }
                 }
             }.onFailure { error ->

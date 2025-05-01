@@ -12,6 +12,7 @@ import com.practicum.shoppinglist.main.domain.api.MainScreenRepository
 import com.practicum.shoppinglist.main.domain.impl.AddShoppingListUseCase
 import com.practicum.shoppinglist.main.domain.impl.ChangeThemeSettingsUseCase
 import com.practicum.shoppinglist.main.domain.impl.GetThemeSettingsUseCase
+import com.practicum.shoppinglist.main.domain.impl.LoginUseCase
 import com.practicum.shoppinglist.main.domain.impl.RegistrationUseCase
 import com.practicum.shoppinglist.main.domain.impl.RemoveAllShoppingListsUseCase
 import com.practicum.shoppinglist.main.domain.impl.RemoveShoppingListUseCase
@@ -95,6 +96,11 @@ class UseCaseModule {
     @Provides
     fun provideRegistrationUseCase(repository: AuthorizationRepository): RegistrationUseCase {
         return RegistrationUseCase(repository)
+    }
+
+    @Provides
+    fun provideLoginUseCase(repository: AuthorizationRepository): LoginUseCase {
+        return LoginUseCase(repository)
     }
 
 }
