@@ -52,6 +52,7 @@ fun ItemProduct(
     onItemOpened: (BaseItem) -> Unit,
     onItemClosed: () -> Unit,
     onRemove: () -> Unit,
+    onRename: () -> Unit,
 ) {
     SwipeItem(
         onIntent = onIntent,
@@ -61,7 +62,8 @@ fun ItemProduct(
         onItemOpened = onItemOpened,
         onItemClosed = onItemClosed,
         onRemove = onRemove,
-        onRename = null,
+        onRename = onRename,
+        extraPadding = true,
     ) { swipeOffset ->
 
         val textDecoration = if (item.completed) {

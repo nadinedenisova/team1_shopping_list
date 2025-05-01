@@ -18,13 +18,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.unit.dp
@@ -46,15 +50,26 @@ fun SwipeItem(
     onRemove: (() -> Unit)? = null,
     onRename: (() -> Unit)? = null,
     onCopy: (() -> Unit)? = null,
+    extraPadding: Boolean = false,
     content: @Composable (Float) -> Unit,
 ) {
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
-    val buttonsSwipe = with(LocalDensity.current) { (screenWidth * 0.35f).toPx() }
+    var buttonsSwipe by remember { mutableFloatStateOf(0f) }
     val centerRemoveSwipe = with(LocalDensity.current) { (screenWidth * 0.5f).toPx() }
     val maxSwipe = with(LocalDensity.current) { (screenWidth * 0.9f).toPx() }
     val swipeOffset = remember { Animatable(0f) }
     val visibleState = remember { MutableTransitionState(true) }
+
+    LaunchedEffect(Unit) {
+        val buttonsCount = listOf(onRemove, onRename, onCopy).count { it != null }
+        buttonsSwipe =
+            context.resources.getDimension(R.dimen.padding_10x) +
+            context.resources.getDimension(R.dimen.icon_size) * buttonsCount +
+            context.resources.getDimension(R.dimen.padding_4x) * (buttonsCount - 1) +
+            if (extraPadding) context.resources.getDimension(R.dimen.padding_10x) else 0f
+    }
 
     LaunchedEffect(openItem.value) {
         if (openItem.value?.id != item.id && swipeOffset.value != 0f) {
