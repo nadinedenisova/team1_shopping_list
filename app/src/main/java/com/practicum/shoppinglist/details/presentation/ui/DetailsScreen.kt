@@ -33,12 +33,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -65,7 +63,6 @@ import com.practicum.shoppinglist.R
 import com.practicum.shoppinglist.common.resources.BaseIntent
 import com.practicum.shoppinglist.common.resources.DetailsScreenIntent
 import com.practicum.shoppinglist.common.resources.ListAction
-import com.practicum.shoppinglist.common.utils.itemSaver
 import com.practicum.shoppinglist.core.domain.models.BaseItem
 import com.practicum.shoppinglist.core.domain.models.ProductItem
 import com.practicum.shoppinglist.core.presentation.ui.FabViewModel
@@ -161,7 +158,6 @@ fun DetailsScreenUI(
     onIntent: (BaseIntent) -> Unit = {},
     action: SharedFlow<ListAction>,
 ) {
-    var selectedProduct by rememberSaveable(stateSaver = itemSaver(ProductItem.serializer())) { mutableStateOf(null) }
     val openProduct = remember { mutableStateOf<ProductItem?>(null) }
     val density = LocalDensity.current
     val scaffoldState = rememberBottomSheetScaffoldState(
@@ -176,6 +172,12 @@ fun DetailsScreenUI(
             density = density
         )
     )
+
+    LaunchedEffect(fabState.isOpenDetailsBottomSheetState) {
+        if (fabState.isOpenDetailsBottomSheetState == FabState.State.AddProduct.name) {
+            onIntent(DetailsScreenIntent.SelectedProduct(ProductItem()))
+        }
+    }
 
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
@@ -311,18 +313,16 @@ fun DetailsScreenUI(
                         openItem = openProduct as MutableState<BaseItem?>,
                         onCheckedChange = { onIntent(DetailsScreenIntent.ToggleCompleted(item)) },
                         onItemClick = {
-                            selectedProduct = item
                             openProduct.value = null
                         },
-                        onItemOpened = { product ->
-                            openProduct.value = product as ProductItem
-                            selectedProduct = product
+                        onItemOpened = {
+                            openProduct.value = item
 
                         },
                         onItemClosed = { if (openProduct.value?.id == item.id) openProduct.value = null },
                         onRename = {
                             onFabIntent(FabIntent.OpenDetailsBottomSheet(state = FabState.State.EditProduct.name))
-                            onIntent(DetailsScreenIntent.QueryEditProduct(selectedProduct ?: ProductItem()))
+                            onIntent(DetailsScreenIntent.SelectedProduct(item))
                        },
                         onRemove = {
                             onIntent(BaseIntent.QueryRemoveShoppingList)

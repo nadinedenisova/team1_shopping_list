@@ -94,7 +94,7 @@ class DetailsViewModel @Inject constructor(
                 }
             }
 
-            is DetailsScreenIntent.QueryEditProduct -> {
+            is DetailsScreenIntent.SelectedProduct -> {
                 _state.update {
                     it.editProduct(intent.product)
                 }

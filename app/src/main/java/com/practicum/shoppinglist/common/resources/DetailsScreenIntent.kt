@@ -14,7 +14,7 @@ sealed interface DetailsScreenIntent : BaseIntent {
     data class EditName(val value: String): DetailsScreenIntent
     data class EditUnit(val value: String): DetailsScreenIntent
     data class ToggleCompleted(val currentValue: ProductItem): DetailsScreenIntent
-    data class QueryEditProduct(val product: ProductItem): DetailsScreenIntent
+    data class SelectedProduct(val product: ProductItem): DetailsScreenIntent
     data object EditProduct: DetailsScreenIntent
     data object AddProduct: DetailsScreenIntent
     data object DeleteAll: DetailsScreenIntent

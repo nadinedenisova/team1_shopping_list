@@ -13,6 +13,7 @@ import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.d
 import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.noShoppingLists
 import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.nothingFound
 import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.searchResults
+import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.selectedList
 import com.practicum.shoppinglist.common.utils.Constants
 import com.practicum.shoppinglist.common.utils.Debounce
 import com.practicum.shoppinglist.core.domain.models.ListItem
@@ -76,6 +77,7 @@ class MainScreenViewModel @Inject constructor(
             }
             is ShoppingListIntent.RemoveAllShoppingLists -> removeAllShoppingLists()
             is ShoppingListIntent.Search -> search(searchQuery = intent.searchQuery)
+            is ShoppingListIntent.SelectedList -> selectedList(intent.selectedList)
             is ShoppingListIntent.ChangeThemeSettings -> changeThemeSettings(intent.darkTheme)
             is ShoppingListIntent.GetThemeSettings -> getThemeSettings()
             is ShoppingListIntent.ClearSearchResults -> clearSearchResults()
@@ -110,6 +112,7 @@ class MainScreenViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             runCatching {
                 updateShoppingListsUseCase(list)
+                selectedList(list)
             }.onFailure { error ->
                 Log.e(TAG, "error in update shopping list -> $error")
             }
@@ -138,6 +141,12 @@ class MainScreenViewModel @Inject constructor(
 
     private fun search(searchQuery: String) {
         timer.start(parameter = searchQuery)
+    }
+
+    private fun selectedList(selectedList: ListItem) {
+        _shoppingListStateFlow.update { currentState ->
+            currentState.selectedList(selectedList)
+        }
     }
 
     private fun clearSearchResults() {
