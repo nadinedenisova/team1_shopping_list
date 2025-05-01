@@ -49,7 +49,7 @@ fun ItemProduct(
     onCheckedChange: (Boolean) -> Unit = {},
     manualSort: Boolean = false,
     onItemClick: () -> Unit,
-    onItemOpened: (BaseItem) -> Unit,
+    onItemOpened: () -> Unit,
     onItemClosed: () -> Unit,
     onRemove: () -> Unit,
     onRename: () -> Unit,

@@ -35,7 +35,7 @@ fun ItemList(
     openList: MutableState<BaseItem?>,
     onItemClick: () -> Unit,
     onIconClick: () -> Unit,
-    onItemOpened: (BaseItem) -> Unit,
+    onItemOpened: () -> Unit,
     onItemClosed: () -> Unit,
     onRemove: () -> Unit,
     onRename: () -> Unit,

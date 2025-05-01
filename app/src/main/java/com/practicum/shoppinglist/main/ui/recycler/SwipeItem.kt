@@ -45,7 +45,7 @@ fun SwipeItem(
     action: SharedFlow<ListAction>,
     item: BaseItem,
     openItem: MutableState<BaseItem?>,
-    onItemOpened: (BaseItem) -> Unit,
+    onItemOpened: () -> Unit,
     onItemClosed: () -> Unit,
     onRemove: (() -> Unit)? = null,
     onRename: (() -> Unit)? = null,
@@ -120,7 +120,7 @@ fun SwipeItem(
                                     onRemove?.let { it() }
                                 } else if (swipeOffset.value < -buttonsSwipe / 2) {
                                     swipeOffset.animateTo(-buttonsSwipe)
-                                    onItemOpened(item)
+                                    onItemOpened()
                                 } else {
                                     swipeOffset.animateTo(0f)
                                     onItemClosed()
