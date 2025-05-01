@@ -7,6 +7,8 @@ sealed interface AuthRequest {
     data class Login(val email: String, val password: String) : AuthRequest
     @Serializable
     data class Registration(val email: String, val password: String) : AuthRequest
-    data object RefreshToken : AuthRequest
-    data object Validation : AuthRequest
+    @Serializable
+    data class RefreshToken(val refresh_token: String, val token: String) : AuthRequest
+    @Serializable
+    data class Validation(val token: String) : AuthRequest
 }

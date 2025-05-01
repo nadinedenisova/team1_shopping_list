@@ -51,10 +51,10 @@ class AuthorizationRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun validation(): Flow<Result<Validation, ErrorType>> = flow {
+    override suspend fun validation(token: String): Flow<Result<Validation, ErrorType>> = flow {
         val response = httpNetworkClient.getResponse(
-            HttpMethodType.POST,
-            AuthRequest.Validation
+            HttpMethodType.GET,
+            AuthRequest.Validation(token)
         )
         when (val body = response.body) {
             is AuthResponse.Validation -> {
@@ -67,10 +67,10 @@ class AuthorizationRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun refresh(): Flow<Result<Refresh, ErrorType>> = flow {
+    override suspend fun refresh(token: String, refreshToken: String): Flow<Result<Refresh, ErrorType>> = flow {
         val response = httpNetworkClient.getResponse(
             HttpMethodType.POST,
-            AuthRequest.RefreshToken
+            AuthRequest.RefreshToken(refreshToken, token)
         )
         when (val body = response.body) {
             is AuthResponse.Refresh -> {

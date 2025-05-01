@@ -25,6 +25,7 @@ import com.practicum.shoppinglist.main.domain.impl.RemoveAllShoppingListsUseCase
 import com.practicum.shoppinglist.main.domain.impl.RemoveShoppingListUseCase
 import com.practicum.shoppinglist.main.domain.impl.ShowShoppingListByNameUseCase
 import com.practicum.shoppinglist.main.domain.impl.ShowShoppingListsUseCase
+import com.practicum.shoppinglist.main.domain.impl.TokenValidationUseCase
 import com.practicum.shoppinglist.main.domain.impl.UpdateShoppingListUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -35,6 +36,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlinx.coroutines.flow.collectLatest
 
 class MainScreenViewModel @Inject constructor(
     private val showShoppingListsUseCase: ShowShoppingListsUseCase,
@@ -46,6 +48,7 @@ class MainScreenViewModel @Inject constructor(
     private val getThemeSettingsUseCase: GetThemeSettingsUseCase,
     private val changeThemeSettingsUseCase: ChangeThemeSettingsUseCase,
     private val isUserLoggedInUseCase: IsUserLoggedInUseCase,
+    private val tokenValidationUseCase: TokenValidationUseCase,
     private val logoutUseCase: LogoutUseCase,
 ) : ViewModel() {
 
@@ -57,7 +60,20 @@ class MainScreenViewModel @Inject constructor(
     val isLoggedIn: StateFlow<Boolean> = _isLoggedIn
 
     fun checkLoginStatus() {
-        _isLoggedIn.value = isUserLoggedInUseCase()
+        val isLoggedIn = isUserLoggedInUseCase()
+        _isLoggedIn.value = isLoggedIn
+        if (isLoggedIn) {
+            validateToken()
+        }
+    }
+
+    private fun validateToken() {
+        viewModelScope.launch {
+            val valid = tokenValidationUseCase()
+            if (!valid) {
+                logout()
+            }
+        }
     }
 
     private val _shoppingListStateFlow = MutableStateFlow(default())

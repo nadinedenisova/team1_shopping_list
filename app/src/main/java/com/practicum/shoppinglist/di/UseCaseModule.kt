@@ -21,6 +21,7 @@ import com.practicum.shoppinglist.main.domain.impl.RemoveAllShoppingListsUseCase
 import com.practicum.shoppinglist.main.domain.impl.RemoveShoppingListUseCase
 import com.practicum.shoppinglist.main.domain.impl.ShowShoppingListByNameUseCase
 import com.practicum.shoppinglist.main.domain.impl.ShowShoppingListsUseCase
+import com.practicum.shoppinglist.main.domain.impl.TokenValidationUseCase
 import com.practicum.shoppinglist.main.domain.impl.UpdateShoppingListUseCase
 import dagger.Module
 import dagger.Provides
@@ -115,5 +116,11 @@ class UseCaseModule {
     fun provideIsUserLoggedInUseCase(tokenStorage: TokenStorage): IsUserLoggedInUseCase {
         return IsUserLoggedInUseCase(tokenStorage)
     }
+
+    @Provides
+    fun provideTokenValidationUseCase(repository: AuthorizationRepository, tokenStorage: TokenStorage): TokenValidationUseCase {
+        return TokenValidationUseCase(tokenStorage, repository)
+    }
+
 
 }
