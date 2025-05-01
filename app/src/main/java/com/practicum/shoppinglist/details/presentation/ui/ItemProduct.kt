@@ -63,6 +63,7 @@ fun ItemProduct(
         onItemClosed = onItemClosed,
         onRemove = onRemove,
         onRename = onRename,
+        extraPadding = true,
     ) { swipeOffset ->
 
         val textDecoration = if (item.completed) {

@@ -50,6 +50,7 @@ fun SwipeItem(
     onRemove: (() -> Unit)? = null,
     onRename: (() -> Unit)? = null,
     onCopy: (() -> Unit)? = null,
+    extraPadding: Boolean = false,
     content: @Composable (Float) -> Unit,
 ) {
     val context = LocalContext.current
@@ -63,9 +64,11 @@ fun SwipeItem(
 
     LaunchedEffect(Unit) {
         val buttonsCount = listOf(onRemove, onRename, onCopy).count { it != null }
-        buttonsSwipe = context.resources.getDimension(R.dimen.padding_10x) +
+        buttonsSwipe =
+            context.resources.getDimension(R.dimen.padding_10x) +
             context.resources.getDimension(R.dimen.icon_size) * buttonsCount +
-            context.resources.getDimension(R.dimen.padding_4x) * (buttonsCount - 1)
+            context.resources.getDimension(R.dimen.padding_4x) * (buttonsCount - 1) +
+            if (extraPadding) context.resources.getDimension(R.dimen.padding_10x) else 0f
     }
 
     LaunchedEffect(openItem.value) {
