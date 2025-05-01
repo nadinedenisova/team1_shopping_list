@@ -1,0 +1,13 @@
+CREATE TABLE IF NOT EXISTS productSortEntity (
+    product_id INTEGER NOT NULL PRIMARY KEY,
+    order_index INTEGER NOT NULL
+);
+
+getProductOrderByListId:
+    SELECT productSortEntity.product_id, productSortEntity.order_index
+    FROM productSortEntity
+    WHERE product_id IN (SELECT listAndProductEntity.product_id FROM listAndProductEntity WHERE listAndProductEntity.list_id = :id);
+
+addProductOrder:
+    INSERT OR REPLACE INTO productSortEntity(product_id, order_index)
+    VALUES (:product_id, :order_index);

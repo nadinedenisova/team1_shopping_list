@@ -240,7 +240,7 @@ fun Scrim(
 @Composable
 fun ShoppingList(
     visible: Boolean,
-    onIntent: (BaseIntent) -> Unit,
+    onIntent: (ShoppingListIntent) -> Unit,
     action: SharedFlow<ListAction>,
     state: ShoppingListState,
     onItemClick: (ListItem) -> Unit,

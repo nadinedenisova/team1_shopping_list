@@ -67,7 +67,7 @@ class MainScreenViewModel @Inject constructor(
         processIntent(ShoppingListIntent.GetThemeSettings)
     }
 
-    fun processIntent(intent: BaseIntent) {
+    fun processIntent(intent: ShoppingListIntent) {
         when (intent) {
             is ShoppingListIntent.AddShoppingList -> addShoppingList(name = intent.name, icon = intent.icon)
             is ShoppingListIntent.UpdateShoppingList -> updateShoppingList(list = intent.list)
@@ -81,7 +81,6 @@ class MainScreenViewModel @Inject constructor(
             is ShoppingListIntent.ChangeThemeSettings -> changeThemeSettings(intent.darkTheme)
             is ShoppingListIntent.GetThemeSettings -> getThemeSettings()
             is ShoppingListIntent.ClearSearchResults -> clearSearchResults()
-            else -> {}
         }
     }
 

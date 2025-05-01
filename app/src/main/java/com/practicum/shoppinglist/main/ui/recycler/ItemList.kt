@@ -21,15 +21,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.practicum.shoppinglist.R
-import com.practicum.shoppinglist.common.resources.BaseIntent
 import com.practicum.shoppinglist.common.resources.ListAction
+import com.practicum.shoppinglist.common.resources.ShoppingListIntent
 import com.practicum.shoppinglist.core.domain.models.BaseItem
 import com.practicum.shoppinglist.core.domain.models.ListItem
 import kotlinx.coroutines.flow.SharedFlow
 
 @Composable
 fun ItemList(
-    onIntent: (BaseIntent) -> Unit,
+    onIntent: (ShoppingListIntent) -> Unit,
     action: SharedFlow<ListAction>,
     item: ListItem,
     openList: MutableState<BaseItem?>,
