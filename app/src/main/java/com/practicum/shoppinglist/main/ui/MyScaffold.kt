@@ -51,6 +51,8 @@ import com.practicum.shoppinglist.core.presentation.ui.theme.SLTheme
 import com.practicum.shoppinglist.di.api.daggerViewModel
 import com.practicum.shoppinglist.main.ui.view_model.MainScreenViewModel
 
+val isActionButtonHidden = listOf(Routes.Registration.name, Routes.Login.name, Routes.RestorePassword.name)
+
 @Composable
 fun MyScaffold() {
     val navController = rememberNavController()
@@ -106,8 +108,8 @@ fun MyScaffold() {
                         onMenuClick = {
                             showProductsScreenMenu.value = true
                         },
-                        onRegistrationClick = {
-                            navController.navigate(Routes.Registration.name)
+                        onLoginClick = {
+                            navController.navigate(Routes.Login.name)
                         }
                     )
                 }
@@ -119,24 +121,27 @@ fun MyScaffold() {
 
                 val icon = if (fabState.isOpenDetailsBottomSheetState != null) Icons.Default.Done else Icons.Default.Add
 
-                FloatingActionButton(
-                    modifier = Modifier.offset(y = offset),
-                    onClick = {
-                        if (currentDestination?.route == Routes.MainScreen.name) {
-                            showAddShoppingListDialog.value = true
-                        } else {
-                            when (fabState.isOpenDetailsBottomSheetState) {
-                                FabState.State.AddProduct.name -> fabViewModel.onIntent(FabIntent.AddProduct(true))
-                                FabState.State.EditProduct.name -> fabViewModel.onIntent(FabIntent.EditProduct(true))
-                                else -> fabViewModel.onIntent(FabIntent.OpenDetailsBottomSheet(state = FabState.State.AddProduct.name))
+                if (currentDestination?.route !in isActionButtonHidden) {
+                    FloatingActionButton(
+                        modifier = Modifier.offset(y = offset),
+                        onClick = {
+                            if (currentDestination?.route == Routes.MainScreen.name) {
+                                showAddShoppingListDialog.value = true
+                            } else {
+                                when (fabState.isOpenDetailsBottomSheetState) {
+                                    FabState.State.AddProduct.name -> fabViewModel.onIntent(FabIntent.AddProduct(true))
+                                    FabState.State.EditProduct.name -> fabViewModel.onIntent(FabIntent.EditProduct(true))
+                                    else -> fabViewModel.onIntent(FabIntent.OpenDetailsBottomSheet(state = FabState.State.AddProduct.name))
+                                }
                             }
-                        }
-                    },
-                    shape = MaterialTheme.shapes.small,
+                        },
+                        shape = MaterialTheme.shapes.small,
 
-                    ) {
-                    Icon(icon, contentDescription = stringResource(R.string.add))
+                        ) {
+                        Icon(icon, contentDescription = stringResource(R.string.add))
+                    }
                 }
+
             }
         ) { innerPadding ->
             NavGraph(
@@ -161,7 +166,7 @@ fun TopBar(
     currentDestination: String?,
     onBackClick: () -> Unit,
     onSearchClick: () -> Unit = {},
-    onRegistrationClick: () -> Unit = {},
+    onLoginClick: () -> Unit = {},
     onRemoveClick: () -> Unit = {},
     onDarkModeClick: () -> Unit = {},
     onMenuClick: () -> Unit,
@@ -176,6 +181,7 @@ fun TopBar(
                     Routes.MainScreen.name -> stringResource(R.string.main_screen_title)
                     Routes.Registration.name -> stringResource(R.string.registration_screen_title)
                     Routes.Login.name -> stringResource(R.string.login_screen_title)
+                    Routes.RestorePassword.name -> stringResource(R.string.restore_password)
                     else -> stringResource(R.string.products_screen_title)
                 }
             )
@@ -193,9 +199,6 @@ fun TopBar(
         actions = {
             when (currentDestination) {
                 Routes.MainScreen.name -> {
-                    Button (onClick = onRegistrationClick) {
-                        Text(stringResource(R.string.registration))
-                    }
                     IconButton(onClick = onSearchClick) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_search),
@@ -216,15 +219,21 @@ fun TopBar(
                             contentDescription = stringResource(R.string.dark_mode)
                         )
                     }
+                    Button (onClick = onLoginClick) {
+                        Text(stringResource(R.string.login))
+                    }
                 }
 
                 else -> {
-                    IconButton(onClick = onMenuClick) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_menu),
-                            contentDescription = null
-                        )
+                    if (currentDestination !in isActionButtonHidden) {
+                        IconButton(onClick = onMenuClick) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_menu),
+                                contentDescription = null
+                            )
+                        }
                     }
+
                 }
             }
 

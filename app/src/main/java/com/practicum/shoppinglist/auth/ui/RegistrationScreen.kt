@@ -38,7 +38,6 @@ fun RegistrationScreen(
 @Composable
 fun RegistrationForm(
     onRegistrationClick: () -> Unit = {},
-    onBackClick: () -> Unit = {}
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -86,6 +85,7 @@ fun RegistrationForm(
             isError = isPasswordError,
             errorMessage = if (isPasswordError) stringResource(R.string.password_too_short) else null,
         )
+
         Spacer(modifier = Modifier.height(16.dp))
 
         SLOutlineTextField(
@@ -100,6 +100,7 @@ fun RegistrationForm(
             isError = isConfirmPasswordError,
             errorMessage = if (isConfirmPasswordError) stringResource(R.string.passwords_do_not_match) else null,
         )
+
         Spacer(modifier = Modifier.height(32.dp))
 
         Button(

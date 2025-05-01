@@ -5,4 +5,5 @@ enum class Routes {
     ProductsScreen,
     Registration,
     Login,
+    RestorePassword,
 }

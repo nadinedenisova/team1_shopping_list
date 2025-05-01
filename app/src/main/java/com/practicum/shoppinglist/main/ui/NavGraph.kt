@@ -13,6 +13,7 @@ import com.practicum.shoppinglist.core.presentation.ui.FabViewModel
 import com.practicum.shoppinglist.auth.ui.LoginScreen
 import com.practicum.shoppinglist.details.presentation.ui.DetailsScreen
 import com.practicum.shoppinglist.auth.ui.RegistrationScreen
+import com.practicum.shoppinglist.auth.ui.RestorePasswordScreen
 import com.practicum.shoppinglist.auth.viewmodel.RegistrationScreenViewModel
 import com.practicum.shoppinglist.main.ui.view_model.MainScreenViewModel
 
@@ -59,7 +60,7 @@ fun NavGraph(
 
         composable(
             route = Routes.Registration.name,
-        ) {  navBackStackEntry ->
+        ) {
             RegistrationScreen(
                 navController = navController,
                 registrationScreenViewModel
@@ -68,8 +69,16 @@ fun NavGraph(
 
         composable(
             route = Routes.Login.name,
-        ) {  navBackStackEntry ->
+        ) {
             LoginScreen(
+                navController = navController,
+            )
+        }
+
+        composable(
+            route = Routes.RestorePassword.name,
+        ) {
+            RestorePasswordScreen(
                 navController = navController,
             )
         }
