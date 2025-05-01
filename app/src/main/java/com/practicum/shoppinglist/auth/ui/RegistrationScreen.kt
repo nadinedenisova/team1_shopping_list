@@ -20,19 +20,31 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.practicum.shoppinglist.R
 import com.practicum.shoppinglist.auth.viewmodel.RegistrationScreenViewModel
 import com.practicum.shoppinglist.common.resources.AuthIntent
+import com.practicum.shoppinglist.common.resources.AuthState
 import com.practicum.shoppinglist.common.utils.Constants.PASSWORD_LENGTH
 import com.practicum.shoppinglist.core.presentation.ui.components.SLOutlineTextField
+import com.practicum.shoppinglist.main.ui.Routes
 
 @Composable
 fun RegistrationScreen(
     navController: NavController,
     registrationViewModel: RegistrationScreenViewModel
 ) {
+
+    val state by registrationViewModel.registrationStateFlow.collectAsStateWithLifecycle()
+
+    if (state.status == AuthState.Status.REGISTERED) {
+        registrationViewModel.resetMode()
+        navController.navigate(Routes.MainScreen.name)
+    }
+
     RegistrationForm(
+        state.status,
         onRegistrationClick = {email, password ->
             registrationViewModel.processIntent(AuthIntent.Registration(email, password))
         }
@@ -41,6 +53,7 @@ fun RegistrationScreen(
 
 @Composable
 fun RegistrationForm(
+    status: AuthState.Status,
     onRegistrationClick: (email: String, password: String) -> Unit,
 ) {
     var email by remember { mutableStateOf("") }
@@ -52,7 +65,7 @@ fun RegistrationForm(
     var isConfirmPasswordError by remember { mutableStateOf(false) }
 
     val isEmailValid = Patterns.EMAIL_ADDRESS.matcher(email).matches()
-    val isPasswordValid = password.length >= 6
+    val isPasswordValid = password.length >= PASSWORD_LENGTH
     val isPasswordsMatch = password == confirmPassword
 
     val isButtonEnabled = isEmailValid && isPasswordValid && isPasswordsMatch
@@ -115,9 +128,13 @@ fun RegistrationForm(
                 onRegistrationClick(email, password)
             },
             modifier = Modifier.fillMaxWidth(),
-            enabled = isButtonEnabled
+            enabled = isButtonEnabled && status != AuthState.Status.IN_PROGRESS,
         ) {
-            Text(stringResource(R.string.registration))
+            if (status == AuthState.Status.IN_PROGRESS) {
+                Text(stringResource(R.string.process))
+            } else {
+                Text(stringResource(R.string.registration))
+            }
         }
     }
 }

@@ -8,7 +8,11 @@ import io.ktor.client.call.body
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.get
 import io.ktor.client.request.post
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
+import io.ktor.client.utils.EmptyContent.contentType
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
 import io.ktor.http.path
 
 class AuthorizationKtorNetworkClient : HttpKtorNetworkClient<AuthRequest, AuthResponse>() {
@@ -24,6 +28,8 @@ class AuthorizationKtorNetworkClient : HttpKtorNetworkClient<AuthRequest, AuthRe
 
             HttpMethodType.POST -> httpClient.post(BASE_URL) {
                 configureUrl(request)
+                contentType(ContentType.Application.Json)
+                setBody(request)
             }
         }
     }
@@ -31,8 +37,8 @@ class AuthorizationKtorNetworkClient : HttpKtorNetworkClient<AuthRequest, AuthRe
     private fun HttpRequestBuilder.configureUrl(request: AuthRequest) {
         url {
             when (request) {
-                AuthRequest.Registration -> path("auth/registration")
-                AuthRequest.Login -> path("auth/login")
+                is AuthRequest.Registration -> path("auth/registration")
+                is AuthRequest.Login -> path("auth/login")
                 AuthRequest.RefreshToken -> path("auth/refresh")
                 AuthRequest.Validation -> path("auth/check")
             }
