@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -12,6 +13,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -25,6 +27,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Devices.PIXEL_6
@@ -211,3 +215,44 @@ fun SLOutlineTextFieldPreviewDark() {
     }
 }
 
+
+@Composable
+fun PasswordTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String? = null,
+    placeholder: String? = null,
+    isError: Boolean = false,
+    trailingIcon: @Composable (() -> Unit)? = null,
+    modifier: Modifier = Modifier,
+    errorMessage: String? = null,
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = modifier.fillMaxWidth(),
+        label = { if (!label.isNullOrEmpty()) Text(label) },
+        placeholder = { if (!placeholder.isNullOrEmpty()) Text(placeholder) },
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+        visualTransformation = PasswordVisualTransformation(),
+        colors = OutlinedTextFieldDefaults.colors(
+            unfocusedLabelColor = SLTheme.slColorScheme.materialScheme.onSurfaceVariant,
+            focusedLabelColor = SLTheme.slColorScheme.materialScheme.secondary,
+            unfocusedPlaceholderColor = SLTheme.slColorScheme.materialScheme.onSurfaceVariant,
+            focusedPlaceholderColor = SLTheme.slColorScheme.materialScheme.onSurfaceVariant,
+            unfocusedBorderColor = SLTheme.slColorScheme.materialScheme.onSurfaceVariant,
+            focusedBorderColor = SLTheme.slColorScheme.materialScheme.secondary,
+        ),
+        isError = isError,
+        trailingIcon = trailingIcon,
+    )
+    if (isError && errorMessage != null) {
+        Text(
+            text = errorMessage,
+            color = Color.Red,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+        )
+    }
+}

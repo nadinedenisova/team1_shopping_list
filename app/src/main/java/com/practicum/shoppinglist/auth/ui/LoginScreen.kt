@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -18,10 +19,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.practicum.shoppinglist.R
 import com.practicum.shoppinglist.common.utils.Constants.PASSWORD_LENGTH
+import com.practicum.shoppinglist.core.presentation.ui.components.PasswordTextField
 import com.practicum.shoppinglist.core.presentation.ui.components.SLOutlineTextField
 import com.practicum.shoppinglist.main.ui.Routes
 
@@ -71,7 +74,7 @@ fun LoginForm(
             errorMessage = if (isEmailError) stringResource(R.string.invalid_email) else null
         )
         Spacer(modifier = Modifier.height(16.dp))
-        SLOutlineTextField(
+        PasswordTextField(
             modifier = Modifier.fillMaxWidth(),
             value = password,
             onValueChange = {
