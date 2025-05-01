@@ -1,6 +1,7 @@
 package com.practicum.shoppinglist.auth.ui
 
 import android.util.Patterns
+import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -41,6 +43,9 @@ fun RegistrationScreen(
     if (state.status == AuthState.Status.REGISTERED) {
         registrationViewModel.resetMode()
         navController.navigate(Routes.MainScreen.name)
+    }
+    if (state.status == AuthState.Status.ERROR) {
+        Toast.makeText(LocalContext.current, stringResource(R.string.invalid_registration), Toast.LENGTH_SHORT).show()
     }
 
     RegistrationForm(
