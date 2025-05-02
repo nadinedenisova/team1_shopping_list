@@ -1,6 +1,5 @@
 package com.practicum.shoppinglist.main.ui
 
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
@@ -10,14 +9,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.practicum.shoppinglist.core.presentation.ui.FabViewModel
+import com.practicum.shoppinglist.core.presentation.ui.SplashScreen
 import com.practicum.shoppinglist.details.presentation.ui.DetailsScreen
 import com.practicum.shoppinglist.main.ui.view_model.MainScreenViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NavGraph(
     navController: NavHostController,
-    startDestination: String = Routes.MainScreen.name,
+    startDestination: String = Routes.SplashScreen.name,
     isSearchActive: MutableState<Boolean>,
     showAddShoppingListDialog: MutableState<Boolean>,
     showRemoveAllShoppingListsDialog: MutableState<Boolean>,
@@ -25,8 +24,22 @@ fun NavGraph(
     modifier: Modifier,
     viewModel: MainScreenViewModel,
     fabViewModel: FabViewModel,
+) {
+
+    NavHost(
+        navController = navController,
+        startDestination = startDestination,
+        modifier = modifier,
+
     ) {
-    NavHost(navController = navController, startDestination = startDestination, modifier = modifier) {
+        composable(
+            route = Routes.SplashScreen.name
+        ) {
+            SplashScreen(
+                navController = navController,
+            )
+        }
+
         composable(
             route = Routes.MainScreen.name
         ) {

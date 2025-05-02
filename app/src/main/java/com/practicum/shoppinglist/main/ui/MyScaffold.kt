@@ -68,10 +68,20 @@ fun MyScaffold() {
     val fabViewModel = daggerViewModel<FabViewModel>(factory)
     val fabState = fabViewModel.fabState.collectAsState().value
 
+    val screensWithoutTopBar = listOf(Routes.SplashScreen.name)
+    val showTopBar = screensWithoutTopBar.any {
+        currentDestination?.route?.startsWith(it) == false
+    }
+
+    val screensWithoutFab = listOf(Routes.SplashScreen.name)
+    val showFab = screensWithoutFab.any {
+        currentDestination?.route?.startsWith(it) == false
+    }
+
     SLTheme(darkTheme = state.darkTheme) {
         Scaffold(
             topBar = {
-                if (!isSearchActive.value) {
+                if (!isSearchActive.value && showTopBar) {
 
                     if (fabState.isOpenDetailsBottomSheetState != null) {
                         val height = WindowInsets.statusBars.asPaddingValues()
@@ -107,29 +117,42 @@ fun MyScaffold() {
                 }
             },
             floatingActionButton = {
-                val offset by animateDpAsState(
-                    targetValue = -fabState.offsetY,
-                )
+                if (showFab) {
+                    val offset by animateDpAsState(
+                        targetValue = -fabState.offsetY,
+                    )
 
-                val icon = if (fabState.isOpenDetailsBottomSheetState != null) Icons.Default.Done else Icons.Default.Add
+                    val icon =
+                        if (fabState.isOpenDetailsBottomSheetState != null) Icons.Default.Done else Icons.Default.Add
 
-                FloatingActionButton(
-                    modifier = Modifier.offset(y = offset),
-                    onClick = {
-                        if (currentDestination?.route == Routes.MainScreen.name) {
-                            showAddShoppingListDialog.value = true
-                        } else {
-                            when (fabState.isOpenDetailsBottomSheetState) {
-                                FabState.State.AddProduct.name -> fabViewModel.onIntent(FabIntent.AddProduct(true))
-                                FabState.State.EditProduct.name -> fabViewModel.onIntent(FabIntent.EditProduct(true))
-                                else -> fabViewModel.onIntent(FabIntent.OpenDetailsBottomSheet(state = FabState.State.AddProduct.name))
+                    FloatingActionButton(
+                        modifier = Modifier.offset(y = offset),
+                        onClick = {
+                            if (currentDestination?.route == Routes.MainScreen.name) {
+                                showAddShoppingListDialog.value = true
+                            } else {
+                                when (fabState.isOpenDetailsBottomSheetState) {
+                                    FabState.State.AddProduct.name -> fabViewModel.onIntent(
+                                        FabIntent.AddProduct(true)
+                                    )
+
+                                    FabState.State.EditProduct.name -> fabViewModel.onIntent(
+                                        FabIntent.EditProduct(true)
+                                    )
+
+                                    else -> fabViewModel.onIntent(
+                                        FabIntent.OpenDetailsBottomSheet(
+                                            state = FabState.State.AddProduct.name
+                                        )
+                                    )
+                                }
                             }
-                        }
-                    },
-                    shape = MaterialTheme.shapes.small,
+                        },
+                        shape = MaterialTheme.shapes.small,
 
-                    ) {
-                    Icon(icon, contentDescription = stringResource(R.string.add))
+                        ) {
+                        Icon(icon, contentDescription = stringResource(R.string.add))
+                    }
                 }
             }
         ) { innerPadding ->
@@ -158,7 +181,7 @@ fun TopBar(
     onDarkModeClick: () -> Unit = {},
     onMenuClick: () -> Unit,
 ) {
-    val screensWithoutBackButton = listOf(Routes.MainScreen.name)
+    val screensWithoutBackButton = listOf(Routes.SplashScreen.name, Routes.MainScreen.name)
     val showBackButton = currentDestination !in screensWithoutBackButton
 
     TopAppBar(

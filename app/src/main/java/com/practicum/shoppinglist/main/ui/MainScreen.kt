@@ -1,6 +1,5 @@
 package com.practicum.shoppinglist.main.ui
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -49,6 +48,7 @@ import com.practicum.shoppinglist.common.resources.ShoppingListIntent
 import com.practicum.shoppinglist.common.resources.ShoppingListState
 import com.practicum.shoppinglist.core.domain.models.BaseItem
 import com.practicum.shoppinglist.core.domain.models.ListItem
+import com.practicum.shoppinglist.core.presentation.ui.NoData
 import com.practicum.shoppinglist.core.presentation.ui.theme.SLTheme
 import com.practicum.shoppinglist.main.ui.recycler.ItemList
 import com.practicum.shoppinglist.main.ui.recycler.ItemListSearch
@@ -320,40 +320,6 @@ fun SearchShoppingList(
                 onItemClick = { onItemClick(item) },
             )
         }
-    }
-}
-
-@Composable
-fun NoData(
-    visible: Boolean,
-    modifier: Modifier = Modifier,
-    image: Int,
-    title: String,
-    message: String,
-) {
-    if (!visible) return
-
-    Column(
-        modifier,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Image(
-            alignment = Alignment.Center,
-            painter = painterResource(id = image),
-            contentDescription = null,
-        )
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = dimensionResource(R.dimen.padding_image)),
-        )
-        Text(
-            text = message,
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = dimensionResource(R.dimen.padding_4x)),
-        )
     }
 }
 
