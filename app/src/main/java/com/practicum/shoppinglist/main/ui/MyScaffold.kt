@@ -14,8 +14,8 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.Button
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -51,7 +51,6 @@ import com.practicum.shoppinglist.core.presentation.ui.state.FabState
 import com.practicum.shoppinglist.core.presentation.ui.theme.SLTheme
 import com.practicum.shoppinglist.di.api.daggerViewModel
 import com.practicum.shoppinglist.main.ui.view_model.MainScreenViewModel
-
 val isActionButtonHidden = listOf(Routes.Registration.name, Routes.Login.name, Routes.RestorePassword.name)
 
 @Composable
@@ -74,7 +73,6 @@ fun MyScaffold() {
 
     val fabViewModel = daggerViewModel<FabViewModel>(factory)
     val fabState = fabViewModel.fabState.collectAsState().value
-    val isLoggedIn by viewModel.isLoggedIn.collectAsState()
 
     val screensWithoutTopBar = listOf(Routes.SplashScreen.name)
     val showTopBar = screensWithoutTopBar.any {
@@ -85,6 +83,8 @@ fun MyScaffold() {
     val showFab = screensWithoutFab.any {
         currentDestination?.route?.startsWith(it) == false
     }
+    val isLoggedIn by viewModel.isLoggedIn.collectAsState()
+
 
     SLTheme(darkTheme = state.darkTheme) {
         Scaffold(
@@ -139,52 +139,37 @@ fun MyScaffold() {
 
                     val icon =
                         if (fabState.isOpenDetailsBottomSheetState != null) Icons.Default.Done else Icons.Default.Add
-
-                    FloatingActionButton(
-                        modifier = Modifier.offset(y = offset),
-                        onClick = {
-                            if (currentDestination?.route == Routes.MainScreen.name) {
-                                showAddShoppingListDialog.value = true
-                            } else {
-                                when (fabState.isOpenDetailsBottomSheetState) {
-                                    FabState.State.AddProduct.name -> fabViewModel.onIntent(
-                                        FabIntent.AddProduct(true)
-                                    )
-
-                                    FabState.State.EditProduct.name -> fabViewModel.onIntent(
-                                        FabIntent.EditProduct(true)
-                                    )
-
-                                    else -> fabViewModel.onIntent(
-                                        FabIntent.OpenDetailsBottomSheet(
-                                            state = FabState.State.AddProduct.name
+                    if (currentDestination?.route !in isActionButtonHidden) {
+                        FloatingActionButton(
+                            modifier = Modifier.offset(y = offset),
+                            onClick = {
+                                if (currentDestination?.route == Routes.MainScreen.name) {
+                                    showAddShoppingListDialog.value = true
+                                } else {
+                                    when (fabState.isOpenDetailsBottomSheetState) {
+                                        FabState.State.AddProduct.name -> fabViewModel.onIntent(
+                                            FabIntent.AddProduct(true)
                                         )
-                                    )
-                                }
-                            }
-                        },
-                        shape = MaterialTheme.shapes.small,
-                if (currentDestination?.route !in isActionButtonHidden) {
-                    FloatingActionButton(
-                        modifier = Modifier.offset(y = offset),
-                        onClick = {
-                            if (currentDestination?.route == Routes.MainScreen.name) {
-                                showAddShoppingListDialog.value = true
-                            } else {
-                                when (fabState.isOpenDetailsBottomSheetState) {
-                                    FabState.State.AddProduct.name -> fabViewModel.onIntent(FabIntent.AddProduct(true))
-                                    FabState.State.EditProduct.name -> fabViewModel.onIntent(FabIntent.EditProduct(true))
-                                    else -> fabViewModel.onIntent(FabIntent.OpenDetailsBottomSheet(state = FabState.State.AddProduct.name))
-                                }
-                            }
-                        },
-                        shape = MaterialTheme.shapes.small,
 
-                        ) {
-                        Icon(icon, contentDescription = stringResource(R.string.add))
+                                        FabState.State.EditProduct.name -> fabViewModel.onIntent(
+                                            FabIntent.EditProduct(true)
+                                        )
+
+                                        else -> fabViewModel.onIntent(
+                                            FabIntent.OpenDetailsBottomSheet(
+                                                state = FabState.State.AddProduct.name
+                                            )
+                                        )
+                                    }
+                                }
+                            },
+                            shape = MaterialTheme.shapes.small,
+
+                            ) {
+                            Icon(icon, contentDescription = stringResource(R.string.add))
+                        }
                     }
                 }
-
             }
         ) { innerPadding ->
             NavGraph(
@@ -285,7 +270,6 @@ fun TopBar(
                             )
                         }
                     }
-
                 }
             }
 

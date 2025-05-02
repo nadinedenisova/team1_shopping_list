@@ -3,6 +3,7 @@ package com.practicum.shoppinglist.main.ui.view_model
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.practicum.shoppinglist.common.resources.AuthIntent
 import com.practicum.shoppinglist.common.resources.BaseIntent
 import com.practicum.shoppinglist.common.resources.ListAction
 import com.practicum.shoppinglist.common.resources.ShoppingListIntent
@@ -37,7 +38,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import kotlinx.coroutines.flow.collectLatest
 
 class MainScreenViewModel @Inject constructor(
     private val showShoppingListsUseCase: ShowShoppingListsUseCase,
@@ -95,13 +95,12 @@ class MainScreenViewModel @Inject constructor(
         processIntent(ShoppingListIntent.GetThemeSettings)
     }
 
-    fun processIntent(intent: ShoppingListIntent) {
     fun logout() {
         logoutUseCase()
         checkLoginStatus()
     }
 
-    fun processIntent(intent: BaseIntent) {
+    fun processIntent(intent: ShoppingListIntent) {
         when (intent) {
             is ShoppingListIntent.AddShoppingList -> addShoppingList(name = intent.name, icon = intent.icon)
             is ShoppingListIntent.UpdateShoppingList -> updateShoppingList(list = intent.list)
@@ -115,6 +114,9 @@ class MainScreenViewModel @Inject constructor(
             is ShoppingListIntent.ChangeThemeSettings -> changeThemeSettings(intent.darkTheme)
             is ShoppingListIntent.GetThemeSettings -> getThemeSettings()
             is ShoppingListIntent.ClearSearchResults -> clearSearchResults()
+            is AuthIntent.Login -> TODO()
+            is AuthIntent.Registration -> TODO()
+            is AuthIntent.RestorePassword -> TODO()
         }
     }
 
@@ -226,10 +228,10 @@ class MainScreenViewModel @Inject constructor(
     }
 
     private fun processObserveShoppingListsResult(list: List<ListItem>) {
-           _shoppingListStateFlow.update { currentState ->
-               when {
-                   list.isNotEmpty() -> currentState.content(list)
-                   else -> currentState.noShoppingLists()
+        _shoppingListStateFlow.update { currentState ->
+            when {
+                list.isNotEmpty() -> currentState.content(list)
+                else -> currentState.noShoppingLists()
             }
         }
     }

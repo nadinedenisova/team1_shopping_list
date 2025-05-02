@@ -16,8 +16,6 @@ import com.practicum.shoppinglist.auth.ui.LoginScreen
 import com.practicum.shoppinglist.details.presentation.ui.DetailsScreen
 import com.practicum.shoppinglist.auth.ui.RegistrationScreen
 import com.practicum.shoppinglist.auth.ui.RestorePasswordScreen
-import com.practicum.shoppinglist.auth.viewmodel.LoginScreenViewModel
-import com.practicum.shoppinglist.auth.viewmodel.RegistrationScreenViewModel
 import com.practicum.shoppinglist.main.ui.view_model.MainScreenViewModel
 
 @Composable
