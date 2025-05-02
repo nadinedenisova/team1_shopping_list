@@ -8,9 +8,14 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.practicum.shoppinglist.auth.viewmodel.LoginScreenViewModel
+import com.practicum.shoppinglist.auth.viewmodel.RegistrationScreenViewModel
 import com.practicum.shoppinglist.core.presentation.ui.FabViewModel
 import com.practicum.shoppinglist.core.presentation.ui.SplashScreen
+import com.practicum.shoppinglist.auth.ui.LoginScreen
 import com.practicum.shoppinglist.details.presentation.ui.DetailsScreen
+import com.practicum.shoppinglist.auth.ui.RegistrationScreen
+import com.practicum.shoppinglist.auth.ui.RestorePasswordScreen
 import com.practicum.shoppinglist.main.ui.view_model.MainScreenViewModel
 
 @Composable
@@ -24,6 +29,8 @@ fun NavGraph(
     modifier: Modifier,
     viewModel: MainScreenViewModel,
     fabViewModel: FabViewModel,
+    registrationScreenViewModel: RegistrationScreenViewModel,
+    loginViewModel: LoginScreenViewModel,
 ) {
 
     NavHost(
@@ -63,6 +70,32 @@ fun NavGraph(
                 showMenuBottomSheet = showMenuBottomSheet,
                 shoppingListId = shoppingListId,
                 fabViewModel = fabViewModel,
+            )
+        }
+
+        composable(
+            route = Routes.Registration.name,
+        ) {
+            RegistrationScreen(
+                navController = navController,
+                registrationScreenViewModel
+            )
+        }
+
+        composable(
+            route = Routes.Login.name,
+        ) {
+            LoginScreen(
+                navController = navController,
+                loginViewModel
+            )
+        }
+
+        composable(
+            route = Routes.RestorePassword.name,
+        ) {
+            RestorePasswordScreen(
+                navController = navController,
             )
         }
     }

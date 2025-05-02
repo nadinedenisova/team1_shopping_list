@@ -21,6 +21,7 @@ sealed interface AuthResponse {
         val refresh_token: String
     ) : AuthResponse
 
+    @Serializable
     class Validation(
         val is_valid: Boolean,
         val success: Boolean,
@@ -28,7 +29,8 @@ sealed interface AuthResponse {
 
     @Serializable
     class Refresh(
-        val refresh_token: String
+        val refresh_token: String,
+        val access_token: String
     ) : AuthResponse
 
 }
@@ -59,6 +61,7 @@ fun AuthResponse.Validation.mapToDomain(): Validation {
 
 fun AuthResponse.Refresh.mapToDomain(): Refresh {
     return Refresh(
-        refreshToken = refresh_token
+        refreshToken = refresh_token,
+        token = access_token
     )
 }

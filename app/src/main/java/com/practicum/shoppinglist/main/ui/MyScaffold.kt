@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -41,6 +42,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.practicum.shoppinglist.App
 import com.practicum.shoppinglist.R
+import com.practicum.shoppinglist.auth.viewmodel.LoginScreenViewModel
+import com.practicum.shoppinglist.auth.viewmodel.RegistrationScreenViewModel
 import com.practicum.shoppinglist.common.resources.ShoppingListIntent
 import com.practicum.shoppinglist.core.presentation.ui.FabViewModel
 import com.practicum.shoppinglist.core.presentation.ui.state.FabIntent
@@ -48,6 +51,7 @@ import com.practicum.shoppinglist.core.presentation.ui.state.FabState
 import com.practicum.shoppinglist.core.presentation.ui.theme.SLTheme
 import com.practicum.shoppinglist.di.api.daggerViewModel
 import com.practicum.shoppinglist.main.ui.view_model.MainScreenViewModel
+val isActionButtonHidden = listOf(Routes.Registration.name, Routes.Login.name, Routes.RestorePassword.name)
 
 @Composable
 fun MyScaffold() {
@@ -61,6 +65,8 @@ fun MyScaffold() {
         (context.applicationContext as App).appComponent.viewModelFactory()
     }
     val viewModel = daggerViewModel<MainScreenViewModel>(factory)
+    val registrationScreenViewModel = daggerViewModel<RegistrationScreenViewModel>(factory)
+    val loginViewModel = daggerViewModel<LoginScreenViewModel>(factory)
     val state by viewModel.shoppingListStateFlow.collectAsStateWithLifecycle()
     val currentBackStack by navController.currentBackStackEntryAsState()
     val currentDestination = currentBackStack?.destination
@@ -77,6 +83,8 @@ fun MyScaffold() {
     val showFab = screensWithoutFab.any {
         currentDestination?.route?.startsWith(it) == false
     }
+    val isLoggedIn by viewModel.isLoggedIn.collectAsState()
+
 
     SLTheme(darkTheme = state.darkTheme) {
         Scaffold(
@@ -112,7 +120,14 @@ fun MyScaffold() {
                         },
                         onMenuClick = {
                             showProductsScreenMenu.value = true
-                        }
+                        },
+                        onLoginClick = {
+                            navController.navigate(Routes.Login.name)
+                        },
+                        onLogoutClick = {
+                            viewModel.logout()
+                        },
+                        isLoggedIn = isLoggedIn
                     )
                 }
             },
@@ -124,34 +139,35 @@ fun MyScaffold() {
 
                     val icon =
                         if (fabState.isOpenDetailsBottomSheetState != null) Icons.Default.Done else Icons.Default.Add
-
-                    FloatingActionButton(
-                        modifier = Modifier.offset(y = offset),
-                        onClick = {
-                            if (currentDestination?.route == Routes.MainScreen.name) {
-                                showAddShoppingListDialog.value = true
-                            } else {
-                                when (fabState.isOpenDetailsBottomSheetState) {
-                                    FabState.State.AddProduct.name -> fabViewModel.onIntent(
-                                        FabIntent.AddProduct(true)
-                                    )
-
-                                    FabState.State.EditProduct.name -> fabViewModel.onIntent(
-                                        FabIntent.EditProduct(true)
-                                    )
-
-                                    else -> fabViewModel.onIntent(
-                                        FabIntent.OpenDetailsBottomSheet(
-                                            state = FabState.State.AddProduct.name
+                    if (currentDestination?.route !in isActionButtonHidden) {
+                        FloatingActionButton(
+                            modifier = Modifier.offset(y = offset),
+                            onClick = {
+                                if (currentDestination?.route == Routes.MainScreen.name) {
+                                    showAddShoppingListDialog.value = true
+                                } else {
+                                    when (fabState.isOpenDetailsBottomSheetState) {
+                                        FabState.State.AddProduct.name -> fabViewModel.onIntent(
+                                            FabIntent.AddProduct(true)
                                         )
-                                    )
-                                }
-                            }
-                        },
-                        shape = MaterialTheme.shapes.small,
 
-                        ) {
-                        Icon(icon, contentDescription = stringResource(R.string.add))
+                                        FabState.State.EditProduct.name -> fabViewModel.onIntent(
+                                            FabIntent.EditProduct(true)
+                                        )
+
+                                        else -> fabViewModel.onIntent(
+                                            FabIntent.OpenDetailsBottomSheet(
+                                                state = FabState.State.AddProduct.name
+                                            )
+                                        )
+                                    }
+                                }
+                            },
+                            shape = MaterialTheme.shapes.small,
+
+                            ) {
+                            Icon(icon, contentDescription = stringResource(R.string.add))
+                        }
                     }
                 }
             }
@@ -165,6 +181,8 @@ fun MyScaffold() {
                 modifier = Modifier.padding(innerPadding),
                 viewModel = viewModel,
                 fabViewModel = fabViewModel,
+                registrationScreenViewModel = registrationScreenViewModel,
+                loginViewModel = loginViewModel,
             )
         }
     }
@@ -177,9 +195,12 @@ fun TopBar(
     currentDestination: String?,
     onBackClick: () -> Unit,
     onSearchClick: () -> Unit = {},
+    onLoginClick: () -> Unit = {},
+    onLogoutClick: () -> Unit = {},
     onRemoveClick: () -> Unit = {},
     onDarkModeClick: () -> Unit = {},
     onMenuClick: () -> Unit,
+    isLoggedIn: Boolean
 ) {
     val screensWithoutBackButton = listOf(Routes.SplashScreen.name, Routes.MainScreen.name)
     val showBackButton = currentDestination !in screensWithoutBackButton
@@ -189,6 +210,9 @@ fun TopBar(
             Text(
                 when (currentDestination) {
                     Routes.MainScreen.name -> stringResource(R.string.main_screen_title)
+                    Routes.Registration.name -> stringResource(R.string.registration_screen_title)
+                    Routes.Login.name -> stringResource(R.string.login_screen_title)
+                    Routes.RestorePassword.name -> stringResource(R.string.restore_password)
                     else -> stringResource(R.string.products_screen_title)
                 }
             )
@@ -226,14 +250,25 @@ fun TopBar(
                             contentDescription = stringResource(R.string.dark_mode)
                         )
                     }
+                    if (!isLoggedIn) {
+                        Button (onClick = onLoginClick) {
+                            Text(stringResource(R.string.login))
+                        }
+                    } else {
+                        Button (onClick = onLogoutClick) {
+                            Text(stringResource(R.string.logout))
+                        }
+                    }
                 }
 
                 else -> {
-                    IconButton(onClick = onMenuClick) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_menu),
-                            contentDescription = null
-                        )
+                    if (currentDestination !in isActionButtonHidden) {
+                        IconButton(onClick = onMenuClick) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_menu),
+                                contentDescription = null
+                            )
+                        }
                     }
                 }
             }

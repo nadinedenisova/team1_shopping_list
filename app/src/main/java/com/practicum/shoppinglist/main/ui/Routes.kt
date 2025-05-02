@@ -4,4 +4,7 @@ enum class Routes {
     SplashScreen,
     MainScreen,
     ProductsScreen,
+    Registration,
+    Login,
+    RestorePassword,
 }

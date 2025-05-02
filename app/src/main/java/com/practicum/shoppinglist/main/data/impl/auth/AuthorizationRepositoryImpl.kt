@@ -15,47 +15,46 @@ import com.practicum.shoppinglist.core.domain.models.network.Result
 import com.practicum.shoppinglist.main.data.impl.auth.dto.AuthRequest
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import javax.inject.Inject
 
-class AuthorizationRepositoryImpl(
+class AuthorizationRepositoryImpl @Inject constructor(
     private val httpNetworkClient: HttpNetworkClient<AuthRequest, AuthResponse>
 ) : AuthorizationRepository {
 
-    override fun registration(): Flow<Result<Registration, ErrorType>> = flow {
+    override suspend fun registration(email: String, password: String): Flow<Result<Registration, ErrorType>> = flow {
         val response = httpNetworkClient.getResponse(
             HttpMethodType.POST,
-            AuthRequest.Registration
+            AuthRequest.Registration(email, password)
         )
         when (val body = response.body) {
             is AuthResponse.Registration -> {
                 emit(Result.Success(body.mapToDomain()))
             }
-
             else -> {
                 emit(Result.Failure(response.resultCode.mapToErrorType()))
             }
         }
     }
 
-    override fun login(): Flow<Result<Login, ErrorType>> = flow {
+    override suspend fun login(email: String, password: String): Flow<Result<Login, ErrorType>> = flow {
         val response = httpNetworkClient.getResponse(
             HttpMethodType.POST,
-            AuthRequest.Login
+            AuthRequest.Login(email, password)
         )
         when (val body = response.body) {
             is AuthResponse.Login -> {
                 emit(Result.Success(body.mapToDomain()))
             }
-
             else -> {
                 emit(Result.Failure(response.resultCode.mapToErrorType()))
             }
         }
     }
 
-    override fun validation(): Flow<Result<Validation, ErrorType>> = flow {
+    override suspend fun validation(token: String): Flow<Result<Validation, ErrorType>> = flow {
         val response = httpNetworkClient.getResponse(
-            HttpMethodType.POST,
-            AuthRequest.Validation
+            HttpMethodType.GET,
+            AuthRequest.Validation(token)
         )
         when (val body = response.body) {
             is AuthResponse.Validation -> {
@@ -68,10 +67,10 @@ class AuthorizationRepositoryImpl(
         }
     }
 
-    override fun refresh(): Flow<Result<Refresh, ErrorType>> = flow {
+    override suspend fun refresh(token: String, refreshToken: String): Flow<Result<Refresh, ErrorType>> = flow {
         val response = httpNetworkClient.getResponse(
             HttpMethodType.POST,
-            AuthRequest.RefreshToken
+            AuthRequest.RefreshToken(refreshToken, token)
         )
         when (val body = response.body) {
             is AuthResponse.Refresh -> {

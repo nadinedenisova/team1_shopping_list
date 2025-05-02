@@ -2,8 +2,10 @@ package com.practicum.shoppinglist.di
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.practicum.shoppinglist.auth.viewmodel.LoginScreenViewModel
 import com.practicum.shoppinglist.core.presentation.ui.FabViewModel
 import com.practicum.shoppinglist.details.presentation.viewmodel.DetailsViewModel
+import com.practicum.shoppinglist.auth.viewmodel.RegistrationScreenViewModel
 import com.practicum.shoppinglist.di.api.DaggerViewModelFactory
 import com.practicum.shoppinglist.main.ui.view_model.MainScreenViewModel
 import com.practicum.shoppinglist.di.api.ViewModelKey
@@ -22,6 +24,20 @@ abstract class ViewModelModule {
     @ViewModelKey(MainScreenViewModel::class)
     abstract fun bindMainActivityViewModel(
         myViewModel: MainScreenViewModel,
+    ): ViewModel
+
+    @Binds
+    @IntoMap
+    @ViewModelKey(RegistrationScreenViewModel::class)
+    abstract fun bindRegistrationViewModel(
+        registrationViewModel: RegistrationScreenViewModel,
+    ): ViewModel
+
+    @Binds
+    @IntoMap
+    @ViewModelKey(LoginScreenViewModel::class)
+    abstract fun bindLoginScreenViewModel(
+        registrationViewModel: LoginScreenViewModel,
     ): ViewModel
 
     @Binds

@@ -20,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -77,6 +78,14 @@ fun MainScreen(
         if (!isSearchActive.value) {
             searchQuery.value = ""
             viewModel.processIntent(ShoppingListIntent.ClearSearchResults)
+        }
+    }
+
+    DisposableEffect(Unit) {
+        viewModel.checkLoginStatus()
+
+        onDispose {
+
         }
     }
 

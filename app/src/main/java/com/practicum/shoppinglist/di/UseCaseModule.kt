@@ -9,14 +9,21 @@ import com.practicum.shoppinglist.details.domain.impl.DeleteProductUseCase
 import com.practicum.shoppinglist.details.domain.impl.GetProductListUseCase
 import com.practicum.shoppinglist.details.domain.impl.GetProductSortOrderUseCase
 import com.practicum.shoppinglist.details.domain.impl.UpdateProductUseCase
+import com.practicum.shoppinglist.main.domain.api.AuthorizationRepository
 import com.practicum.shoppinglist.main.domain.api.MainScreenRepository
+import com.practicum.shoppinglist.main.domain.api.TokenStorage
 import com.practicum.shoppinglist.main.domain.impl.AddShoppingListUseCase
 import com.practicum.shoppinglist.main.domain.impl.ChangeThemeSettingsUseCase
 import com.practicum.shoppinglist.main.domain.impl.GetThemeSettingsUseCase
+import com.practicum.shoppinglist.main.domain.impl.IsUserLoggedInUseCase
+import com.practicum.shoppinglist.main.domain.impl.LoginUseCase
+import com.practicum.shoppinglist.main.domain.impl.LogoutUseCase
+import com.practicum.shoppinglist.main.domain.impl.RegistrationUseCase
 import com.practicum.shoppinglist.main.domain.impl.RemoveAllShoppingListsUseCase
 import com.practicum.shoppinglist.main.domain.impl.RemoveShoppingListUseCase
 import com.practicum.shoppinglist.main.domain.impl.ShowShoppingListByNameUseCase
 import com.practicum.shoppinglist.main.domain.impl.ShowShoppingListsUseCase
+import com.practicum.shoppinglist.main.domain.impl.TokenValidationUseCase
 import com.practicum.shoppinglist.main.domain.impl.UpdateShoppingListUseCase
 import dagger.Module
 import dagger.Provides
@@ -99,4 +106,31 @@ class UseCaseModule {
     fun provideGetProductSortOrderUseCase(repository: DetailsScreenRepository): GetProductSortOrderUseCase {
         return GetProductSortOrderUseCase(repository)
     }
+
+    @Provides
+    fun provideRegistrationUseCase(repository: AuthorizationRepository): RegistrationUseCase {
+        return RegistrationUseCase(repository)
+    }
+
+    @Provides
+    fun provideLoginUseCase(repository: AuthorizationRepository, tokenStorage: TokenStorage): LoginUseCase {
+        return LoginUseCase(repository, tokenStorage)
+    }
+
+    @Provides
+    fun provideLogoutUseCase(tokenStorage: TokenStorage): LogoutUseCase {
+        return LogoutUseCase(tokenStorage)
+    }
+
+    @Provides
+    fun provideIsUserLoggedInUseCase(tokenStorage: TokenStorage): IsUserLoggedInUseCase {
+        return IsUserLoggedInUseCase(tokenStorage)
+    }
+
+    @Provides
+    fun provideTokenValidationUseCase(repository: AuthorizationRepository, tokenStorage: TokenStorage): TokenValidationUseCase {
+        return TokenValidationUseCase(tokenStorage, repository)
+    }
+
+
 }
