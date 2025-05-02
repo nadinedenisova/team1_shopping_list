@@ -49,6 +49,7 @@ fun LoginScreen(
     }
 
     LoginForm(
+        state.status,
         navController = navController,
         onLoginClick = {email, password ->
             loginViewModel.processIntent(AuthIntent.Login(email, password))
@@ -58,6 +59,7 @@ fun LoginScreen(
 
 @Composable
 fun LoginForm(
+    status: AuthState.Status,
     navController: NavController,
     onLoginClick: (email: String, password: String) -> Unit,
 ) {
@@ -110,9 +112,13 @@ fun LoginForm(
                 onLoginClick(email, password)
             },
             modifier = Modifier.fillMaxWidth(),
-            enabled = isButtonEnabled
+            enabled = isButtonEnabled && status != AuthState.Status.IN_PROGRESS
         ) {
-            Text(stringResource(R.string.enter))
+            if (status == AuthState.Status.IN_PROGRESS) {
+                Text(stringResource(R.string.process))
+            } else {
+                Text(stringResource(R.string.enter))
+            }
         }
         ClickableTextButton(stringResource(R.string.registration), onClick = {
             navController.navigate(Routes.Registration.name)
