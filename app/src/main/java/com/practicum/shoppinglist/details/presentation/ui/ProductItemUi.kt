@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,26 +29,28 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.practicum.shoppinglist.R
-import com.practicum.shoppinglist.common.resources.BaseIntent
+import com.practicum.shoppinglist.common.resources.DetailsScreenIntent
 import com.practicum.shoppinglist.common.resources.ListAction
 import com.practicum.shoppinglist.core.domain.models.BaseItem
 import com.practicum.shoppinglist.core.domain.models.ProductItem
 import com.practicum.shoppinglist.core.presentation.ui.components.SLCheckbox
 import com.practicum.shoppinglist.core.presentation.ui.theme.SLTheme
 import com.practicum.shoppinglist.details.presentation.models.ProductItemUiModel
+import com.practicum.shoppinglist.details.utils.mapper.toProductItemUi
 import com.practicum.shoppinglist.main.ui.recycler.SwipeItem
 import kotlinx.coroutines.flow.SharedFlow
 
 @Composable
-fun ItemProduct(
-    onIntent: (BaseIntent) -> Unit,
+fun ProductItem(
+    modifier: Modifier = Modifier,
+    onIntent: (DetailsScreenIntent) -> Unit,
     action: SharedFlow<ListAction>,
     item: ProductItem,
     openItem: MutableState<BaseItem?>,
     onCheckedChange: (Boolean) -> Unit = {},
     manualSort: Boolean = false,
     onItemClick: () -> Unit,
-    onItemOpened: (BaseItem) -> Unit,
+    onItemOpened: () -> Unit,
     onItemClosed: () -> Unit,
     onRemove: () -> Unit,
     onRename: () -> Unit,
@@ -65,71 +66,89 @@ fun ItemProduct(
         onRename = onRename,
         extraPadding = true,
     ) { swipeOffset ->
+        ProductItemUi(
+            modifier = modifier,
+            item = item.toProductItemUi(),
+            swipeOffset = swipeOffset,
+            onItemClick = onItemClick,
+            onCheckedChange = onCheckedChange,
+            manualSort = manualSort
+        )
+    }
+}
 
-        val textDecoration = if (item.completed) {
-            TextDecoration.LineThrough
-        } else {
-            TextDecoration.None
-        }
+@Composable
+private fun ProductItemUi(
+    modifier: Modifier = Modifier,
+    item: ProductItemUiModel,
+    swipeOffset: Float = 0f,
+    onItemClick: () -> Unit = {},
+    onCheckedChange: (Boolean) -> Unit = {},
+    manualSort: Boolean = false,
+) {
+    val textDecoration = if (item.completed) {
+        TextDecoration.LineThrough
+    } else {
+        TextDecoration.None
+    }
 
-        Column(
-            modifier = Modifier
-                .offset { IntOffset(swipeOffset.toInt(), 0) }
-                .background(MaterialTheme.colorScheme.surface)
-                .height(72.dp)
-                .clickable { onItemClick() },
+    Column(
+        modifier = modifier
+            .offset { IntOffset(swipeOffset.toInt(), 0) }
+            .height(72.dp)
+            .background(SLTheme.slColorScheme.materialScheme.surface)
+            .clickable { onItemClick() },
+    ) {
+        Row(
+            modifier = Modifier.weight(1f),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Row(
-                modifier = Modifier.weight(1f),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                SLCheckbox(
-                    modifier = Modifier,
-                    checked = item.completed,
-                    onCheckedChange = onCheckedChange,
-                )
-
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(vertical = 8.dp),
-                    verticalArrangement = Arrangement.Center,
-                ) {
-                    Text(
-                        modifier = Modifier.fillMaxWidth(),
-                        text = item.name,
-                        style = SLTheme.typography.bodyLarge.copy(
-                            textDecoration = textDecoration
-                        ),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        color = SLTheme.slColorScheme.materialScheme.onSurface,
-                    )
-                    Text(
-                        modifier = Modifier.fillMaxWidth(),
-                        text = item.count.toString(),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        style = SLTheme.typography.bodyMedium,
-                        color = SLTheme.slColorScheme.materialScheme.onSurfaceVariant,
-                    )
-                }
-                if (manualSort) {
-                    Icon(
-                        painter = painterResource(R.drawable.drag_handle),
-                        contentDescription = null,
-                        tint = SLTheme.slColorScheme.materialScheme.onSurfaceVariant,
-                    )
-                }
-                Spacer(Modifier.width(16.dp))
-            }
-            Box(
-                modifier = Modifier
-                    .height(1.dp)
-                    .fillMaxWidth()
-                    .background(SLTheme.slColorScheme.materialScheme.outlineVariant)
+            SLCheckbox(
+                modifier = Modifier,
+                checked = item.completed,
+                onCheckedChange = onCheckedChange,
             )
+
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(vertical = 8.dp),
+                verticalArrangement = Arrangement.Center,
+            ) {
+                Text(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = item.name,
+                    style = SLTheme.typography.bodyLarge.copy(
+                        textDecoration = textDecoration
+                    ),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    color = SLTheme.slColorScheme.materialScheme.onSurface,
+                )
+                Text(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = item.amount,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = SLTheme.typography.bodyMedium,
+                    color = SLTheme.slColorScheme.materialScheme.onSurfaceVariant,
+                )
+            }
+            if (manualSort) {
+                Icon(
+                    painter = painterResource(R.drawable.drag_handle),
+                    contentDescription = null,
+                    tint = SLTheme.slColorScheme.materialScheme.onSurfaceVariant,
+                )
+            }
+            Spacer(Modifier.width(16.dp))
         }
+        Box(
+            modifier = Modifier
+                .height(1.dp)
+                .fillMaxWidth()
+                .background(SLTheme.slColorScheme.materialScheme.outlineVariant)
+        )
     }
 }
 

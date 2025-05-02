@@ -8,20 +8,24 @@ import com.practicum.shoppinglist.common.resources.DetailsScreenIntent
 import com.practicum.shoppinglist.common.resources.ListAction
 import com.practicum.shoppinglist.core.data.mapper.toProductEntity
 import com.practicum.shoppinglist.core.domain.models.ProductItem
+import com.practicum.shoppinglist.details.domain.impl.AddItemOrderUseCase
 import com.practicum.shoppinglist.details.domain.impl.AddProductUseCase
 import com.practicum.shoppinglist.details.domain.impl.DeleteAllProductsUseCase
 import com.practicum.shoppinglist.details.domain.impl.DeleteCompletedProductsUseCase
 import com.practicum.shoppinglist.details.domain.impl.DeleteProductUseCase
 import com.practicum.shoppinglist.details.domain.impl.GetProductListUseCase
+import com.practicum.shoppinglist.details.domain.impl.GetProductSortOrderUseCase
 import com.practicum.shoppinglist.details.domain.impl.UpdateProductUseCase
 import com.practicum.shoppinglist.details.presentation.state.DetailsScreenState
 import com.practicum.shoppinglist.details.presentation.state.DetailsScreenState.Companion.editProduct
+import com.practicum.shoppinglist.details.utils.model.ProductSortOrder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -33,6 +37,8 @@ class DetailsViewModel @Inject constructor(
     private val deleteProductUseCase: DeleteProductUseCase,
     private val deleteAllProductsUseCase: DeleteAllProductsUseCase,
     private val deleteCompletedProductsUseCase: DeleteCompletedProductsUseCase,
+    private val getProductSortOrderUseCase: GetProductSortOrderUseCase,
+    private val addItemOrderUseCase: AddItemOrderUseCase,
 ) : ViewModel() {
     private var _state: MutableStateFlow<DetailsScreenState> =
         MutableStateFlow(DetailsScreenState())
@@ -42,11 +48,7 @@ class DetailsViewModel @Inject constructor(
     private val _action = MutableSharedFlow<ListAction>()
     val action: SharedFlow<ListAction> = _action
 
-    init {
-        observeProductList()
-    }
-
-    fun onIntent(intent: BaseIntent) {
+    fun onIntent(intent: DetailsScreenIntent) {
         when (intent) {
             DetailsScreenIntent.CloseAddProductSheet -> {
                 _state.update { it.copy(showAddProductSheet = false) }
@@ -76,6 +78,7 @@ class DetailsViewModel @Inject constructor(
 
             is DetailsScreenIntent.Init -> {
                 _state.update { it.copy(shoppingListId = intent.shoppingListId) }
+                observeProductList()
             }
 
             DetailsScreenIntent.AddProduct -> {
@@ -94,7 +97,7 @@ class DetailsViewModel @Inject constructor(
                 }
             }
 
-            is DetailsScreenIntent.QueryEditProduct -> {
+            is DetailsScreenIntent.SelectedProduct -> {
                 _state.update {
                     it.editProduct(intent.product)
                 }
@@ -102,7 +105,7 @@ class DetailsViewModel @Inject constructor(
 
             is DetailsScreenIntent.EditProduct -> {
                 viewModelScope.launch(Dispatchers.IO) {
-                    updateProductUseCase( _state.value.product.toProductEntity())
+                    updateProductUseCase(_state.value.product.toProductEntity())
                 }
             }
 
@@ -135,23 +138,52 @@ class DetailsViewModel @Inject constructor(
                 _state.update { it.copy(product = it.product.copy(unit = intent.value)) }
             }
 
-            is BaseIntent.QueryRemoveShoppingList -> viewModelScope.launch {
-                _action.emit(ListAction.RemoveItem)
+            is DetailsScreenIntent.SortOrder -> {
+                _state.update { it.copy(sortOrderMode = intent.sortOrder) }
             }
 
+            is DetailsScreenIntent.UpdateManualSortOrder -> {
+                viewModelScope.launch(Dispatchers.IO) {
+                    addItemOrderUseCase(_state.value.shoppingListId, intent.sortOrder)
+                }
+            }
+
+            BaseIntent.QueryRemoveShoppingList -> {
+                viewModelScope.launch {
+                    _action.emit(ListAction.RemoveItem)
+                }
+            }
             is BaseIntent.RemoveListItem -> {
                 viewModelScope.launch(Dispatchers.IO) {
                     deleteProductUseCase(intent.id)
                 }
             }
-
-            else -> {}
         }
     }
 
     private fun observeProductList() {
         viewModelScope.launch(Dispatchers.IO) {
-            getProductListUseCase.invoke(_state.value.shoppingListId).collect { productList ->
+            getProductSortOrderUseCase.invoke(_state.value.shoppingListId).collect { sortOrder ->
+                _state.update { it.copy(sortOrder = sortOrder) }
+            }
+        }
+
+        viewModelScope.launch(Dispatchers.IO) {
+            getProductListUseCase.invoke(_state.value.shoppingListId).transform {
+                val sortedItems = when (_state.value.sortOrderMode) {
+                    ProductSortOrder.Default -> it
+                    is ProductSortOrder.ASC -> it.sortedBy { item -> item.name }
+                    is ProductSortOrder.Manual -> {
+                        if (_state.value.sortOrder.isNotEmpty()) {
+                            it.sortedBy { item -> _state.value.sortOrder[item.id] }
+                        } else {
+                            it
+                        }
+                    }
+
+                }
+                emit(sortedItems)
+            }.collect { productList ->
                 _state.update {
                     it.copy(
                         productList = productList,

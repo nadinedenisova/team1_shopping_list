@@ -1,11 +1,13 @@
 package com.practicum.shoppinglist.di
 
 import com.practicum.shoppinglist.details.domain.api.DetailsScreenRepository
+import com.practicum.shoppinglist.details.domain.impl.AddItemOrderUseCase
 import com.practicum.shoppinglist.details.domain.impl.AddProductUseCase
 import com.practicum.shoppinglist.details.domain.impl.DeleteAllProductsUseCase
 import com.practicum.shoppinglist.details.domain.impl.DeleteCompletedProductsUseCase
 import com.practicum.shoppinglist.details.domain.impl.DeleteProductUseCase
 import com.practicum.shoppinglist.details.domain.impl.GetProductListUseCase
+import com.practicum.shoppinglist.details.domain.impl.GetProductSortOrderUseCase
 import com.practicum.shoppinglist.details.domain.impl.UpdateProductUseCase
 import com.practicum.shoppinglist.main.domain.api.AuthorizationRepository
 import com.practicum.shoppinglist.main.domain.api.MainScreenRepository
@@ -95,6 +97,14 @@ class UseCaseModule {
     @Provides
     fun provideDeleteProductUseCase(repository: DetailsScreenRepository): DeleteProductUseCase {
         return DeleteProductUseCase(repository)
+    }
+    @Provides
+    fun provideAddItemOrderUseCase(repository: DetailsScreenRepository): AddItemOrderUseCase {
+        return AddItemOrderUseCase(repository)
+    }
+    @Provides
+    fun provideGetProductSortOrderUseCase(repository: DetailsScreenRepository): GetProductSortOrderUseCase {
+        return GetProductSortOrderUseCase(repository)
     }
 
     @Provides
