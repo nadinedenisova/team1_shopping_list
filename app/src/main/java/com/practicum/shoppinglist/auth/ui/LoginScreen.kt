@@ -137,7 +137,7 @@ fun ClickableTextButton(text: String, onClick: () -> Unit = {},) {
         TextButton(
             onClick = onClick,
         ) {
-            Text(text = text, color = Color.DarkGray)
+            Text(text = text)
         }
     }
 }
