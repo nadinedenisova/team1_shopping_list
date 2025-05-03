@@ -7,10 +7,14 @@ naming:
     active: false
 complexity:
   LongParameterList:
-    functionThreshold: 15
+    functionThreshold: 6
     ignoreDefaultParameters: true
   LongMethod:
     active: false
+    threshold: 50
+  LargeClass:
+    active: true
+    threshold: 350
 style:
   MagicNumber:
     active: false

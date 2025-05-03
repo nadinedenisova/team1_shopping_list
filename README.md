@@ -17,6 +17,11 @@ To check lint issues
 ```
 ./gradlew detekt
 ```
+Or use
+
+```
+bash gradlew detekt
+```
 
 In folder `build/reports/detekt/detekt.html`
 
