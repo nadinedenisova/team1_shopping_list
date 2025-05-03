@@ -9,7 +9,7 @@ suspend fun <T> withRetry(
     onError: (e: Exception) -> T,
     body: suspend () -> T
 ): T {
-    repeat(times - 1) {
+    repeat(times) {
         try {
             return body()
         } catch (e: Exception) {
@@ -20,5 +20,5 @@ suspend fun <T> withRetry(
             }
         }
     }
-    return onError(Exception("An error prevents the operation from being completed"))
+    return onError(Exception("Something went wrong"))
 }
