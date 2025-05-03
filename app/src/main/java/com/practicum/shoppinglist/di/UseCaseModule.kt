@@ -2,6 +2,9 @@ package com.practicum.shoppinglist.di
 
 import com.practicum.shoppinglist.main.domain.api.MainScreenRepository
 import com.practicum.shoppinglist.main.domain.impl.AddShoppingListUseCase
+import com.practicum.shoppinglist.main.domain.impl.ChangeThemeSettingsUseCase
+import com.practicum.shoppinglist.main.domain.impl.GetThemeSettingsUseCase
+import com.practicum.shoppinglist.main.domain.impl.RemoveAllShoppingListsUseCase
 import com.practicum.shoppinglist.main.domain.impl.RemoveShoppingListUseCase
 import com.practicum.shoppinglist.main.domain.impl.ShowShoppingListByNameUseCase
 import com.practicum.shoppinglist.main.domain.impl.ShowShoppingListsUseCase
@@ -35,5 +38,20 @@ class UseCaseModule {
     @Provides
     fun provideRemoveShoppingListUseCase(repository: MainScreenRepository): RemoveShoppingListUseCase {
         return RemoveShoppingListUseCase(repository)
+    }
+
+    @Provides
+    fun provideRemoveAllShoppingListsUseCase(repository: MainScreenRepository): RemoveAllShoppingListsUseCase {
+        return RemoveAllShoppingListsUseCase(repository)
+    }
+
+    @Provides
+    fun provideChangeThemeSettingsUseCase(repository: MainScreenRepository): ChangeThemeSettingsUseCase {
+        return ChangeThemeSettingsUseCase(repository)
+    }
+
+    @Provides
+    fun provideGetThemeSettingsUseCase(repository: MainScreenRepository): GetThemeSettingsUseCase {
+        return GetThemeSettingsUseCase(repository)
     }
 }

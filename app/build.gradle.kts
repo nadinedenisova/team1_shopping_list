@@ -4,8 +4,8 @@ plugins {
     alias(libs.plugins.jetbrainsKsp)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.sqldelight)
-    id("kotlin-parcelize")
-    kotlin("plugin.serialization") version "2.1.20"
+    alias(libs.plugins.kotlin.parcelize)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
