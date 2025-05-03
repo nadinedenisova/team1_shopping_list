@@ -1,9 +1,9 @@
 package com.practicum.shoppinglist.main.data.impl.auth
 
 import android.content.SharedPreferences
+import androidx.core.content.edit
 import com.practicum.shoppinglist.main.domain.api.TokenStorage
 import jakarta.inject.Inject
-import androidx.core.content.edit
 
 class TokenStorageImpl@Inject constructor(
     private val sharedPreferences: SharedPreferences

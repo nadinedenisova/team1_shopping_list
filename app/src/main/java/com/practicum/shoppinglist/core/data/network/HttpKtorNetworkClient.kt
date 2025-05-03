@@ -4,7 +4,6 @@ import android.util.Log
 import com.practicum.shoppinglist.core.data.network.model.HttpMethodType
 import com.practicum.shoppinglist.core.data.network.model.Response
 import com.practicum.shoppinglist.core.data.network.model.StatusCode
-import com.practicum.shoppinglist.main.data.impl.auth.dto.AuthRequest
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation

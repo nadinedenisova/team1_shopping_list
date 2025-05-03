@@ -3,15 +3,12 @@ package com.practicum.shoppinglist.auth.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.android.shoppinglist.feature.http.data.network.AuthResponse
 import com.practicum.shoppinglist.common.resources.AuthIntent
 import com.practicum.shoppinglist.common.resources.AuthState
 import com.practicum.shoppinglist.common.resources.AuthState.Companion.default
 import com.practicum.shoppinglist.common.resources.BaseIntent
-import com.practicum.shoppinglist.core.domain.models.network.ErrorType
 import com.practicum.shoppinglist.core.domain.models.network.Result
 import com.practicum.shoppinglist.main.domain.impl.LoginUseCase
-import com.practicum.shoppinglist.main.domain.impl.RegistrationUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

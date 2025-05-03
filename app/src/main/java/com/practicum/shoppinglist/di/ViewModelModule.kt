@@ -3,12 +3,12 @@ package com.practicum.shoppinglist.di
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.practicum.shoppinglist.auth.viewmodel.LoginScreenViewModel
+import com.practicum.shoppinglist.auth.viewmodel.RegistrationScreenViewModel
 import com.practicum.shoppinglist.core.presentation.ui.FabViewModel
 import com.practicum.shoppinglist.details.presentation.viewmodel.DetailsViewModel
-import com.practicum.shoppinglist.auth.viewmodel.RegistrationScreenViewModel
 import com.practicum.shoppinglist.di.api.DaggerViewModelFactory
-import com.practicum.shoppinglist.main.ui.view_model.MainScreenViewModel
 import com.practicum.shoppinglist.di.api.ViewModelKey
+import com.practicum.shoppinglist.main.ui.view_model.MainScreenViewModel
 import dagger.Binds
 import dagger.Module
 import dagger.multibindings.IntoMap

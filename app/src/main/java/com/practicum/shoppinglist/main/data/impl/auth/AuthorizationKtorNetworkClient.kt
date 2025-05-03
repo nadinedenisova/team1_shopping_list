@@ -11,8 +11,6 @@ import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
-import io.ktor.client.utils.EmptyContent.contentType
-import io.ktor.client.utils.EmptyContent.headers
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
