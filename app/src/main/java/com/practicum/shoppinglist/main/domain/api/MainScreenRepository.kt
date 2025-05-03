@@ -10,4 +10,6 @@ interface MainScreenRepository {
     suspend fun removeShoppingList(id: Long)
     suspend fun removeAllShoppingLists()
     suspend fun updateShoppingLIst(list: ListItem)
+    fun getThemeSettings(): Boolean
+    fun changeThemeChange(darkTheme: Boolean)
 }
