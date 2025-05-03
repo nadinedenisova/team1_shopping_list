@@ -4,6 +4,7 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import com.practicum.shoppinglist.ListEntity
 import com.practicum.shoppinglist.ProductEntity
+import com.practicum.shoppinglist.ProductSortEntity
 import com.practicum.shoppinglist.ShoppingListDatabase
 import com.practicum.shoppinglist.common.utils.withRetry
 import kotlinx.coroutines.Dispatchers
@@ -157,7 +158,7 @@ class SqlDelightDataSource @Inject constructor(
         return@withContext deletedRows
     }
 
-    override suspend fun deleteAll(): Long = withContext(Dispatchers.IO){
+    override suspend fun deleteAll(): Long = withContext(Dispatchers.IO) {
         var deletedRows: Long = withRetry(
             times = 2,
             delayMs = 300L,
@@ -170,5 +171,60 @@ class SqlDelightDataSource @Inject constructor(
         }
 
         return@withContext deletedRows
+    }
+
+    override suspend fun deleteAllByListId(id: Long): Long = withContext(Dispatchers.IO) {
+        var deletedRows: Long = withRetry(
+            times = 2,
+            delayMs = 300L,
+            onError = { -1 }
+        ) {
+            db.transactionWithResult {
+                db.productEntityQueries.deleteAllByListId(id)
+                return@transactionWithResult db.commonQueries.selectChanges().executeAsOne()
+            }
+        }
+
+        return@withContext deletedRows
+    }
+
+    override suspend fun deleteAllCompletedByListId(id: Long): Long = withContext(Dispatchers.IO) {
+        var deletedRows: Long = withRetry(
+            times = 2,
+            delayMs = 300L,
+            onError = { -1 }
+        ) {
+            db.transactionWithResult {
+                db.productEntityQueries.deleteAllCompletedByListId(id)
+                return@transactionWithResult db.commonQueries.selectChanges().executeAsOne()
+            }
+        }
+
+        return@withContext deletedRows
+    }
+
+    override fun getSortOrderByListId(listId: Long): Flow<List<ProductSortEntity>> {
+        return db.productSortEntityQueries.getProductOrderByListId(listId).asFlow()
+            .mapToList(Dispatchers.IO)
+    }
+
+    override suspend fun addProductSortOrder(
+        shoppingListId: Long,
+        sortOrder: Map<Long, Long>
+    ): Long = withContext(Dispatchers.IO) {
+        var insertedRows: Long = withRetry(
+            times = 2,
+            delayMs = 300L,
+            onError = { -1 }
+        ) {
+            db.transactionWithResult {
+                sortOrder.forEach { productId, pos ->
+                    db.productSortEntityQueries.addProductOrder(productId, pos)
+                }
+
+                return@transactionWithResult db.commonQueries.selectChanges().executeAsOne()
+            }
+        }
+        return@withContext insertedRows
     }
 }

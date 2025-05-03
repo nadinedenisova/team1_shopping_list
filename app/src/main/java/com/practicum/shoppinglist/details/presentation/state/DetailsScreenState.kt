@@ -1,10 +1,20 @@
 package com.practicum.shoppinglist.details.presentation.state
 
-import com.practicum.shoppinglist.details.presentation.models.ProductDetails
+import com.practicum.shoppinglist.core.domain.models.ProductItem
+import com.practicum.shoppinglist.details.utils.model.ProductSortOrder
 
 data class DetailsScreenState(
+    val shoppingListId: Long = -1,
+    val productId: Long = -1,
     val showAddProductSheet: Boolean = false,
+    val productList: List<ProductItem> = emptyList(),
     val unitList: List<String> = emptyList(),
-    val productList: List<String> = emptyList(),
-    val product: ProductDetails = ProductDetails()
-)
+    val productMenuList: List<String> = emptyList(),
+    val product: ProductItem = ProductItem(),
+    val sortOrderMode: ProductSortOrder = ProductSortOrder.Default,
+    val sortOrder: Map<Long, Long> = emptyMap()
+) {
+    companion object {
+        fun DetailsScreenState.editProduct(product: ProductItem) = this.copy(product = product)
+    }
+}

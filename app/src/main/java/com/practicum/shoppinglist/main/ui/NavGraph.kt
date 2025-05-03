@@ -8,23 +8,50 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.practicum.shoppinglist.auth.ui.LoginScreen
+import com.practicum.shoppinglist.auth.ui.RegistrationScreen
+import com.practicum.shoppinglist.auth.ui.RestorePasswordScreen
+import com.practicum.shoppinglist.auth.viewmodel.LoginScreenViewModel
+import com.practicum.shoppinglist.auth.viewmodel.RegistrationScreenViewModel
+import com.practicum.shoppinglist.core.presentation.ui.FabViewModel
+import com.practicum.shoppinglist.core.presentation.ui.SplashScreen
+import com.practicum.shoppinglist.details.presentation.ui.DetailsScreen
 import com.practicum.shoppinglist.main.ui.view_model.MainScreenViewModel
 
 @Composable
 fun NavGraph(
     navController: NavHostController,
-    startDestination: String = Routes.MainScreen.name,
+    startDestination: String = Routes.SplashScreen.name,
     isSearchActive: MutableState<Boolean>,
     showAddShoppingListDialog: MutableState<Boolean>,
     showRemoveAllShoppingListsDialog: MutableState<Boolean>,
+    showMenuBottomSheet: MutableState<Boolean>,
     modifier: Modifier,
     viewModel: MainScreenViewModel,
+    fabViewModel: FabViewModel,
+    registrationScreenViewModel: RegistrationScreenViewModel,
+    loginViewModel: LoginScreenViewModel,
 ) {
-    NavHost(navController = navController, startDestination = startDestination, modifier = modifier) {
+
+    NavHost(
+        navController = navController,
+        startDestination = startDestination,
+        modifier = modifier,
+
+    ) {
+        composable(
+            route = Routes.SplashScreen.name
+        ) {
+            SplashScreen(
+                navController = navController,
+            )
+        }
+
         composable(
             route = Routes.MainScreen.name
         ) {
             MainScreen(
+                navController = navController,
                 viewModel = viewModel,
                 isSearchActive = isSearchActive,
                 showAddShoppingListDialog = showAddShoppingListDialog,
@@ -38,8 +65,38 @@ fun NavGraph(
                 navArgument("listId") { type = NavType.LongType }
             )
         ) {  navBackStackEntry ->
-            val listId = navBackStackEntry.arguments?.getLong("listId") ?: -1L
+            val shoppingListId = navBackStackEntry.arguments?.getLong("listId") ?: -1L
+            DetailsScreen(
+                showMenuBottomSheet = showMenuBottomSheet,
+                shoppingListId = shoppingListId,
+                fabViewModel = fabViewModel,
+            )
+        }
 
+        composable(
+            route = Routes.Registration.name,
+        ) {
+            RegistrationScreen(
+                navController = navController,
+                registrationScreenViewModel
+            )
+        }
+
+        composable(
+            route = Routes.Login.name,
+        ) {
+            LoginScreen(
+                navController = navController,
+                loginViewModel
+            )
+        }
+
+        composable(
+            route = Routes.RestorePassword.name,
+        ) {
+            RestorePasswordScreen(
+                navController = navController,
+            )
         }
     }
 }

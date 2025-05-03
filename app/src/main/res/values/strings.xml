@@ -3,8 +3,18 @@
     <string name="prefs_file_name">Settings</string>
     <string name="theme_save_key">dark theme</string>
     <string name="main_screen_title">Мои списки</string>
+    <string name="registration_screen_title">Регистрация</string>
+    <string name="login_screen_title">Логин</string>
+    <string name="products_screen_title">Продукты</string>
     <string name="add">Добавить</string>
     <string name="search">Поиск</string>
+    <string name="registration">Зарегистрироваться</string>
+    <string name="process">Обработка</string>
+    <string name="enter">Логин</string>
+    <string name="restore_password">Восстановить пароль</string>
+    <string name="login">Логин</string>
+    <string name="logout">Выйти</string>
+    <string name="not_implemented">Функция не реализована</string>
     <string name="search_hint">Поиск списков</string>
     <string name="remove">Удалить</string>
     <string name="dark_mode">Тёмная тема</string>
@@ -13,6 +23,15 @@
 
     <string name="nothing_found_title">Мы не cмогли найти то,\nчто вы искали</string>
     <string name="nothing_found_message">Попробуйте изменить запрос\nили проверить написание</string>
+
+    <string name="splash_screen_title">Добро пожаловать в Список покупок!</string>
+    <string name="splash_screen_message">Создавайте списки, добавляйте товары,\nотмечайте, что уже куплено</string>
+
+    <string name="sort">Сортировка</string>
+    <string name="sort_alphabet_order">По алфавиту</string>
+    <string name="sort_user_defined">Пользовательская</string>
+    <string name="remove_all">Удалить все</string>
+    <string name="clear">Очистить купленные</string>
 
     <string name="edit_shopping_list">Переименование списка</string>
     <string name="add_shopping_list">Добавление списка</string>
@@ -29,4 +48,12 @@
     <string name="add_new_product_title">Добавить новый товар</string>
     <string name="quantity_title">Количество</string>
     <string name="units_title">Единицы</string>
+    <string name="email">Email</string>
+    <string name="password">Пароль</string>
+    <string name="confirm_password">Повторить пароль</string>
+    <string name="password_too_short">Пароль слишком короткий</string>
+    <string name="invalid_login">Невалидные данные</string>
+    <string name="invalid_registration">Регистрация не прошла успешна</string>
+    <string name="invalid_email">Неверный email</string>
+    <string name="passwords_do_not_match">Пароль не совпадает</string>
 </resources>

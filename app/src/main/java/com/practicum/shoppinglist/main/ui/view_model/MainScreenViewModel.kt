@@ -3,27 +3,36 @@ package com.practicum.shoppinglist.main.ui.view_model
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.practicum.shoppinglist.common.resources.AuthIntent
+import com.practicum.shoppinglist.common.resources.BaseIntent
+import com.practicum.shoppinglist.common.resources.ListAction
 import com.practicum.shoppinglist.common.resources.ShoppingListIntent
 import com.practicum.shoppinglist.common.resources.ShoppingListState
 import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.content
 import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.darkTheme
 import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.default
-import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.isRemoving
 import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.noShoppingLists
 import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.nothingFound
 import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.searchResults
+import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.selectedList
 import com.practicum.shoppinglist.common.utils.Constants
 import com.practicum.shoppinglist.common.utils.Debounce
 import com.practicum.shoppinglist.core.domain.models.ListItem
 import com.practicum.shoppinglist.main.domain.impl.AddShoppingListUseCase
 import com.practicum.shoppinglist.main.domain.impl.ChangeThemeSettingsUseCase
 import com.practicum.shoppinglist.main.domain.impl.GetThemeSettingsUseCase
+import com.practicum.shoppinglist.main.domain.impl.IsUserLoggedInUseCase
+import com.practicum.shoppinglist.main.domain.impl.LogoutUseCase
 import com.practicum.shoppinglist.main.domain.impl.RemoveAllShoppingListsUseCase
 import com.practicum.shoppinglist.main.domain.impl.RemoveShoppingListUseCase
 import com.practicum.shoppinglist.main.domain.impl.ShowShoppingListByNameUseCase
 import com.practicum.shoppinglist.main.domain.impl.ShowShoppingListsUseCase
+import com.practicum.shoppinglist.main.domain.impl.TokenValidationUseCase
 import com.practicum.shoppinglist.main.domain.impl.UpdateShoppingListUseCase
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -39,14 +48,40 @@ class MainScreenViewModel @Inject constructor(
     private val removeAllShoppingListsUseCase: RemoveAllShoppingListsUseCase,
     private val getThemeSettingsUseCase: GetThemeSettingsUseCase,
     private val changeThemeSettingsUseCase: ChangeThemeSettingsUseCase,
+    private val isUserLoggedInUseCase: IsUserLoggedInUseCase,
+    private val tokenValidationUseCase: TokenValidationUseCase,
+    private val logoutUseCase: LogoutUseCase,
 ) : ViewModel() {
 
     private companion object {
         const val TAG = "MainScreenViewModel"
     }
 
+    private val _isLoggedIn = MutableStateFlow(false)
+    val isLoggedIn: StateFlow<Boolean> = _isLoggedIn
+
+    fun checkLoginStatus() {
+        val isLoggedIn = isUserLoggedInUseCase()
+        _isLoggedIn.value = isLoggedIn
+        if (isLoggedIn) {
+            validateToken()
+        }
+    }
+
+    private fun validateToken() {
+        viewModelScope.launch {
+            val valid = tokenValidationUseCase()
+            if (!valid) {
+                logout()
+            }
+        }
+    }
+
     private val _shoppingListStateFlow = MutableStateFlow(default())
     val shoppingListStateFlow: StateFlow<ShoppingListState> = _shoppingListStateFlow.asStateFlow()
+
+    private val _action = MutableSharedFlow<ListAction>()
+    val action: SharedFlow<ListAction> = _action
 
     private val timer: Debounce<String> by lazy {
         Debounce(Constants.USER_INPUT_DELAY, viewModelScope) { term ->
@@ -55,23 +90,33 @@ class MainScreenViewModel @Inject constructor(
     }
 
     init {
+        checkLoginStatus()
         observeShoppingLists()
         processIntent(ShoppingListIntent.GetThemeSettings)
+    }
+
+    fun logout() {
+        logoutUseCase()
+        checkLoginStatus()
     }
 
     fun processIntent(intent: ShoppingListIntent) {
         when (intent) {
             is ShoppingListIntent.AddShoppingList -> addShoppingList(name = intent.name, icon = intent.icon)
             is ShoppingListIntent.UpdateShoppingList -> updateShoppingList(list = intent.list)
-            is ShoppingListIntent.RemoveShoppingList -> removeShoppingList(id = intent.id)
+            is BaseIntent.RemoveListItem -> removeShoppingList(id = intent.id)
+            is BaseIntent.QueryRemoveShoppingList -> viewModelScope.launch {
+                _action.emit(ListAction.RemoveItem)
+            }
             is ShoppingListIntent.RemoveAllShoppingLists -> removeAllShoppingLists()
             is ShoppingListIntent.Search -> search(searchQuery = intent.searchQuery)
+            is ShoppingListIntent.SelectedList -> selectedList(intent.selectedList)
             is ShoppingListIntent.ChangeThemeSettings -> changeThemeSettings(intent.darkTheme)
-            is ShoppingListIntent.IsRemoving -> _shoppingListStateFlow.update { currentState ->
-                currentState.isRemoving(intent.isRemoving)
-            }
             is ShoppingListIntent.GetThemeSettings -> getThemeSettings()
             is ShoppingListIntent.ClearSearchResults -> clearSearchResults()
+            is AuthIntent.Login -> TODO()
+            is AuthIntent.Registration -> TODO()
+            is AuthIntent.RestorePassword -> TODO()
         }
     }
 
@@ -89,7 +134,7 @@ class MainScreenViewModel @Inject constructor(
     }
 
     private fun addShoppingList(name: String, icon: Long) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             runCatching {
                 addShoppingListsUseCase(name, icon)
             }.onFailure { error ->
@@ -99,9 +144,10 @@ class MainScreenViewModel @Inject constructor(
     }
 
     private fun updateShoppingList(list: ListItem) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             runCatching {
                 updateShoppingListsUseCase(list)
+                selectedList(list)
             }.onFailure { error ->
                 Log.e(TAG, "error in update shopping list -> $error")
             }
@@ -109,7 +155,7 @@ class MainScreenViewModel @Inject constructor(
     }
 
     private fun removeShoppingList(id: Long) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             runCatching {
                 removeShoppingListUseCase(id)
             }.onFailure { error ->
@@ -119,7 +165,7 @@ class MainScreenViewModel @Inject constructor(
     }
 
     private fun removeAllShoppingLists() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             runCatching {
                 removeAllShoppingListsUseCase()
             }.onFailure { error ->
@@ -132,6 +178,12 @@ class MainScreenViewModel @Inject constructor(
         timer.start(parameter = searchQuery)
     }
 
+    private fun selectedList(selectedList: ListItem) {
+        _shoppingListStateFlow.update { currentState ->
+            currentState.selectedList(selectedList)
+        }
+    }
+
     private fun clearSearchResults() {
         _shoppingListStateFlow.update { currentState ->
             currentState.content()
@@ -141,7 +193,7 @@ class MainScreenViewModel @Inject constructor(
     private fun doSearch(searchQuery: String?) {
         if (searchQuery.isNullOrEmpty()) return
 
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             runCatching {
                 showShoppingListByNameUseCase(searchQuery)
                     .collect { results ->
@@ -163,7 +215,7 @@ class MainScreenViewModel @Inject constructor(
     }
 
     private fun observeShoppingLists() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             runCatching {
                 showShoppingListsUseCase()
                     .collect {
@@ -176,10 +228,10 @@ class MainScreenViewModel @Inject constructor(
     }
 
     private fun processObserveShoppingListsResult(list: List<ListItem>) {
-           _shoppingListStateFlow.update { currentState ->
-               when {
-                   list.isNotEmpty() -> currentState.content(list)
-                   else -> currentState.noShoppingLists()
+        _shoppingListStateFlow.update { currentState ->
+            when {
+                list.isNotEmpty() -> currentState.content(list)
+                else -> currentState.noShoppingLists()
             }
         }
     }

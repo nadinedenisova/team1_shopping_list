@@ -64,7 +64,9 @@ fun IconsBottomSheet(
             topStart = dimensionResource(R.dimen.bottom_sheet_corner_radius),
             topEnd = dimensionResource(R.dimen.bottom_sheet_corner_radius)
         ),
-        modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
+        modifier = Modifier
+            .padding(horizontal = dimensionResource(R.dimen.padding_3x))
+            .windowInsetsPadding(WindowInsets.navigationBars)
     ) {
         Box(
             modifier = Modifier
