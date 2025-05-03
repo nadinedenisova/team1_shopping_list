@@ -3,6 +3,7 @@ package com.practicum.shoppinglist.main.ui.view_model
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.practicum.shoppinglist.common.resources.AuthIntent
 import com.practicum.shoppinglist.common.resources.BaseIntent
 import com.practicum.shoppinglist.common.resources.ListAction
 import com.practicum.shoppinglist.common.resources.ShoppingListIntent
@@ -20,10 +21,13 @@ import com.practicum.shoppinglist.core.domain.models.ListItem
 import com.practicum.shoppinglist.main.domain.impl.AddShoppingListUseCase
 import com.practicum.shoppinglist.main.domain.impl.ChangeThemeSettingsUseCase
 import com.practicum.shoppinglist.main.domain.impl.GetThemeSettingsUseCase
+import com.practicum.shoppinglist.main.domain.impl.IsUserLoggedInUseCase
+import com.practicum.shoppinglist.main.domain.impl.LogoutUseCase
 import com.practicum.shoppinglist.main.domain.impl.RemoveAllShoppingListsUseCase
 import com.practicum.shoppinglist.main.domain.impl.RemoveShoppingListUseCase
 import com.practicum.shoppinglist.main.domain.impl.ShowShoppingListByNameUseCase
 import com.practicum.shoppinglist.main.domain.impl.ShowShoppingListsUseCase
+import com.practicum.shoppinglist.main.domain.impl.TokenValidationUseCase
 import com.practicum.shoppinglist.main.domain.impl.UpdateShoppingListUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -44,10 +48,33 @@ class MainScreenViewModel @Inject constructor(
     private val removeAllShoppingListsUseCase: RemoveAllShoppingListsUseCase,
     private val getThemeSettingsUseCase: GetThemeSettingsUseCase,
     private val changeThemeSettingsUseCase: ChangeThemeSettingsUseCase,
+    private val isUserLoggedInUseCase: IsUserLoggedInUseCase,
+    private val tokenValidationUseCase: TokenValidationUseCase,
+    private val logoutUseCase: LogoutUseCase,
 ) : ViewModel() {
 
     private companion object {
         const val TAG = "MainScreenViewModel"
+    }
+
+    private val _isLoggedIn = MutableStateFlow(false)
+    val isLoggedIn: StateFlow<Boolean> = _isLoggedIn
+
+    fun checkLoginStatus() {
+        val isLoggedIn = isUserLoggedInUseCase()
+        _isLoggedIn.value = isLoggedIn
+        if (isLoggedIn) {
+            validateToken()
+        }
+    }
+
+    private fun validateToken() {
+        viewModelScope.launch {
+            val valid = tokenValidationUseCase()
+            if (!valid) {
+                logout()
+            }
+        }
     }
 
     private val _shoppingListStateFlow = MutableStateFlow(default())
@@ -63,8 +90,14 @@ class MainScreenViewModel @Inject constructor(
     }
 
     init {
+        checkLoginStatus()
         observeShoppingLists()
         processIntent(ShoppingListIntent.GetThemeSettings)
+    }
+
+    fun logout() {
+        logoutUseCase()
+        checkLoginStatus()
     }
 
     fun processIntent(intent: ShoppingListIntent) {
@@ -81,6 +114,9 @@ class MainScreenViewModel @Inject constructor(
             is ShoppingListIntent.ChangeThemeSettings -> changeThemeSettings(intent.darkTheme)
             is ShoppingListIntent.GetThemeSettings -> getThemeSettings()
             is ShoppingListIntent.ClearSearchResults -> clearSearchResults()
+            is AuthIntent.Login -> TODO()
+            is AuthIntent.Registration -> TODO()
+            is AuthIntent.RestorePassword -> TODO()
         }
     }
 
@@ -192,10 +228,10 @@ class MainScreenViewModel @Inject constructor(
     }
 
     private fun processObserveShoppingListsResult(list: List<ListItem>) {
-           _shoppingListStateFlow.update { currentState ->
-               when {
-                   list.isNotEmpty() -> currentState.content(list)
-                   else -> currentState.noShoppingLists()
+        _shoppingListStateFlow.update { currentState ->
+            when {
+                list.isNotEmpty() -> currentState.content(list)
+                else -> currentState.noShoppingLists()
             }
         }
     }

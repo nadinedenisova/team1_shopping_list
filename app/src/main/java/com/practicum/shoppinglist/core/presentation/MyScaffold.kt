@@ -1,4 +1,4 @@
-package com.practicum.shoppinglist.core.presentation.ui
+package com.practicum.shoppinglist.main.ui
 
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
@@ -42,7 +42,7 @@ import androidx.navigation.compose.rememberNavController
 import com.practicum.shoppinglist.App
 import com.practicum.shoppinglist.R
 import com.practicum.shoppinglist.common.resources.ShoppingListIntent
-import com.practicum.shoppinglist.core.presentation.navigation.Routes
+import com.practicum.shoppinglist.core.presentation.ui.FabViewModel
 import com.practicum.shoppinglist.core.presentation.ui.state.FabIntent
 import com.practicum.shoppinglist.core.presentation.ui.state.FabState
 import com.practicum.shoppinglist.core.presentation.ui.theme.SLTheme
@@ -52,10 +52,10 @@ import com.practicum.shoppinglist.main.ui.view_model.MainScreenViewModel
 @Composable
 fun MyScaffold() {
     val navController = rememberNavController()
-    val showAddShoppingListDialog = rememberSaveable { mutableStateOf(false) }
+    val showAddShoppingListDialog = remember { mutableStateOf(false) }
     val showRemoveAllShoppingListsDialog = rememberSaveable { mutableStateOf(false) }
     val showProductsScreenMenu = rememberSaveable { mutableStateOf(false) }
-    val isSearchActive = rememberSaveable { mutableStateOf(false) }
+    val isSearchActive = remember { mutableStateOf(false) }
     val context = LocalContext.current
     val factory = remember {
         (context.applicationContext as App).appComponent.viewModelFactory()
@@ -63,19 +63,19 @@ fun MyScaffold() {
     val viewModel = daggerViewModel<MainScreenViewModel>(factory)
     val state by viewModel.shoppingListStateFlow.collectAsStateWithLifecycle()
     val currentBackStack by navController.currentBackStackEntryAsState()
-    val currentDestination = currentBackStack?.destination?.route
+    val currentDestination = currentBackStack?.destination
 
     val fabViewModel = daggerViewModel<FabViewModel>(factory)
     val fabState = fabViewModel.fabState.collectAsState().value
 
-    val screensWithoutTopBar = listOf(Routes.SPLASH_SCREEN.route)
+    val screensWithoutTopBar = listOf(Routes.SplashScreen.name)
     val showTopBar = screensWithoutTopBar.any {
-        currentDestination?.startsWith(it) == false
+        currentDestination?.route?.startsWith(it) == false
     }
 
-    val screensWithoutFab = listOf(Routes.SPLASH_SCREEN.route)
+    val screensWithoutFab = listOf(Routes.SplashScreen.name)
     val showFab = screensWithoutFab.any {
-        currentDestination?.startsWith(it) == false
+        currentDestination?.route?.startsWith(it) == false
     }
 
     SLTheme(darkTheme = state.darkTheme) {
@@ -101,7 +101,7 @@ fun MyScaffold() {
 
                     TopBar(
                         darkTheme = state.darkTheme,
-                        currentDestination = currentDestination,
+                        currentDestination = currentDestination?.route,
                         onBackClick = { navController.popBackStack() },
                         onSearchClick = { isSearchActive.value = true },
                         onRemoveClick = {
@@ -128,7 +128,7 @@ fun MyScaffold() {
                     FloatingActionButton(
                         modifier = Modifier.offset(y = offset),
                         onClick = {
-                            if (currentDestination?.startsWith(Routes.MAIN_SCREEN.route) == false) {
+                            if (currentDestination?.route == Routes.MainScreen.name) {
                                 showAddShoppingListDialog.value = true
                             } else {
                                 when (fabState.isOpenDetailsBottomSheetState) {
@@ -181,14 +181,14 @@ fun TopBar(
     onDarkModeClick: () -> Unit = {},
     onMenuClick: () -> Unit,
 ) {
-    val screensWithoutBackButton = listOf(Routes.SPLASH_SCREEN.route, Routes.MAIN_SCREEN.route)
+    val screensWithoutBackButton = listOf(Routes.SplashScreen.name, Routes.MainScreen.name)
     val showBackButton = currentDestination !in screensWithoutBackButton
 
     TopAppBar(
         title = {
             Text(
                 when (currentDestination) {
-                    Routes.MAIN_SCREEN.route -> stringResource(R.string.main_screen_title)
+                    Routes.MainScreen.name -> stringResource(R.string.main_screen_title)
                     else -> stringResource(R.string.products_screen_title)
                 }
             )
@@ -205,7 +205,7 @@ fun TopBar(
         },
         actions = {
             when (currentDestination) {
-                Routes.MAIN_SCREEN.route -> {
+                Routes.MainScreen.name -> {
                     IconButton(onClick = onSearchClick) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_search),

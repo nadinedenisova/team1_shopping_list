@@ -1,22 +1,22 @@
-package com.practicum.shoppinglist.core.presentation.ui
+package com.practicum.shoppinglist.main.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.toRoute
-import com.practicum.shoppinglist.core.presentation.navigation.DetailsScreen
-import com.practicum.shoppinglist.core.presentation.navigation.MainScreen
-import com.practicum.shoppinglist.core.presentation.navigation.SplashScreen
+import androidx.navigation.navArgument
+import com.practicum.shoppinglist.core.presentation.ui.FabViewModel
+import com.practicum.shoppinglist.core.presentation.ui.SplashScreen
 import com.practicum.shoppinglist.details.presentation.ui.DetailsScreen
-import com.practicum.shoppinglist.main.ui.MainScreen
 import com.practicum.shoppinglist.main.ui.view_model.MainScreenViewModel
 
 @Composable
 fun NavGraph(
     navController: NavHostController,
+    startDestination: String = Routes.SplashScreen.name,
     isSearchActive: MutableState<Boolean>,
     showAddShoppingListDialog: MutableState<Boolean>,
     showRemoveAllShoppingListsDialog: MutableState<Boolean>,
@@ -28,25 +28,23 @@ fun NavGraph(
 
     NavHost(
         navController = navController,
-        startDestination = SplashScreen,
+        startDestination = startDestination,
         modifier = modifier,
 
     ) {
-        composable<SplashScreen> {
+        composable(
+            route = Routes.SplashScreen.name
+        ) {
             SplashScreen(
-                onNavigateToMainScreen = {
-                    navController.navigate(MainScreen) {
-                        popUpTo(SplashScreen) { inclusive = true }
-                    }
-                },
+                navController = navController,
             )
         }
 
-        composable<MainScreen> {
+        composable(
+            route = Routes.MainScreen.name
+        ) {
             MainScreen(
-                onNavigateToDetailsScreen = { listId ->
-                    navController.navigate(route = DetailsScreen(listId = listId))
-                },
+                navController = navController,
                 viewModel = viewModel,
                 isSearchActive = isSearchActive,
                 showAddShoppingListDialog = showAddShoppingListDialog,
@@ -54,11 +52,16 @@ fun NavGraph(
             )
         }
 
-        composable<DetailsScreen> { navBackStackEntry ->
-            val args = navBackStackEntry.toRoute<DetailsScreen>()
+        composable(
+            route = "${Routes.ProductsScreen.name}/{listId}",
+            arguments = listOf(
+                navArgument("listId") { type = NavType.LongType }
+            )
+        ) {  navBackStackEntry ->
+            val shoppingListId = navBackStackEntry.arguments?.getLong("listId") ?: -1L
             DetailsScreen(
                 showMenuBottomSheet = showMenuBottomSheet,
-                shoppingListId = args.listId,
+                shoppingListId = shoppingListId,
                 fabViewModel = fabViewModel,
             )
         }

@@ -17,7 +17,8 @@ import javax.inject.Singleton
     UseCaseModule::class,
     RepositoryModule::class,
     ViewModelModule::class,
-
+    NetworkModule::class,
+    StorageModule::class
 ])
 interface AppComponent {
 

@@ -3,6 +3,7 @@ package com.practicum.shoppinglist.details.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.practicum.shoppinglist.ProductEntity
+import com.practicum.shoppinglist.common.resources.AuthIntent
 import com.practicum.shoppinglist.common.resources.BaseIntent
 import com.practicum.shoppinglist.common.resources.DetailsScreenIntent
 import com.practicum.shoppinglist.common.resources.ListAction
@@ -158,6 +159,10 @@ class DetailsViewModel @Inject constructor(
                     deleteProductUseCase(intent.id)
                 }
             }
+
+            is AuthIntent.Login -> TODO()
+            is AuthIntent.Registration -> TODO()
+            is AuthIntent.RestorePassword -> TODO()
         }
     }
 
