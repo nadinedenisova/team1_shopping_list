@@ -27,9 +27,11 @@ import com.practicum.shoppinglist.auth.viewmodel.LoginScreenViewModel
 import com.practicum.shoppinglist.common.resources.AuthIntent
 import com.practicum.shoppinglist.common.resources.AuthState
 import com.practicum.shoppinglist.common.utils.Constants.PASSWORD_LENGTH
+import com.practicum.shoppinglist.core.presentation.navigation.MainScreen
+import com.practicum.shoppinglist.core.presentation.navigation.RegistrationScreen
+import com.practicum.shoppinglist.core.presentation.navigation.RestorePasswordScreen
 import com.practicum.shoppinglist.core.presentation.ui.components.PasswordTextField
 import com.practicum.shoppinglist.core.presentation.ui.components.SLOutlineTextField
-import com.practicum.shoppinglist.main.ui.Routes
 
 @Composable
 fun LoginScreen(
@@ -41,7 +43,7 @@ fun LoginScreen(
 
     if (state.status == AuthState.Status.LOGIN) {
         loginViewModel.resetMode()
-        navController.navigate(Routes.MainScreen.name)
+        navController.navigate(MainScreen)
     }
     if (state.status == AuthState.Status.ERROR) {
         Toast.makeText(LocalContext.current, stringResource(R.string.invalid_login), Toast.LENGTH_SHORT).show()
@@ -120,10 +122,10 @@ fun LoginForm(
             }
         }
         ClickableTextButton(stringResource(R.string.registration), onClick = {
-            navController.navigate(Routes.Registration.name)
+            navController.navigate(RegistrationScreen)
         })
         ClickableTextButton(stringResource(R.string.restore_password), onClick = {
-            navController.navigate(Routes.RestorePassword.name)
+            navController.navigate(RestorePasswordScreen)
         })
     }
 }

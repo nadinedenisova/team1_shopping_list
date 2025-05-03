@@ -1,4 +1,4 @@
-package com.practicum.shoppinglist.main.ui
+package com.practicum.shoppinglist.core.presentation.ui
 
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
@@ -45,21 +45,27 @@ import com.practicum.shoppinglist.R
 import com.practicum.shoppinglist.auth.viewmodel.LoginScreenViewModel
 import com.practicum.shoppinglist.auth.viewmodel.RegistrationScreenViewModel
 import com.practicum.shoppinglist.common.resources.ShoppingListIntent
-import com.practicum.shoppinglist.core.presentation.ui.FabViewModel
+import com.practicum.shoppinglist.core.presentation.navigation.LoginScreen
+import com.practicum.shoppinglist.core.presentation.navigation.Routes
 import com.practicum.shoppinglist.core.presentation.ui.state.FabIntent
 import com.practicum.shoppinglist.core.presentation.ui.state.FabState
 import com.practicum.shoppinglist.core.presentation.ui.theme.SLTheme
 import com.practicum.shoppinglist.di.api.daggerViewModel
 import com.practicum.shoppinglist.main.ui.view_model.MainScreenViewModel
-val isActionButtonHidden = listOf(Routes.Registration.name, Routes.Login.name, Routes.RestorePassword.name)
+
+val isActionButtonHidden = listOf(
+    Routes.REGISTRATION_SCREEN.route,
+    Routes.LOGIN_SCREEN.route,
+    Routes.RESTORE_PASSWORD_SCREEN.route,
+)
 
 @Composable
 fun MyScaffold() {
     val navController = rememberNavController()
-    val showAddShoppingListDialog = remember { mutableStateOf(false) }
+    val showAddShoppingListDialog = rememberSaveable { mutableStateOf(false) }
     val showRemoveAllShoppingListsDialog = rememberSaveable { mutableStateOf(false) }
     val showProductsScreenMenu = rememberSaveable { mutableStateOf(false) }
-    val isSearchActive = remember { mutableStateOf(false) }
+    val isSearchActive = rememberSaveable { mutableStateOf(false) }
     val context = LocalContext.current
     val factory = remember {
         (context.applicationContext as App).appComponent.viewModelFactory()
@@ -69,22 +75,22 @@ fun MyScaffold() {
     val loginViewModel = daggerViewModel<LoginScreenViewModel>(factory)
     val state by viewModel.shoppingListStateFlow.collectAsStateWithLifecycle()
     val currentBackStack by navController.currentBackStackEntryAsState()
-    val currentDestination = currentBackStack?.destination
+    val currentDestination = currentBackStack?.destination?.route
 
     val fabViewModel = daggerViewModel<FabViewModel>(factory)
     val fabState = fabViewModel.fabState.collectAsState().value
 
-    val screensWithoutTopBar = listOf(Routes.SplashScreen.name)
-    val showTopBar = screensWithoutTopBar.any {
-        currentDestination?.route?.startsWith(it) == false
+    val screensWithoutTopBar = listOf(Routes.SPLASH_SCREEN.route)
+    val showTopBar = screensWithoutTopBar.none {
+        currentDestination?.startsWith(it) == true
     }
 
-    val screensWithoutFab = listOf(Routes.SplashScreen.name)
-    val showFab = screensWithoutFab.any {
-        currentDestination?.route?.startsWith(it) == false
+    val screensWithoutFab = listOf(Routes.SPLASH_SCREEN.route)
+    val showFab = screensWithoutFab.none {
+        currentDestination?.startsWith(it) == true
     }
+
     val isLoggedIn by viewModel.isLoggedIn.collectAsState()
-
 
     SLTheme(darkTheme = state.darkTheme) {
         Scaffold(
@@ -109,7 +115,7 @@ fun MyScaffold() {
 
                     TopBar(
                         darkTheme = state.darkTheme,
-                        currentDestination = currentDestination?.route,
+                        currentDestination = currentDestination,
                         onBackClick = { navController.popBackStack() },
                         onSearchClick = { isSearchActive.value = true },
                         onRemoveClick = {
@@ -122,7 +128,7 @@ fun MyScaffold() {
                             showProductsScreenMenu.value = true
                         },
                         onLoginClick = {
-                            navController.navigate(Routes.Login.name)
+                            navController.navigate(LoginScreen)
                         },
                         onLogoutClick = {
                             viewModel.logout()
@@ -139,35 +145,34 @@ fun MyScaffold() {
 
                     val icon =
                         if (fabState.isOpenDetailsBottomSheetState != null) Icons.Default.Done else Icons.Default.Add
-                    if (currentDestination?.route !in isActionButtonHidden) {
-                        FloatingActionButton(
-                            modifier = Modifier.offset(y = offset),
-                            onClick = {
-                                if (currentDestination?.route == Routes.MainScreen.name) {
-                                    showAddShoppingListDialog.value = true
-                                } else {
-                                    when (fabState.isOpenDetailsBottomSheetState) {
-                                        FabState.State.AddProduct.name -> fabViewModel.onIntent(
-                                            FabIntent.AddProduct(true)
-                                        )
 
-                                        FabState.State.EditProduct.name -> fabViewModel.onIntent(
-                                            FabIntent.EditProduct(true)
-                                        )
+                    FloatingActionButton(
+                        modifier = Modifier.offset(y = offset),
+                        onClick = {
+                            if (currentDestination?.startsWith(Routes.MAIN_SCREEN.route) == false) {
+                                showAddShoppingListDialog.value = true
+                            } else {
+                                when (fabState.isOpenDetailsBottomSheetState) {
+                                    FabState.State.AddProduct.name -> fabViewModel.onIntent(
+                                        FabIntent.AddProduct(true)
+                                    )
 
-                                        else -> fabViewModel.onIntent(
-                                            FabIntent.OpenDetailsBottomSheet(
-                                                state = FabState.State.AddProduct.name
-                                            )
+                                    FabState.State.EditProduct.name -> fabViewModel.onIntent(
+                                        FabIntent.EditProduct(true)
+                                    )
+
+                                    else -> fabViewModel.onIntent(
+                                        FabIntent.OpenDetailsBottomSheet(
+                                            state = FabState.State.AddProduct.name
                                         )
-                                    }
+                                    )
                                 }
-                            },
-                            shape = MaterialTheme.shapes.small,
+                            }
+                        },
+                        shape = MaterialTheme.shapes.small,
 
-                            ) {
-                            Icon(icon, contentDescription = stringResource(R.string.add))
-                        }
+                        ) {
+                        Icon(icon, contentDescription = stringResource(R.string.add))
                     }
                 }
             }
@@ -193,28 +198,33 @@ fun MyScaffold() {
 fun TopBar(
     darkTheme: Boolean,
     currentDestination: String?,
+    isLoggedIn: Boolean,
     onBackClick: () -> Unit,
     onSearchClick: () -> Unit = {},
-    onLoginClick: () -> Unit = {},
-    onLogoutClick: () -> Unit = {},
     onRemoveClick: () -> Unit = {},
     onDarkModeClick: () -> Unit = {},
     onMenuClick: () -> Unit,
-    isLoggedIn: Boolean
+    onLoginClick: () -> Unit = {},
+    onLogoutClick: () -> Unit = {},
 ) {
-    val screensWithoutBackButton = listOf(Routes.SplashScreen.name, Routes.MainScreen.name)
-    val showBackButton = currentDestination !in screensWithoutBackButton
+    val screensWithoutBackButton = listOf(Routes.SPLASH_SCREEN.route, Routes.MAIN_SCREEN.route)
+    val showBackButton = screensWithoutBackButton.none {
+        currentDestination?.startsWith(it) == true
+    }
 
     TopAppBar(
-        title = {
+            title = {
             Text(
-                when (currentDestination) {
-                    Routes.MainScreen.name -> stringResource(R.string.main_screen_title)
-                    Routes.Registration.name -> stringResource(R.string.registration_screen_title)
-                    Routes.Login.name -> stringResource(R.string.login_screen_title)
-                    Routes.RestorePassword.name -> stringResource(R.string.restore_password)
-                    else -> stringResource(R.string.products_screen_title)
-                }
+                currentDestination?.let {
+                    when {
+                        it.startsWith(Routes.MAIN_SCREEN.route) -> stringResource(R.string.main_screen_title)
+                        it.startsWith(Routes.DETAILS_SCREEN.route) -> stringResource(R.string.products_screen_title)
+                        it.startsWith(Routes.REGISTRATION_SCREEN.route) -> stringResource(R.string.registration_screen_title)
+                        it.startsWith(Routes.LOGIN_SCREEN.route) -> stringResource(R.string.login_screen_title)
+                        it.startsWith(Routes.RESTORE_PASSWORD_SCREEN.route) -> stringResource(R.string.restore_password)
+                        else -> ""
+                    }
+                } ?: ""
             )
         },
         navigationIcon = {
@@ -229,7 +239,7 @@ fun TopBar(
         },
         actions = {
             when (currentDestination) {
-                Routes.MainScreen.name -> {
+                Routes.MAIN_SCREEN.route -> {
                     IconButton(onClick = onSearchClick) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_search),
@@ -251,11 +261,11 @@ fun TopBar(
                         )
                     }
                     if (!isLoggedIn) {
-                        Button (onClick = onLoginClick) {
+                        Button(onClick = onLoginClick) {
                             Text(stringResource(R.string.login))
                         }
                     } else {
-                        Button (onClick = onLogoutClick) {
+                        Button(onClick = onLogoutClick) {
                             Text(stringResource(R.string.logout))
                         }
                     }

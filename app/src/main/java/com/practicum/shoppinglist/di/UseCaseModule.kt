@@ -11,6 +11,7 @@ import com.practicum.shoppinglist.details.domain.impl.GetProductSortOrderUseCase
 import com.practicum.shoppinglist.details.domain.impl.UpdateProductUseCase
 import com.practicum.shoppinglist.main.domain.api.AuthorizationRepository
 import com.practicum.shoppinglist.main.domain.api.MainScreenRepository
+import com.practicum.shoppinglist.main.domain.api.SettingsRepository
 import com.practicum.shoppinglist.main.domain.api.TokenStorage
 import com.practicum.shoppinglist.main.domain.impl.AddShoppingListUseCase
 import com.practicum.shoppinglist.main.domain.impl.ChangeThemeSettingsUseCase
@@ -62,12 +63,12 @@ class UseCaseModule {
     }
 
     @Provides
-    fun provideChangeThemeSettingsUseCase(repository: MainScreenRepository): ChangeThemeSettingsUseCase {
+    fun provideChangeThemeSettingsUseCase(repository: SettingsRepository): ChangeThemeSettingsUseCase {
         return ChangeThemeSettingsUseCase(repository)
     }
 
     @Provides
-    fun provideGetThemeSettingsUseCase(repository: MainScreenRepository): GetThemeSettingsUseCase {
+    fun provideGetThemeSettingsUseCase(repository: SettingsRepository): GetThemeSettingsUseCase {
         return GetThemeSettingsUseCase(repository)
     }
 
@@ -131,6 +132,4 @@ class UseCaseModule {
     fun provideTokenValidationUseCase(repository: AuthorizationRepository, tokenStorage: TokenStorage): TokenValidationUseCase {
         return TokenValidationUseCase(tokenStorage, repository)
     }
-
-
 }

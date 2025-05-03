@@ -41,7 +41,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
 import com.practicum.shoppinglist.R
 import com.practicum.shoppinglist.common.resources.BaseIntent
 import com.practicum.shoppinglist.common.resources.ListAction
@@ -60,7 +59,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
-    navController: NavController,
+    onNavigateToDetailsScreen: (Long) -> Unit,
     viewModel: MainScreenViewModel,
     isSearchActive: MutableState<Boolean>,
     showAddShoppingListDialog: MutableState<Boolean>,
@@ -136,7 +135,7 @@ fun MainScreen(
                 state = state,
                 onItemClick = { list ->
                     isSearchActive.value = false
-                    navController.navigate("${Routes.ProductsScreen.name}/${list.id}")
+                    onNavigateToDetailsScreen(list.id)
                 }
             )
             NoData(
@@ -158,7 +157,7 @@ fun MainScreen(
                     action = viewModel.action,
                     state = state,
                     onItemClick = { list ->
-                        navController.navigate("${Routes.ProductsScreen.name}/${list.id}")
+                        onNavigateToDetailsScreen(list.id)
                     },
                     onIconClick = { list ->
                         viewModel.processIntent(ShoppingListIntent.SelectedList(list))
@@ -206,7 +205,7 @@ fun MainScreen(
                 )
                 RemoveShoppingListDialog(
                     visible = showRemoveShoppingListDialog.value,
-                    title = "${stringResource(R.string.remove_shopping_list)} ${state.selectedList.name}?",
+                    title = stringResource(R.string.remove_shopping_list, state.selectedList.name),
                     onDismiss = { showRemoveShoppingListDialog.value = false },
                     onConfirm = {
                         viewModel.processIntent(BaseIntent.QueryRemoveShoppingList)
@@ -347,11 +346,7 @@ fun ShoppingListDialog(
     if (!visible) return
 
     var shoppingListName by remember {
-        mutableStateOf(
-            text?.let {
-                text
-            } ?: ""
-        )
+        mutableStateOf(text ?: "")
     }
     val focusRequester = remember { FocusRequester() }
 

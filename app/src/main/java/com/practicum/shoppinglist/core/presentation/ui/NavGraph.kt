@@ -1,27 +1,30 @@
-package com.practicum.shoppinglist.main.ui
+package com.practicum.shoppinglist.core.presentation.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.navArgument
+import androidx.navigation.toRoute
 import com.practicum.shoppinglist.auth.ui.LoginScreen
 import com.practicum.shoppinglist.auth.ui.RegistrationScreen
 import com.practicum.shoppinglist.auth.ui.RestorePasswordScreen
 import com.practicum.shoppinglist.auth.viewmodel.LoginScreenViewModel
 import com.practicum.shoppinglist.auth.viewmodel.RegistrationScreenViewModel
-import com.practicum.shoppinglist.core.presentation.ui.FabViewModel
-import com.practicum.shoppinglist.core.presentation.ui.SplashScreen
+import com.practicum.shoppinglist.core.presentation.navigation.DetailsScreen
+import com.practicum.shoppinglist.core.presentation.navigation.LoginScreen
+import com.practicum.shoppinglist.core.presentation.navigation.MainScreen
+import com.practicum.shoppinglist.core.presentation.navigation.RegistrationScreen
+import com.practicum.shoppinglist.core.presentation.navigation.RestorePasswordScreen
+import com.practicum.shoppinglist.core.presentation.navigation.SplashScreen
 import com.practicum.shoppinglist.details.presentation.ui.DetailsScreen
+import com.practicum.shoppinglist.main.ui.MainScreen
 import com.practicum.shoppinglist.main.ui.view_model.MainScreenViewModel
 
 @Composable
 fun NavGraph(
     navController: NavHostController,
-    startDestination: String = Routes.SplashScreen.name,
     isSearchActive: MutableState<Boolean>,
     showAddShoppingListDialog: MutableState<Boolean>,
     showRemoveAllShoppingListsDialog: MutableState<Boolean>,
@@ -35,23 +38,25 @@ fun NavGraph(
 
     NavHost(
         navController = navController,
-        startDestination = startDestination,
+        startDestination = SplashScreen,
         modifier = modifier,
 
-    ) {
-        composable(
-            route = Routes.SplashScreen.name
         ) {
+        composable<SplashScreen> {
             SplashScreen(
-                navController = navController,
+                onNavigateToMainScreen = {
+                    navController.navigate(MainScreen) {
+                        popUpTo(SplashScreen) { inclusive = true }
+                    }
+                },
             )
         }
 
-        composable(
-            route = Routes.MainScreen.name
-        ) {
+        composable<MainScreen> {
             MainScreen(
-                navController = navController,
+                onNavigateToDetailsScreen = { listId ->
+                    navController.navigate(route = DetailsScreen(listId = listId))
+                },
                 viewModel = viewModel,
                 isSearchActive = isSearchActive,
                 showAddShoppingListDialog = showAddShoppingListDialog,
@@ -59,41 +64,30 @@ fun NavGraph(
             )
         }
 
-        composable(
-            route = "${Routes.ProductsScreen.name}/{listId}",
-            arguments = listOf(
-                navArgument("listId") { type = NavType.LongType }
-            )
-        ) {  navBackStackEntry ->
-            val shoppingListId = navBackStackEntry.arguments?.getLong("listId") ?: -1L
+        composable<DetailsScreen> { navBackStackEntry ->
+            val args = navBackStackEntry.toRoute<DetailsScreen>()
             DetailsScreen(
                 showMenuBottomSheet = showMenuBottomSheet,
-                shoppingListId = shoppingListId,
+                shoppingListId = args.listId,
                 fabViewModel = fabViewModel,
             )
         }
 
-        composable(
-            route = Routes.Registration.name,
-        ) {
+        composable<RegistrationScreen>{
             RegistrationScreen(
                 navController = navController,
                 registrationScreenViewModel
             )
         }
 
-        composable(
-            route = Routes.Login.name,
-        ) {
+        composable<LoginScreen>{
             LoginScreen(
                 navController = navController,
                 loginViewModel
             )
         }
 
-        composable(
-            route = Routes.RestorePassword.name,
-        ) {
+        composable<RestorePasswordScreen> {
             RestorePasswordScreen(
                 navController = navController,
             )
