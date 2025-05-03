@@ -12,21 +12,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import com.practicum.shoppinglist.R
-import com.practicum.shoppinglist.main.ui.Routes
 import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(
-    navController: NavController,
+    onNavigateToMainScreen: () -> Unit,
 ) {
 
     LaunchedEffect(Unit) {
         delay(2000L)
-        navController.navigate(Routes.MainScreen.name) {
-            popUpTo(Routes.SplashScreen.name) { inclusive = true }
-        }
+        onNavigateToMainScreen()
     }
 
     Column(

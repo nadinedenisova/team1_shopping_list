@@ -10,6 +10,7 @@ import com.practicum.shoppinglist.details.domain.impl.GetProductListUseCase
 import com.practicum.shoppinglist.details.domain.impl.GetProductSortOrderUseCase
 import com.practicum.shoppinglist.details.domain.impl.UpdateProductUseCase
 import com.practicum.shoppinglist.main.domain.api.MainScreenRepository
+import com.practicum.shoppinglist.main.domain.api.SettingsRepository
 import com.practicum.shoppinglist.main.domain.impl.AddShoppingListUseCase
 import com.practicum.shoppinglist.main.domain.impl.ChangeThemeSettingsUseCase
 import com.practicum.shoppinglist.main.domain.impl.GetThemeSettingsUseCase
@@ -55,12 +56,12 @@ class UseCaseModule {
     }
 
     @Provides
-    fun provideChangeThemeSettingsUseCase(repository: MainScreenRepository): ChangeThemeSettingsUseCase {
+    fun provideChangeThemeSettingsUseCase(repository: SettingsRepository): ChangeThemeSettingsUseCase {
         return ChangeThemeSettingsUseCase(repository)
     }
 
     @Provides
-    fun provideGetThemeSettingsUseCase(repository: MainScreenRepository): GetThemeSettingsUseCase {
+    fun provideGetThemeSettingsUseCase(repository: SettingsRepository): GetThemeSettingsUseCase {
         return GetThemeSettingsUseCase(repository)
     }
 
