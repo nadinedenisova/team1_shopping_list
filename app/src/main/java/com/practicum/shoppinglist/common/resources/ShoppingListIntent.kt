@@ -7,7 +7,7 @@ sealed interface ShoppingListIntent {
         val name: String,
         val icon: Long
     ) : ShoppingListIntent
-
+    class CopyShoppingList(val list: ListItem) : ShoppingListIntent
     class UpdateShoppingList(val list: ListItem) : ShoppingListIntent
     class Search(val searchQuery: String) : ShoppingListIntent
     class ChangeThemeSettings(val darkTheme: Boolean) : ShoppingListIntent

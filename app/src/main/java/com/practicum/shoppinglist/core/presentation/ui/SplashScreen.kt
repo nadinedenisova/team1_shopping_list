@@ -16,6 +16,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.practicum.shoppinglist.R
+import com.practicum.shoppinglist.core.presentation.ui.components.SLInfo
 import kotlinx.coroutines.delay
 
 @Composable
@@ -41,8 +42,7 @@ fun SplashScreen(
             contentDescription = null,
         )
 
-        Information(
-            visible = true,
+        SLInfo(
             modifier = Modifier
                 .padding(top = 94.dp)
                 .fillMaxWidth(),

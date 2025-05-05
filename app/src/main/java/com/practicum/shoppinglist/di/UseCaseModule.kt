@@ -15,6 +15,7 @@ import com.practicum.shoppinglist.main.domain.api.SettingsRepository
 import com.practicum.shoppinglist.main.domain.api.TokenStorage
 import com.practicum.shoppinglist.main.domain.impl.AddShoppingListUseCase
 import com.practicum.shoppinglist.main.domain.impl.ChangeThemeSettingsUseCase
+import com.practicum.shoppinglist.main.domain.impl.CopyShoppingListUseCase
 import com.practicum.shoppinglist.main.domain.impl.GetThemeSettingsUseCase
 import com.practicum.shoppinglist.main.domain.impl.IsUserLoggedInUseCase
 import com.practicum.shoppinglist.main.domain.impl.LoginUseCase
@@ -45,6 +46,11 @@ class UseCaseModule {
     @Provides
     fun provideAddShoppingListUseCase(repository: MainScreenRepository): AddShoppingListUseCase {
         return AddShoppingListUseCase(repository)
+    }
+
+    @Provides
+    fun provideCopyShoppingListUseCase(repository: MainScreenRepository): CopyShoppingListUseCase {
+        return CopyShoppingListUseCase(repository)
     }
 
     @Provides

@@ -53,7 +53,7 @@ import com.practicum.shoppinglist.common.resources.ShoppingListIntent
 import com.practicum.shoppinglist.common.resources.ShoppingListState
 import com.practicum.shoppinglist.core.domain.models.BaseItem
 import com.practicum.shoppinglist.core.domain.models.ListItem
-import com.practicum.shoppinglist.core.presentation.ui.Information
+import com.practicum.shoppinglist.core.presentation.ui.components.SLInfo
 import com.practicum.shoppinglist.core.presentation.ui.theme.SLTheme
 import com.practicum.shoppinglist.main.ui.recycler.ItemList
 import com.practicum.shoppinglist.main.ui.recycler.ItemListSearch
@@ -70,11 +70,11 @@ fun MainScreen(
 ) {
     val shoppingListState by mainScreenViewModel.shoppingListStateFlow.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
-    var showBottomSheet by remember { mutableStateOf(false) }
     val bottomSheetState = rememberModalBottomSheetState()
     val searchQuery = rememberSaveable { mutableStateOf("") }
-
     val isSearchActive = rememberSaveable { mutableStateOf(false) }
+
+    var showBottomSheet by rememberSaveable { mutableStateOf(false) }
     val showAddShoppingListDialog = rememberSaveable { mutableStateOf(false) }
     val showRemoveAllShoppingListsDialog = rememberSaveable { mutableStateOf(false) }
     val showEditShoppingListDialog = rememberSaveable { mutableStateOf(false) }
@@ -83,7 +83,7 @@ fun MainScreen(
     LaunchedEffect(isSearchActive.value) {
         if (!isSearchActive.value) {
             searchQuery.value = ""
-           mainScreenViewModel.processIntent(ShoppingListIntent.ClearSearchResults)
+            mainScreenViewModel.processIntent(ShoppingListIntent.ClearSearchResults)
         }
     }
 
@@ -155,71 +155,73 @@ fun MainScreen(
                     },
                     onValueChange = { newValue ->
                         searchQuery.value = newValue
-                       mainScreenViewModel.processIntent(ShoppingListIntent.Search(searchQuery = searchQuery.value))
+                        mainScreenViewModel.processIntent(ShoppingListIntent.Search(searchQuery = searchQuery.value))
                     },
                     onBtnClearClick = {
                         searchQuery.value = ""
-                       mainScreenViewModel.processIntent(ShoppingListIntent.ClearSearchResults)
+                        mainScreenViewModel.processIntent(ShoppingListIntent.ClearSearchResults)
                     },
                 )
-                SearchShoppingList(
-                    visible = isSearchActive.value
-                            && searchQuery.value.isNotEmpty()
-                            && shoppingListState.status == ShoppingListState.Status.SEARCH_RESULTS,
-                    state = shoppingListState,
-                    onItemClick = { list ->
-                        isSearchActive.value = false
-                        onNavigateToDetailsScreen(list.id)
-                    }
-                )
-                Information(
-                    visible = isSearchActive.value
-                            && searchQuery.value.isNotEmpty()
-                            && shoppingListState.status == ShoppingListState.Status.NOTHING_FOUND,
-                    modifier = Modifier.padding(top = 64.dp).fillMaxSize(),
-                    image = R.drawable.nothing_found_light,
-                    title = stringResource(R.string.nothing_found_title),
-                    message = stringResource(R.string.nothing_found_message),
-                )
-
-                Box {
-                    ShoppingList(
-                        visible = shoppingListState.status == ShoppingListState.Status.CONTENT,
-                        onIntent = { intent ->
-                           mainScreenViewModel.processIntent(intent)
-                        },
-                        action =mainScreenViewModel.action,
+                if (isSearchActive.value && searchQuery.value.isNotEmpty() && shoppingListState.results.isNotEmpty()) {
+                    SearchShoppingList(
                         state = shoppingListState,
                         onItemClick = { list ->
+                            isSearchActive.value = false
                             onNavigateToDetailsScreen(list.id)
-                        },
-                        onIconClick = { list ->
-                           mainScreenViewModel.processIntent(ShoppingListIntent.SelectedList(list))
-                            showBottomSheet = true
-                        },
-                        onRemove = {
-                            showRemoveShoppingListDialog.value = true
-                        },
-                        onRename = {
-                            showEditShoppingListDialog.value = true
-                        },
-                        onCopy = {
-                            shoppingListState.selectedList.also {
-                               mainScreenViewModel.processIntent(
-                                    ShoppingListIntent.AddShoppingList(
-                                        name = it.name,
-                                        icon = it.iconResId.toLong()
+                        }
+                    )
+                }
+                if (shoppingListState.nothingFound) {
+                    SLInfo(
+                        modifier = Modifier.padding(top = 64.dp).fillMaxSize(),
+                        image = R.drawable.nothing_found_light,
+                        title = stringResource(R.string.nothing_found_title),
+                        message = stringResource(R.string.nothing_found_message),
+                    )
+                }
+                Box {
+                    if (shoppingListState.content.isNotEmpty()) {
+                        ShoppingList(
+                            onIntent = { intent ->
+                                mainScreenViewModel.processIntent(intent)
+                            },
+                            action = mainScreenViewModel.action,
+                            state = shoppingListState,
+                            onItemClick = { list ->
+                                onNavigateToDetailsScreen(list.id)
+                            },
+                            onIconClick = { list ->
+                                mainScreenViewModel.processIntent(
+                                    ShoppingListIntent.SelectedList(
+                                        list
                                     )
                                 )
-                            }
-                        },
-                    )
-                    Information(
-                        visible = shoppingListState.status == ShoppingListState.Status.NO_SHOPPING_LISTS,
-                        image = SLTheme.images.noShoppingList,
-                        title = stringResource(R.string.no_shopping_lists_title),
-                        message = stringResource(R.string.no_shopping_lists_message),
-                    )
+                                showBottomSheet = true
+                            },
+                            onRemove = {
+                                showRemoveShoppingListDialog.value = true
+                            },
+                            onRename = {
+                                showEditShoppingListDialog.value = true
+                            },
+                            onCopy = {
+                                shoppingListState.selectedList.also {
+                                    mainScreenViewModel.processIntent(
+                                        ShoppingListIntent.CopyShoppingList(
+                                            list = it
+                                        )
+                                    )
+                                }
+                            },
+                        )
+                    }
+                    if (shoppingListState.content.isEmpty()) {
+                        SLInfo(
+                            image = SLTheme.images.noShoppingList,
+                            title = stringResource(R.string.no_shopping_lists_title),
+                            message = stringResource(R.string.no_shopping_lists_message),
+                        )
+                    }
                     ShoppingListDialog(
                         visible = showAddShoppingListDialog.value,
                         textStyle = MaterialTheme.typography.headlineSmall,
@@ -301,7 +303,6 @@ fun Scrim(
 
 @Composable
 fun ShoppingList(
-    visible: Boolean,
     onIntent: (ShoppingListIntent) -> Unit,
     action: SharedFlow<ListAction>,
     state: ShoppingListState,
@@ -311,16 +312,8 @@ fun ShoppingList(
     onRename: () -> Unit = {},
     onCopy: () -> Unit = {},
 ) {
-    if (!visible) return
-
-    val items = when(state.status) {
-        ShoppingListState.Status.CONTENT -> state.content
-        else -> null
-    }
-
-    if (items == null) return
-
-    val openList = remember { mutableStateOf<ListItem?>(null) }
+    val items = state.content
+    val openList = remember { mutableStateOf<BaseItem?>(null) }
 
     LazyColumn(
         modifier = Modifier
@@ -334,7 +327,7 @@ fun ShoppingList(
                 },
                 action = action,
                 item = item,
-                openList = openList as MutableState<BaseItem?>,
+                openList = openList,
                 onItemClick = {
                     if (openList.value?.id != item.id) {
                         onItemClick(item)
@@ -358,18 +351,10 @@ fun ShoppingList(
 
 @Composable
 fun SearchShoppingList(
-    visible: Boolean,
     state: ShoppingListState,
     onItemClick: (ListItem) -> Unit,
 ) {
-    if (!visible) return
-
-    val items = when(state.status) {
-        ShoppingListState.Status.SEARCH_RESULTS -> state.results
-        else -> null
-    }
-
-    if (items == null) return
+    val items = state.results
 
     LazyColumn(
         modifier = Modifier
