@@ -15,13 +15,11 @@ class DetailsScreenRepositoryImpl @Inject constructor(
 ) : DetailsScreenRepository {
 
     override suspend fun addProduct(shoppingListId: Long, item: ProductEntity): Long {
-        dataSource.insertProduct(shoppingListId, item)
-        return -1
+        return dataSource.insertProduct(shoppingListId, item)
     }
 
     override suspend fun removeProduct(id: Long): Long {
-        dataSource.deleteProductById(id)
-        return -1
+        return dataSource.deleteProductById(id)
     }
 
     override suspend fun getAllProduct(shoppingListId: Long): Flow<List<ProductItem>> =
