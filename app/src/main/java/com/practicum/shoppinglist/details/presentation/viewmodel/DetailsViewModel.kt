@@ -2,12 +2,10 @@ package com.practicum.shoppinglist.details.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.practicum.shoppinglist.ProductEntity
 import com.practicum.shoppinglist.common.resources.AuthIntent
 import com.practicum.shoppinglist.common.resources.BaseIntent
 import com.practicum.shoppinglist.common.resources.DetailsScreenIntent
 import com.practicum.shoppinglist.common.resources.ListAction
-import com.practicum.shoppinglist.core.data.mapper.toProductEntity
 import com.practicum.shoppinglist.core.domain.models.ProductItem
 import com.practicum.shoppinglist.details.domain.impl.AddItemOrderUseCase
 import com.practicum.shoppinglist.details.domain.impl.AddProductUseCase
@@ -86,12 +84,11 @@ class DetailsViewModel @Inject constructor(
                 viewModelScope.launch(Dispatchers.IO) {
                     addProductUseCase(
                         shoppingListId = _state.value.shoppingListId,
-                        item = ProductEntity(
-                            id = -1,
+                        item = ProductItem(
                             name = _state.value.product.name,
                             unit = _state.value.product.unit,
-                            count = _state.value.product.count.toLong(),
-                            completed = 0
+                            count = _state.value.product.count,
+                            completed = false
                         )
                     )
                     _state.update { it.copy(product = ProductItem()) }
@@ -106,7 +103,7 @@ class DetailsViewModel @Inject constructor(
 
             is DetailsScreenIntent.EditProduct -> {
                 viewModelScope.launch(Dispatchers.IO) {
-                    updateProductUseCase(_state.value.product.toProductEntity())
+                    updateProductUseCase(_state.value.product)
                 }
             }
 
@@ -118,7 +115,6 @@ class DetailsViewModel @Inject constructor(
                 viewModelScope.launch(Dispatchers.IO) {
                     updateProductUseCase(
                         intent.currentValue.copy(completed = !intent.currentValue.completed)
-                            .toProductEntity()
                     )
                 }
             }
@@ -154,6 +150,7 @@ class DetailsViewModel @Inject constructor(
                     _action.emit(ListAction.RemoveItem)
                 }
             }
+
             is BaseIntent.RemoveListItem -> {
                 viewModelScope.launch(Dispatchers.IO) {
                     deleteProductUseCase(intent.id)
