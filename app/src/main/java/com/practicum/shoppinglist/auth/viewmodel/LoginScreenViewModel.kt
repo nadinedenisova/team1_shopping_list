@@ -21,10 +21,6 @@ class LoginScreenViewModel @Inject constructor(
     private val loginUseCase: LoginUseCase,
 ) : ViewModel() {
 
-    private companion object {
-        const val TAG = "LoginScreenViewModel"
-    }
-
     private val _loginStateFlow = MutableStateFlow(default())
     val loginStateFlow: StateFlow<AuthState> = _loginStateFlow.asStateFlow()
 
@@ -71,6 +67,10 @@ class LoginScreenViewModel @Inject constructor(
             is AuthIntent.Login -> handleLogin(email = intent.email, password = intent.password)
             else -> {}
         }
+    }
+
+    private companion object {
+        const val TAG = "LoginScreenViewModel"
     }
 
 }
