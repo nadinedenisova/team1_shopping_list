@@ -4,6 +4,7 @@ import com.practicum.shoppinglist.core.domain.models.ListItem
 
 data class ShoppingListState(
     val status: Status,
+    val loggedIn: Boolean = false,
     val darkTheme: Boolean = false,
     val searchQuery: String = "",
     val selectedList: ListItem = ListItem(),
@@ -21,6 +22,7 @@ data class ShoppingListState(
 
     companion object {
         fun default() = ShoppingListState(Status.DEFAULT)
+        fun ShoppingListState.loggedIn(loggedIn: Boolean) = this.copy(loggedIn = loggedIn)
         fun ShoppingListState.selectedList(selectedList: ListItem) = this.copy(selectedList = selectedList)
         fun ShoppingListState.darkTheme(darkTheme: Boolean) = this.copy(darkTheme = darkTheme)
         fun ShoppingListState.nothingFound(searchQuery: String) = this.copy(status = Status.NOTHING_FOUND, searchQuery = searchQuery)

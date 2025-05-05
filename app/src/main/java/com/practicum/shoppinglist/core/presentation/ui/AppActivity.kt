@@ -12,7 +12,7 @@ class AppActivity: ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            MyScaffold()
+            ShoppingList()
         }
     }
 }
