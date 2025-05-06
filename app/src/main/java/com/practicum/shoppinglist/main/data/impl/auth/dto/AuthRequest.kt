@@ -1,14 +1,15 @@
 package com.practicum.shoppinglist.main.data.impl.auth.dto
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 sealed interface AuthRequest {
     @Serializable
-    data class Login(val email: String, val password: String) : AuthRequest
+    data class Login(@SerialName("email") val email: String, @SerialName("password") val password: String) : AuthRequest
     @Serializable
-    data class Registration(val email: String, val password: String) : AuthRequest
+    data class Registration(@SerialName("email") val email: String, @SerialName("password") val password: String) : AuthRequest
     @Serializable
-    data class RefreshToken(val refresh_token: String, val token: String) : AuthRequest
+    data class RefreshToken(@SerialName("refresh_token") val refresh_token: String, @SerialName("token") val token: String) : AuthRequest
     @Serializable
-    data class Validation(val token: String) : AuthRequest
+    data class Validation(@SerialName("token") val token: String) : AuthRequest
 }
