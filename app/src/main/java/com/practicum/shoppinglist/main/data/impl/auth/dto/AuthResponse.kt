@@ -4,6 +4,7 @@ import com.practicum.shoppinglist.core.domain.models.auth.Login
 import com.practicum.shoppinglist.core.domain.models.auth.Refresh
 import com.practicum.shoppinglist.core.domain.models.auth.Registration
 import com.practicum.shoppinglist.core.domain.models.auth.Validation
+import com.practicum.shoppinglist.core.domain.models.auth.Recovery
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -33,6 +34,9 @@ sealed interface AuthResponse {
         @SerialName("refresh_token") val refresh_token: String,
         @SerialName("access_token") val access_token: String
     ) : AuthResponse
+
+    @Serializable
+    class Recovery : AuthResponse
 
 }
 
@@ -65,4 +69,8 @@ fun AuthResponse.Refresh.mapToDomain(): Refresh {
         refreshToken = refresh_token,
         token = access_token
     )
+}
+
+fun AuthResponse.Recovery.mapToDomain(): Recovery {
+    return Recovery()
 }

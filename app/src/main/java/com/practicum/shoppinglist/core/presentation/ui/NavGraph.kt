@@ -11,6 +11,7 @@ import com.practicum.shoppinglist.auth.ui.LoginScreen
 import com.practicum.shoppinglist.auth.ui.RegistrationScreen
 import com.practicum.shoppinglist.auth.ui.RestorePasswordScreen
 import com.practicum.shoppinglist.auth.viewmodel.LoginScreenViewModel
+import com.practicum.shoppinglist.auth.viewmodel.RecoveryScreenViewModel
 import com.practicum.shoppinglist.auth.viewmodel.RegistrationScreenViewModel
 import com.practicum.shoppinglist.core.presentation.navigation.DetailsScreen
 import com.practicum.shoppinglist.core.presentation.navigation.LoginScreen
@@ -34,6 +35,7 @@ fun NavGraph(
     fabViewModel: FabViewModel,
     registrationScreenViewModel: RegistrationScreenViewModel,
     loginViewModel: LoginScreenViewModel,
+    recoveryScreenViewModel: RecoveryScreenViewModel,
 ) {
 
     NavHost(
@@ -92,6 +94,7 @@ fun NavGraph(
         composable<RestorePasswordScreen> {
             RestorePasswordScreen(
                 navController = navController,
+                recoveryScreenViewModel = recoveryScreenViewModel
             )
         }
     }

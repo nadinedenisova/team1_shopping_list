@@ -9,6 +9,7 @@ data class AuthState(
         IN_PROGRESS,
         REGISTERED,
         LOGIN,
+        RECOVERED,
         ALREADY_EXISTS,
         BAD_REQUEST,
         ERROR

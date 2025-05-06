@@ -114,9 +114,6 @@ class MainScreenViewModel @Inject constructor(
             is ShoppingListIntent.ChangeThemeSettings -> changeThemeSettings(intent.darkTheme)
             is ShoppingListIntent.GetThemeSettings -> getThemeSettings()
             is ShoppingListIntent.ClearSearchResults -> clearSearchResults()
-            is AuthIntent.Login -> TODO()
-            is AuthIntent.Registration -> TODO()
-            is AuthIntent.RestorePassword -> TODO()
         }
     }
 
