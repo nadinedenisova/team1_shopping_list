@@ -43,6 +43,7 @@ class AuthorizationKtorNetworkClient : HttpKtorNetworkClient<AuthRequest, AuthRe
                 is AuthRequest.Login -> path("auth/login")
                 is AuthRequest.RefreshToken -> path("auth/refresh")
                 is AuthRequest.Validation -> path("auth/check")
+                is AuthRequest.Recovery -> path("auth/recovery")
             }
         }
     }
@@ -52,29 +53,28 @@ class AuthorizationKtorNetworkClient : HttpKtorNetworkClient<AuthRequest, AuthRe
             when (request) {
                 is AuthRequest.Registration -> {
                     headers {
-                        append(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                         append("Custom-Header", "CustomValue")
                     }
                 }
                 is AuthRequest.Login -> {
                     headers {
-                        append(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                         append("Custom-Header", "CustomValue")
                     }
                 }
                 is AuthRequest.RefreshToken -> {
                     headers {
                         append(HttpHeaders.Authorization, "Bearer " + request.token)
-                        append(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                         append("Custom-Header", "CustomValue")
                     }
                 }
                 is AuthRequest.Validation -> {
                     headers {
                         append(HttpHeaders.Authorization, "Bearer " + request.token)
-                        append(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                         append("Custom-Header", "CustomValue")
                     }
+                }
+                is AuthRequest.Recovery -> {
+                    headers {}
                 }
             }
         }
@@ -100,6 +100,8 @@ class AuthorizationKtorNetworkClient : HttpKtorNetworkClient<AuthRequest, AuthRe
             is AuthRequest.Registration -> {
                 httpResponse.body<AuthResponse.Registration>()
             }
+
+            is AuthRequest.Recovery -> AuthResponse.Recovery()
         }
     }
 

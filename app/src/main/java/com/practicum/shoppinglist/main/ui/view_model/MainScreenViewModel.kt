@@ -11,7 +11,6 @@ import com.practicum.shoppinglist.common.resources.ShoppingListState
 import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.content
 import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.darkTheme
 import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.default
-import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.loggedIn
 import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.noShoppingLists
 import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.nothingFound
 import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.searchResults
@@ -58,6 +57,26 @@ class MainScreenViewModel @Inject constructor(
         const val TAG = "MainScreenViewModel"
     }
 
+    private val _isLoggedIn = MutableStateFlow(false)
+    val isLoggedIn: StateFlow<Boolean> = _isLoggedIn
+
+    fun checkLoginStatus() {
+        val isLoggedIn = isUserLoggedInUseCase()
+        _isLoggedIn.value = isLoggedIn
+        if (isLoggedIn) {
+            validateToken()
+        }
+    }
+
+    private fun validateToken() {
+        viewModelScope.launch {
+            val valid = tokenValidationUseCase()
+            if (!valid) {
+                logout()
+            }
+        }
+    }
+
     private val _shoppingListStateFlow = MutableStateFlow(default())
     val shoppingListStateFlow: StateFlow<ShoppingListState> = _shoppingListStateFlow.asStateFlow()
 
@@ -76,6 +95,11 @@ class MainScreenViewModel @Inject constructor(
         processIntent(ShoppingListIntent.GetThemeSettings)
     }
 
+    fun logout() {
+        logoutUseCase()
+        checkLoginStatus()
+    }
+
     fun processIntent(intent: ShoppingListIntent) {
         when (intent) {
             is ShoppingListIntent.AddShoppingList -> addShoppingList(name = intent.name, icon = intent.icon)
@@ -90,37 +114,7 @@ class MainScreenViewModel @Inject constructor(
             is ShoppingListIntent.ChangeThemeSettings -> changeThemeSettings(intent.darkTheme)
             is ShoppingListIntent.GetThemeSettings -> getThemeSettings()
             is ShoppingListIntent.ClearSearchResults -> clearSearchResults()
-            is ShoppingListIntent.Logout -> logout()
-            is AuthIntent.Login -> TODO()
-            is AuthIntent.Registration -> TODO()
-            is AuthIntent.RestorePassword -> TODO()
         }
-    }
-
-    private fun checkLoginStatus() {
-        val loggedIn = isUserLoggedInUseCase()
-
-        _shoppingListStateFlow.update { currentState ->
-            currentState.loggedIn(loggedIn = loggedIn)
-        }
-
-        if (loggedIn) {
-            validateToken()
-        }
-    }
-
-    private fun validateToken() {
-        viewModelScope.launch {
-            val valid = tokenValidationUseCase()
-            if (!valid) {
-                logout()
-            }
-        }
-    }
-
-    private fun logout() {
-        logoutUseCase()
-        checkLoginStatus()
     }
 
     private fun getThemeSettings() {

@@ -1,8 +1,58 @@
 package com.practicum.shoppinglist.core.presentation.ui
 
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.practicum.shoppinglist.App
+import com.practicum.shoppinglist.R
+import com.practicum.shoppinglist.auth.viewmodel.LoginScreenViewModel
+import com.practicum.shoppinglist.auth.viewmodel.RecoveryScreenViewModel
+import com.practicum.shoppinglist.auth.viewmodel.RegistrationScreenViewModel
+import com.practicum.shoppinglist.common.resources.ShoppingListIntent
+import com.practicum.shoppinglist.core.presentation.navigation.LoginScreen
 import com.practicum.shoppinglist.core.presentation.navigation.Routes
+import com.practicum.shoppinglist.core.presentation.ui.state.FabIntent
+import com.practicum.shoppinglist.core.presentation.ui.state.FabState
+import com.practicum.shoppinglist.core.presentation.ui.theme.SLTheme
+import com.practicum.shoppinglist.di.api.daggerViewModel
+import com.practicum.shoppinglist.main.ui.view_model.MainScreenViewModel
 
 val isActionButtonHidden = listOf(
     Routes.REGISTRATION_SCREEN.route,
@@ -12,7 +62,7 @@ val isActionButtonHidden = listOf(
 
 @Composable
 fun MyScaffold() {
-    /*val navController = rememberNavController()
+    val navController = rememberNavController()
     val showAddShoppingListDialog = rememberSaveable { mutableStateOf(false) }
     val showRemoveAllShoppingListsDialog = rememberSaveable { mutableStateOf(false) }
     val showProductsScreenMenu = rememberSaveable { mutableStateOf(false) }
@@ -24,6 +74,7 @@ fun MyScaffold() {
     val viewModel = daggerViewModel<MainScreenViewModel>(factory)
     val registrationScreenViewModel = daggerViewModel<RegistrationScreenViewModel>(factory)
     val loginViewModel = daggerViewModel<LoginScreenViewModel>(factory)
+    val recoveryScreenViewModel = daggerViewModel<RecoveryScreenViewModel>(factory)
     val state by viewModel.shoppingListStateFlow.collectAsStateWithLifecycle()
     val currentBackStack by navController.currentBackStackEntryAsState()
     val currentDestination = currentBackStack?.destination?.route
@@ -139,9 +190,10 @@ fun MyScaffold() {
                 fabViewModel = fabViewModel,
                 registrationScreenViewModel = registrationScreenViewModel,
                 loginViewModel = loginViewModel,
+                recoveryScreenViewModel = recoveryScreenViewModel,
             )
         }
-    }*/
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -158,7 +210,7 @@ fun TopBar(
     onLoginClick: () -> Unit = {},
     onLogoutClick: () -> Unit = {},
 ) {
-    /*val screensWithoutBackButton = listOf(Routes.SPLASH_SCREEN.route, Routes.MAIN_SCREEN.route)
+    val screensWithoutBackButton = listOf(Routes.SPLASH_SCREEN.route, Routes.MAIN_SCREEN.route)
     val showBackButton = screensWithoutBackButton.none {
         currentDestination?.startsWith(it) == true
     }
@@ -235,5 +287,5 @@ fun TopBar(
             }
 
         }
-    )*/
+    )
 }
