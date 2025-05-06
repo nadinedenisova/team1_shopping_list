@@ -162,7 +162,7 @@ fun MainScreen(
                         mainScreenViewModel.processIntent(ShoppingListIntent.ClearSearchResults)
                     },
                 )
-                if (isSearchActive.value && searchQuery.value.isNotEmpty() && shoppingListState.results.isNotEmpty()) {
+                if (isSearchActive.value && searchQuery.value.isNotEmpty() && !shoppingListState.nothingFound) {
                     SearchShoppingList(
                         state = shoppingListState,
                         onItemClick = { list ->
@@ -508,9 +508,11 @@ fun TopBar(
             }
             IconButton(onClick = onDarkModeClick) {
                 Icon(
-                    painter = if (darkTheme) painterResource(id = R.drawable.ic_light_theme) else painterResource(
-                        id = R.drawable.ic_dark_mode
-                    ),
+                    painter = if (darkTheme) {
+                        painterResource(id = R.drawable.ic_light_theme)
+                    } else {
+                        painterResource(id = R.drawable.ic_dark_mode)
+                    },
                     contentDescription = stringResource(R.string.dark_mode)
                 )
             }

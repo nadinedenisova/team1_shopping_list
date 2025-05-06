@@ -103,9 +103,7 @@ class MainScreenViewModel @Inject constructor(
     private fun checkLoginStatus() {
         val loggedIn = isUserLoggedInUseCase()
 
-        _shoppingListStateFlow.update { currentState ->
-            currentState.loggedIn(loggedIn = loggedIn)
-        }
+        updateState(_shoppingListStateFlow.value.loggedIn(loggedIn = loggedIn))
 
         if (loggedIn) {
             validateToken()
@@ -127,16 +125,12 @@ class MainScreenViewModel @Inject constructor(
     }
 
     private fun getThemeSettings() {
-        _shoppingListStateFlow.update { currentState ->
-            currentState.darkTheme(darkTheme = getThemeSettingsUseCase())
-        }
+        updateState(_shoppingListStateFlow.value.darkTheme(darkTheme = getThemeSettingsUseCase()))
     }
 
     private fun changeThemeSettings(darkTheme: Boolean) {
         changeThemeSettingsUseCase(darkTheme)
-        _shoppingListStateFlow.update { currentState ->
-            currentState.darkTheme(darkTheme = darkTheme)
-        }
+        updateState(_shoppingListStateFlow.value.darkTheme(darkTheme = darkTheme))
     }
 
     private fun addShoppingList(name: String, icon: Long) {
@@ -196,15 +190,11 @@ class MainScreenViewModel @Inject constructor(
     }
 
     private fun selectedList(selectedList: ListItem) {
-        _shoppingListStateFlow.update { currentState ->
-            currentState.selectedList(selectedList)
-        }
+        updateState(_shoppingListStateFlow.value.selectedList(selectedList))
     }
 
     private fun clearSearchResults() {
-        _shoppingListStateFlow.update { currentState ->
-            currentState.clearSearchResults()
-        }
+        updateState(_shoppingListStateFlow.value.clearSearchResults())
     }
 
     private fun doSearch(searchQuery: String?) {
@@ -225,12 +215,12 @@ class MainScreenViewModel @Inject constructor(
     }
 
     private fun processSearchResult(searchQuery: String, results: List<ListItem>) {
-        _shoppingListStateFlow.update { currentState ->
+        updateState(
             when {
-                results.isNotEmpty() -> currentState.searchResults(searchQuery = searchQuery, results = results)
-                else -> currentState.nothingFound()
+                results.isNotEmpty() -> _shoppingListStateFlow.value.searchResults(searchQuery = searchQuery, results = results)
+                else -> _shoppingListStateFlow.value.nothingFound()
             }
-        }
+        )
     }
 
     private fun observeShoppingLists() {
@@ -249,8 +239,12 @@ class MainScreenViewModel @Inject constructor(
     }
 
     private fun processObserveShoppingListsResult(list: List<ListItem>) {
-        _shoppingListStateFlow.update { currentState ->
-            currentState.content(list).clearSearchResults()
+        updateState(_shoppingListStateFlow.value.content(list).clearSearchResults())
+    }
+
+    private fun updateState(state: ShoppingListState) {
+        _shoppingListStateFlow.update {
+            state
         }
     }
 }
