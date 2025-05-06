@@ -15,6 +15,7 @@ import com.practicum.shoppinglist.auth.ui.LoginScreen
 import com.practicum.shoppinglist.auth.ui.RegistrationScreen
 import com.practicum.shoppinglist.auth.ui.RestorePasswordScreen
 import com.practicum.shoppinglist.auth.viewmodel.LoginScreenViewModel
+import com.practicum.shoppinglist.auth.viewmodel.RecoveryScreenViewModel
 import com.practicum.shoppinglist.auth.viewmodel.RegistrationScreenViewModel
 import com.practicum.shoppinglist.core.presentation.navigation.DetailsScreen
 import com.practicum.shoppinglist.core.presentation.navigation.LoginScreen
@@ -38,6 +39,7 @@ fun ShoppingList() {
 
     val mainScreenViewModel = daggerViewModel<MainScreenViewModel>(factory)
     val registrationScreenViewModel = daggerViewModel<RegistrationScreenViewModel>(factory)
+    val recoveryScreenViewModel = daggerViewModel<RecoveryScreenViewModel>(factory)
     val loginViewModel = daggerViewModel<LoginScreenViewModel>(factory)
     val fabViewModel = daggerViewModel<FabViewModel>(factory)
 
@@ -82,8 +84,8 @@ fun ShoppingList() {
 
                 composable<RegistrationScreen> {
                     RegistrationScreen(
-                        navController = navController,
-                        registrationScreenViewModel
+                        callback = { navController.navigate(MainScreen) },
+                        registrationViewModel = registrationScreenViewModel,
                     )
                 }
 
@@ -97,6 +99,7 @@ fun ShoppingList() {
                 composable<RestorePasswordScreen> {
                     RestorePasswordScreen(
                         navController = navController,
+                        recoveryScreenViewModel = recoveryScreenViewModel,
                     )
                 }
             }

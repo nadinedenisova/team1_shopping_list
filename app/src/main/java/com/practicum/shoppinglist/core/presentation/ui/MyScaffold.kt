@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -54,7 +53,7 @@ import com.practicum.shoppinglist.core.presentation.ui.theme.SLTheme
 import com.practicum.shoppinglist.di.api.daggerViewModel
 import com.practicum.shoppinglist.main.ui.view_model.MainScreenViewModel
 
-val isActionButtonHidden = listOf(
+/*val isActionButtonHidden = listOf(
     Routes.REGISTRATION_SCREEN.route,
     Routes.LOGIN_SCREEN.route,
     Routes.RESTORE_PASSWORD_SCREEN.route,
@@ -178,7 +177,8 @@ fun MyScaffold() {
                     }
                 }
             }
-        ) { innerPadding ->
+        ) {
+            innerPadding ->
             NavGraph(
                 navController = navController,
                 isSearchActive = isSearchActive,
@@ -288,4 +288,4 @@ fun TopBar(
 
         }
     )
-}
+}*/
