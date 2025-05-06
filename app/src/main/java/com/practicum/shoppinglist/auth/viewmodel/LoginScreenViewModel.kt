@@ -3,6 +3,7 @@ package com.practicum.shoppinglist.auth.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.practicum.shoppinglist.BuildConfig
 import com.practicum.shoppinglist.common.resources.AuthIntent
 import com.practicum.shoppinglist.common.resources.AuthState
 import com.practicum.shoppinglist.common.resources.AuthState.Companion.default
@@ -56,7 +57,9 @@ class LoginScreenViewModel @Inject constructor(
                     }
                 }
             }.onFailure { error ->
-                Log.e(TAG, "error in login -> $error")
+                if (BuildConfig.DEBUG) {
+                    Log.e(TAG, "error in login -> $error")
+                }
                 _loginStateFlow.emit(AuthState(AuthState.Status.ERROR))
             }
         }
