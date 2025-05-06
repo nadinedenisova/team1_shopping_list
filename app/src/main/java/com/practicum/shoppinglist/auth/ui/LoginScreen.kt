@@ -55,7 +55,7 @@ fun LoginScreen(
         state.status,
         navController = navController,
         onLoginClick = {email, password ->
-            loginViewModel.processIntent(AuthIntent.Login(email, password))
+            loginViewModel.handleLogin(AuthIntent.Login(email, password))
         }
     )
 }

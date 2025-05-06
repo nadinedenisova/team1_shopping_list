@@ -48,7 +48,9 @@ fun RegistrationScreen(
     RegistrationForm(
         state.status,
         onRegistrationClick = {email, password ->
-            registrationViewModel.processIntent(AuthIntent.Registration(email, password))
+            registrationViewModel.processRegistration(
+                AuthIntent.Registration(email, password)
+            )
         }
     )
 }

@@ -65,11 +65,8 @@ class LoginScreenViewModel @Inject constructor(
         }
     }
 
-    fun processIntent(intent: BaseIntent) {
-        when (intent) {
-            is AuthIntent.Login -> handleLogin(email = intent.email, password = intent.password)
-            else -> {}
-        }
+    fun handleLogin(intent: AuthIntent.Login) {
+        handleLogin(email = intent.email, password = intent.password)
     }
 
     private companion object {
