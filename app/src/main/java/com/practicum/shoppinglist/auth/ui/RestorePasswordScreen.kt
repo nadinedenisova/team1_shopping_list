@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -38,16 +39,20 @@ fun RestorePasswordScreen(
         navController.navigate(MainScreen)
     }
 
-    RestorePasswordForm(
-        status = state.status,
-        onRecoveryClick = {
-            email -> recoveryScreenViewModel.handleRecovery(AuthIntent.Recovery(email))
-        }
-    )
+    Scaffold { innerPadding ->
+        RestorePasswordForm(
+            modifier = Modifier.padding(innerPadding),
+            status = state.status,
+            onRecoveryClick = {
+                    email -> recoveryScreenViewModel.handleRecovery(AuthIntent.Recovery(email))
+            }
+        )
+    }
 }
 
 @Composable
 fun RestorePasswordForm(
+    modifier: Modifier = Modifier,
     status: AuthState.Status,
     onRecoveryClick: (email: String) -> Unit,
 ) {
@@ -60,7 +65,7 @@ fun RestorePasswordForm(
     val isButtonEnabled = isEmailValid
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 40.dp),
         horizontalAlignment = Alignment.CenterHorizontally

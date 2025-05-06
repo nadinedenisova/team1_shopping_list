@@ -8,12 +8,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -48,20 +47,29 @@ fun LoginScreen(
         navController.navigate(MainScreen)
     }
     if (state.status == AuthState.Status.ERROR) {
-        Toast.makeText(LocalContext.current, stringResource(R.string.invalid_login), Toast.LENGTH_SHORT).show()
+        Toast.makeText(
+            LocalContext.current,
+            stringResource(R.string.invalid_login),
+            Toast.LENGTH_SHORT
+        ).show()
     }
 
-    LoginForm(
-        state.status,
-        navController = navController,
-        onLoginClick = {email, password ->
-            loginViewModel.handleLogin(AuthIntent.Login(email, password))
-        }
-    )
+
+    Scaffold { innerPadding ->
+        LoginForm(
+            modifier = Modifier.padding(innerPadding),
+            state.status,
+            navController = navController,
+            onLoginClick = { email, password ->
+                loginViewModel.handleLogin(AuthIntent.Login(email, password))
+            }
+        )
+    }
 }
 
 @Composable
 fun LoginForm(
+    modifier: Modifier = Modifier,
     status: AuthState.Status,
     navController: NavController,
     onLoginClick: (email: String, password: String) -> Unit,
@@ -78,7 +86,7 @@ fun LoginForm(
     val isButtonEnabled = isEmailValid && isPasswordValid
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 40.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -89,7 +97,8 @@ fun LoginForm(
             value = email,
             onValueChange = {
                 email = it
-                isEmailError = !android.util.Patterns.EMAIL_ADDRESS.matcher(it).matches() && it.isNotEmpty()
+                isEmailError =
+                    !android.util.Patterns.EMAIL_ADDRESS.matcher(it).matches() && it.isNotEmpty()
             },
             label = stringResource(R.string.email),
             placeholder = stringResource(R.string.email),

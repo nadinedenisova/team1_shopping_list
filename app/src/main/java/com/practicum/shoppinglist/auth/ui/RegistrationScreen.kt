@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -45,18 +46,23 @@ fun RegistrationScreen(
         Toast.makeText(LocalContext.current, stringResource(R.string.invalid_registration), Toast.LENGTH_SHORT).show()
     }
 
-    RegistrationForm(
-        state.status,
-        onRegistrationClick = {email, password ->
-            registrationViewModel.processRegistration(
-                AuthIntent.Registration(email, password)
-            )
-        }
-    )
+
+    Scaffold { innerPadding ->
+        RegistrationForm(
+            modifier = Modifier.padding(innerPadding),
+            state.status,
+            onRegistrationClick = { email, password ->
+                registrationViewModel.processRegistration(
+                    AuthIntent.Registration(email, password)
+                )
+            }
+        )
+    }
 }
 
 @Composable
 fun RegistrationForm(
+    modifier: Modifier = Modifier,
     status: AuthState.Status,
     onRegistrationClick: (email: String, password: String) -> Unit,
 ) {
@@ -75,7 +81,7 @@ fun RegistrationForm(
     val isButtonEnabled = isEmailValid && isPasswordValid && isPasswordsMatch
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 40.dp),
         horizontalAlignment = Alignment.CenterHorizontally
