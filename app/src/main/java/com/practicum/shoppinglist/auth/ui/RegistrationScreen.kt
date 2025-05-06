@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,13 +62,13 @@ fun RegistrationForm(
     status: AuthState.Status,
     onRegistrationClick: (email: String, password: String) -> Unit,
 ) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
+    var email by rememberSaveable { mutableStateOf("") }
+    var password by rememberSaveable { mutableStateOf("") }
+    var confirmPassword by rememberSaveable { mutableStateOf("") }
 
-    var isEmailError by remember { mutableStateOf(false) }
-    var isPasswordError by remember { mutableStateOf(false) }
-    var isConfirmPasswordError by remember { mutableStateOf(false) }
+    var isEmailError by rememberSaveable { mutableStateOf(false) }
+    var isPasswordError by rememberSaveable { mutableStateOf(false) }
+    var isConfirmPasswordError by rememberSaveable { mutableStateOf(false) }
 
     val isEmailValid = Patterns.EMAIL_ADDRESS.matcher(email).matches()
     val isPasswordValid = password.length >= PASSWORD_LENGTH
