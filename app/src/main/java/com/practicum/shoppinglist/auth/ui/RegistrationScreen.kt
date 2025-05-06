@@ -30,12 +30,11 @@ import com.practicum.shoppinglist.auth.viewmodel.RegistrationScreenViewModel
 import com.practicum.shoppinglist.common.resources.AuthIntent
 import com.practicum.shoppinglist.common.resources.AuthState
 import com.practicum.shoppinglist.common.utils.Constants.PASSWORD_LENGTH
-import com.practicum.shoppinglist.core.presentation.navigation.MainScreen
 import com.practicum.shoppinglist.core.presentation.ui.components.SLOutlineTextField
 
 @Composable
 fun RegistrationScreen(
-    navController: NavController,
+    callback: () -> Unit,
     registrationViewModel: RegistrationScreenViewModel
 ) {
 
@@ -43,7 +42,7 @@ fun RegistrationScreen(
 
     if (state.status == AuthState.Status.REGISTERED) {
         registrationViewModel.resetMode()
-        navController.navigate(MainScreen)
+        callback()
     }
     if (state.status == AuthState.Status.ERROR) {
         Toast.makeText(LocalContext.current, stringResource(R.string.invalid_registration), Toast.LENGTH_SHORT).show()

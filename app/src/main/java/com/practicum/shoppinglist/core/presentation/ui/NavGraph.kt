@@ -75,7 +75,9 @@ fun NavGraph(
 
         composable<RegistrationScreen>{
             RegistrationScreen(
-                navController = navController,
+                callback = {
+                    navController.navigate(MainScreen)
+                },
                 registrationScreenViewModel
             )
         }
