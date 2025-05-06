@@ -18,30 +18,24 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CornerSize
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -55,8 +49,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.compositeOver
@@ -64,16 +56,12 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Popup
-import androidx.compose.ui.window.PopupProperties
 import androidx.compose.ui.zIndex
 import androidx.core.text.isDigitsOnly
 import com.practicum.shoppinglist.App
@@ -189,7 +177,7 @@ fun DetailsScreen(
                 )
             }
 
-            TopBar(
+            TopBarDetailsScreen(
                 onMenuClick = { showMenuBottomSheet.value = true },
                 onBackClick = { onNavigateUp() }
             )
@@ -237,36 +225,6 @@ fun DetailsScreen(
             action = viewModel.action,
         )
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun TopBar(
-    onMenuClick: () -> Unit = {},
-    onBackClick: () -> Unit = {},
-) {
-    TopAppBar(
-        title = {
-            Text(stringResource(R.string.products_screen_title))
-        },
-        navigationIcon = {
-            IconButton(onClick = onBackClick) {
-                Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = ""
-                )
-            }
-        },
-        actions = {
-            IconButton(onClick = onMenuClick) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_menu),
-                    contentDescription = null
-                )
-            }
-
-        }
-    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -356,7 +314,11 @@ fun DetailsScreenUI(
                             value = count,
                             onValueChange = {
                                 if (it.isNotEmpty() && it.trim().isDigitsOnly()) {
-                                    onIntent(DetailsScreenIntent.EditUnitsCount(it.trim().take(9).toInt()))
+                                    onIntent(
+                                        DetailsScreenIntent.EditUnitsCount(
+                                            it.trim().take(9).toInt()
+                                        )
+                                    )
                                 } else {
                                     onIntent(DetailsScreenIntent.EditUnitsCount(0))
                                 }
@@ -496,90 +458,5 @@ fun DetailsScreenUI(
                 }
             }
         }
-    }
-}
-
-@Composable
-fun ActionMenu(
-    expanded: MutableState<Boolean>,
-    selectedOption: ProductSortOrder,
-    onSelectionChanged: (ProductSortOrder) -> Unit,
-    options: List<ProductSortOrder>,
-    anchorBounds: Rect
-) {
-    if (!expanded.value) return
-    val density = LocalDensity.current
-    val x = with(density) {
-        (anchorBounds.right.toDp() - dimensionResource(R.dimen.sort_menu_width) + dimensionResource(
-            R.dimen.padding_8x
-        )).roundToPx()
-    }
-    val y =
-        with(density) { (anchorBounds.top.toDp() - dimensionResource(R.dimen.padding_4x)).roundToPx() }
-
-    Popup(
-        alignment = Alignment.TopStart,
-        offset = IntOffset(x, y),
-        onDismissRequest = { expanded.value = false },
-        properties = PopupProperties(focusable = true),
-    ) {
-        Surface(
-            modifier = Modifier
-                .width(dimensionResource(R.dimen.sort_menu_width))
-                .shadow(8.dp, RoundedCornerShape(8.dp)),
-            color = MaterialTheme.colorScheme.surfaceContainer,
-            shape = RoundedCornerShape(8.dp)
-        ) {
-            Column {
-                options.forEach {
-                    PopupMenuItem(
-                        expanded = expanded,
-                        option = it,
-                        selected = it == selectedOption,
-                        onSelected = onSelectionChanged,
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun PopupMenuItem(
-    expanded: MutableState<Boolean>,
-    option: ProductSortOrder,
-    selected: Boolean = false,
-    onSelected: (ProductSortOrder) -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .clickable {
-                expanded.value = false
-                onSelected(option)
-            }
-            .padding(
-                start = dimensionResource(R.dimen.padding_6x),
-                end = dimensionResource(R.dimen.padding_8x)
-            )
-            .padding(vertical = dimensionResource(R.dimen.padding_8x))
-            .background(MaterialTheme.colorScheme.surfaceContainer),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(
-            painter = painterResource(option.leadingIcon),
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSecondaryContainer,
-        )
-        Spacer(modifier = Modifier.width(dimensionResource(R.dimen.padding_6x)))
-        Text(
-            text = stringResource(option.name),
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.weight(1f)
-        )
-        Spacer(modifier = Modifier.width(dimensionResource(R.dimen.padding_6x)))
-        RadioButton(
-            selected = selected,
-            onClick = null
-        )
     }
 }
