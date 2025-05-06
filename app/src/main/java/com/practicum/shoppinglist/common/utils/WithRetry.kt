@@ -15,7 +15,7 @@ suspend fun <T> withRetry(
             return body()
         } catch (e: Exception) {
             if (e is CancellationException) throw CancellationException()
-            if (e is SQLException) {
+            else if (e is SQLException) {
                 delay(delayMs)
             } else {
                 return onError(e)
