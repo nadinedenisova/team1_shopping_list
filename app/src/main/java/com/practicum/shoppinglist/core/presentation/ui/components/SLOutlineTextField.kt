@@ -11,7 +11,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -22,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -223,10 +229,11 @@ fun PasswordTextField(
     label: String? = null,
     placeholder: String? = null,
     isError: Boolean = false,
-    trailingIcon: @Composable (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     errorMessage: String? = null,
 ) {
+    var isPasswordVisible by rememberSaveable { mutableStateOf(false) }
+
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
@@ -235,7 +242,7 @@ fun PasswordTextField(
         placeholder = { if (!placeholder.isNullOrEmpty()) Text(placeholder) },
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-        visualTransformation = PasswordVisualTransformation(),
+        visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
         colors = OutlinedTextFieldDefaults.colors(
             unfocusedLabelColor = SLTheme.slColorScheme.materialScheme.onSurfaceVariant,
             focusedLabelColor = SLTheme.slColorScheme.materialScheme.secondary,
@@ -245,7 +252,14 @@ fun PasswordTextField(
             focusedBorderColor = SLTheme.slColorScheme.materialScheme.secondary,
         ),
         isError = isError,
-        trailingIcon = trailingIcon,
+        trailingIcon = {
+            IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+                Icon(
+                    imageVector = if (isPasswordVisible) Icons.Filled.Person else Icons.Filled.Lock,
+                    contentDescription = if (isPasswordVisible) "Hide password" else "Show password"
+                )
+            }
+        },
     )
     if (isError && errorMessage != null) {
         Text(
