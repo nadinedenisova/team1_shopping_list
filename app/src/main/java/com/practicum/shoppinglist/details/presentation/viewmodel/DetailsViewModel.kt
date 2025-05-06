@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -140,8 +141,19 @@ class DetailsViewModel @Inject constructor(
             }
 
             is DetailsScreenIntent.UpdateManualSortOrder -> {
+
+                val updated = _state.value.productList.toMutableList()
+                    .apply { add(intent.toIndex, removeAt(intent.fromIndex)) }
+
+                _state.update {
+                    it.copy(productList = updated)
+                }
+
                 viewModelScope.launch(Dispatchers.IO) {
-                    addItemOrderUseCase(_state.value.shoppingListId, intent.sortOrder)
+                    addItemOrderUseCase(
+                        _state.value.shoppingListId,
+                        _state.value.productList.mapIndexed { index, item -> item.id to index.toLong() }.toMap()
+                    )
                 }
             }
 
@@ -165,33 +177,30 @@ class DetailsViewModel @Inject constructor(
 
     private fun observeProductList() {
         viewModelScope.launch(Dispatchers.IO) {
-            getProductSortOrderUseCase.invoke(_state.value.shoppingListId).collect { sortOrder ->
-                _state.update { it.copy(sortOrder = sortOrder) }
-            }
-        }
-
-        viewModelScope.launch(Dispatchers.IO) {
-            getProductListUseCase.invoke(_state.value.shoppingListId).transform {
-                val sortedItems = when (_state.value.sortOrderMode) {
-                    ProductSortOrder.Default -> it
-                    is ProductSortOrder.ASC -> it.sortedBy { item -> item.name }
-                    is ProductSortOrder.Manual -> {
-                        if (_state.value.sortOrder.isNotEmpty()) {
-                            it.sortedBy { item -> _state.value.sortOrder[item.id] }
-                        } else {
-                            it
+            getProductListUseCase.invoke(_state.value.shoppingListId)
+                .transform {
+                    val sortedItems = when (_state.value.sortOrderMode) {
+                        ProductSortOrder.Default -> it
+                        is ProductSortOrder.ASC -> it.sortedBy { item -> item.name }
+                        is ProductSortOrder.Manual -> {
+                            val sortOrder = getProductSortOrderUseCase.invoke(_state.value.shoppingListId).firstOrNull()
+                            if (!sortOrder.isNullOrEmpty()) {
+                                it.sortedBy { item -> sortOrder[item.id] }
+                            } else {
+                                it
+                            }
                         }
-                    }
 
+                    }
+                    emit(sortedItems)
                 }
-                emit(sortedItems)
-            }.collect { productList ->
-                _state.update {
-                    it.copy(
-                        productList = productList,
-                        productMenuList = productList.map { it.name })
+                .collect { productList ->
+                    _state.update {
+                        it.copy(
+                            productList = productList,
+                            productMenuList = productList.map { it.name })
+                    }
                 }
-            }
         }
     }
 }

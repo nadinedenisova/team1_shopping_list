@@ -76,6 +76,7 @@ fun ShoppingList() {
                     DetailsScreen(
                         shoppingListId = args.listId,
                         fabViewModel = fabViewModel,
+                        onNavigateUp = { navController.navigateUp() }
                     )
                 }
 

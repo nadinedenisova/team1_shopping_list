@@ -16,10 +16,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
@@ -30,15 +34,23 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -107,6 +119,7 @@ fun DetailsScreen(
     modifier: Modifier = Modifier,
     shoppingListId: Long,
     fabViewModel: FabViewModel,
+    onNavigateUp: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val factory = remember {
@@ -168,13 +181,104 @@ fun DetailsScreen(
         )
     }
 
-    DetailsScreenUI(
-        modifier = modifier,
-        state = state,
-        onIntent = { intent -> viewModel.onIntent(intent) },
-        fabState = fabState,
-        onFabIntent = { intent -> fabViewModel.onIntent(intent) },
-        action = viewModel.action,
+    Scaffold(
+        topBar = {
+            if (fabState.isOpenDetailsBottomSheetState != null) {
+                val height = WindowInsets.statusBars.asPaddingValues()
+
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(height.calculateTopPadding() + 64.dp)
+                        .background(Color.Black.copy(alpha = .32f))
+                        .clickable(
+                            interactionSource = null,
+                            indication = null,
+                        ) {
+                            fabViewModel.onIntent(FabIntent.CloseDetailsBottomSheet)
+                            keyboardController?.hide()
+                        }
+                        .zIndex(Float.MAX_VALUE)
+                )
+            }
+
+            TopBar(
+                onMenuClick = { showMenuBottomSheet.value = true },
+                onBackClick = { onNavigateUp() }
+            )
+        },
+        floatingActionButton = {
+            val offset by animateDpAsState(
+                targetValue = -fabState.offsetY,
+            )
+
+            val icon =
+                if (fabState.isOpenDetailsBottomSheetState != null) Icons.Default.Done else Icons.Default.Add
+
+            FloatingActionButton(
+                modifier = Modifier.offset(y = offset),
+                onClick = {
+                    when (fabState.isOpenDetailsBottomSheetState) {
+                        FabState.State.AddProduct.name -> fabViewModel.onIntent(
+                            FabIntent.AddProduct(true)
+                        )
+
+                        FabState.State.EditProduct.name -> fabViewModel.onIntent(
+                            FabIntent.EditProduct(true)
+                        )
+
+                        else -> fabViewModel.onIntent(
+                            FabIntent.OpenDetailsBottomSheet(
+                                state = FabState.State.AddProduct.name
+                            )
+                        )
+                    }
+                },
+                shape = MaterialTheme.shapes.small,
+
+                ) {
+                Icon(icon, contentDescription = stringResource(R.string.add))
+            }
+        },
+    ) { innerPadding ->
+        DetailsScreenUI(
+            modifier = modifier.padding(innerPadding),
+            state = state,
+            onIntent = { intent -> viewModel.onIntent(intent) },
+            fabState = fabState,
+            onFabIntent = { intent -> fabViewModel.onIntent(intent) },
+            action = viewModel.action,
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TopBar(
+    onMenuClick: () -> Unit = {},
+    onBackClick: () -> Unit = {},
+) {
+    TopAppBar(
+        title = {
+            Text(stringResource(R.string.products_screen_title))
+        },
+        navigationIcon = {
+            IconButton(onClick = onBackClick) {
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = ""
+                )
+            }
+        },
+        actions = {
+            IconButton(onClick = onMenuClick) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_menu),
+                    contentDescription = null
+                )
+            }
+
+        }
     )
 }
 
@@ -190,6 +294,7 @@ fun DetailsScreenUI(
 ) {
     val openProduct = remember { mutableStateOf<ProductItem?>(null) }
     val density = LocalDensity.current
+    val keyboardController = LocalSoftwareKeyboardController.current
     val scaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = SheetState(
             initialValue = if (fabState.isOpenDetailsBottomSheetState != null) SheetValue.Expanded else SheetValue.Hidden,
@@ -211,16 +316,8 @@ fun DetailsScreenUI(
 
     val lazyListState = rememberLazyListState()
 
-    var productList by remember { mutableStateOf(state.productList) }
-
-    LaunchedEffect(state.productList) {
-        productList = state.productList
-    }
-
     val dragDropState = rememberDragDropState(lazyListState) { fromIndex, toIndex ->
-        productList = productList.toMutableList().apply { add(toIndex, removeAt(fromIndex)) }
-        onIntent(DetailsScreenIntent.UpdateManualSortOrder(productList.mapIndexed { index, item -> item.id to index.toLong() }
-            .toMap()))
+        onIntent(DetailsScreenIntent.UpdateManualSortOrder(fromIndex, toIndex))
     }
 
     BottomSheetScaffold(
@@ -316,7 +413,10 @@ fun DetailsScreenUI(
                     .clickable(
                         interactionSource = null,
                         indication = null,
-                    ) { onFabIntent(FabIntent.CloseDetailsBottomSheet) }
+                    ) {
+                        onFabIntent(FabIntent.CloseDetailsBottomSheet)
+                        keyboardController?.hide()
+                    }
                     .zIndex(Float.MAX_VALUE)
             )
         }
@@ -347,7 +447,7 @@ fun DetailsScreenUI(
             }
         } else {
             LazyColumn(
-                modifier = Modifier
+                modifier = modifier
                     .fillMaxSize()
                     .then(
                         if (state.sortOrderMode is ProductSortOrder.Manual) {
@@ -358,7 +458,7 @@ fun DetailsScreenUI(
                     ),
                 state = lazyListState,
             ) {
-                itemsIndexed(productList, key = { _, item -> item }) { index, item ->
+                itemsIndexed(state.productList, key = { _, item -> item }) { index, item ->
                     DraggableItem(dragDropState, index) { isDragging ->
                         val color by animateColorAsState(
                             if (isDragging) SLTheme.slColorScheme.materialScheme.onSurface.copy(
