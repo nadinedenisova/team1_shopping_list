@@ -59,6 +59,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -355,7 +356,7 @@ fun DetailsScreenUI(
                             value = count,
                             onValueChange = {
                                 if (it.isNotEmpty() && it.trim().isDigitsOnly()) {
-                                    onIntent(DetailsScreenIntent.EditUnitsCount(it.trim().toInt()))
+                                    onIntent(DetailsScreenIntent.EditUnitsCount(it.trim().take(9).toInt()))
                                 } else {
                                     onIntent(DetailsScreenIntent.EditUnitsCount(0))
                                 }
@@ -457,11 +458,11 @@ fun DetailsScreenUI(
                         )
                         Surface(
                             shape = RectangleShape,
-                            color = Color.Transparent,
+                            color = color.compositeOver(SLTheme.slColorScheme.materialScheme.surface),
                             shadowElevation = elevation
                         ) {
                             ProductItem(
-                                modifier = Modifier,
+                                modifier = Modifier.background(color.compositeOver(SLTheme.slColorScheme.materialScheme.surface)),
                                 item = item,
                                 onCheckedChange = {
                                     onIntent(
