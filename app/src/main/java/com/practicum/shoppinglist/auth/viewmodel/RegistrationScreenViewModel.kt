@@ -62,11 +62,8 @@ class RegistrationScreenViewModel @Inject constructor(
         }
     }
 
-    fun processIntent(intent: BaseIntent) {
-        when (intent) {
-            is AuthIntent.Registration -> handleRegistration(email = intent.email, password = intent.password)
-            else -> {}
-        }
+    fun processRegistration(intent: AuthIntent.Registration) {
+        handleRegistration(email = intent.email, password = intent.password)
     }
 
     private companion object {
