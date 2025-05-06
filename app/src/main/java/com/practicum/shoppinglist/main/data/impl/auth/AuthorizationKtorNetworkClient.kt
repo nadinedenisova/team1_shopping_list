@@ -52,27 +52,23 @@ class AuthorizationKtorNetworkClient : HttpKtorNetworkClient<AuthRequest, AuthRe
             when (request) {
                 is AuthRequest.Registration -> {
                     headers {
-                        append(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                         append("Custom-Header", "CustomValue")
                     }
                 }
                 is AuthRequest.Login -> {
                     headers {
-                        append(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                         append("Custom-Header", "CustomValue")
                     }
                 }
                 is AuthRequest.RefreshToken -> {
                     headers {
                         append(HttpHeaders.Authorization, "Bearer " + request.token)
-                        append(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                         append("Custom-Header", "CustomValue")
                     }
                 }
                 is AuthRequest.Validation -> {
                     headers {
                         append(HttpHeaders.Authorization, "Bearer " + request.token)
-                        append(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                         append("Custom-Header", "CustomValue")
                     }
                 }
