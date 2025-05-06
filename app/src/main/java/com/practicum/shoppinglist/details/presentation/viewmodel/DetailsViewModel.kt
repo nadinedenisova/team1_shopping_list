@@ -159,10 +159,6 @@ class DetailsViewModel @Inject constructor(
                     deleteProductUseCase(intent.id)
                 }
             }
-
-            is AuthIntent.Login -> TODO()
-            is AuthIntent.Registration -> TODO()
-            is AuthIntent.RestorePassword -> TODO()
         }
     }
 

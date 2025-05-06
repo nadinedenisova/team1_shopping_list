@@ -7,6 +7,7 @@ import com.practicum.shoppinglist.core.data.network.model.HttpMethodType
 import com.practicum.shoppinglist.core.data.network.model.mapToErrorType
 import com.practicum.shoppinglist.core.domain.models.auth.Login
 import com.practicum.shoppinglist.core.domain.models.auth.Refresh
+import com.practicum.shoppinglist.core.domain.models.auth.Recovery
 import com.practicum.shoppinglist.core.domain.models.auth.Registration
 import com.practicum.shoppinglist.core.domain.models.auth.Validation
 import com.practicum.shoppinglist.core.domain.models.network.ErrorType
@@ -43,6 +44,21 @@ class AuthorizationRepositoryImpl @Inject constructor(
         )
         when (val body = response.body) {
             is AuthResponse.Login -> {
+                emit(Result.Success(body.mapToDomain()))
+            }
+            else -> {
+                emit(Result.Failure(response.resultCode.mapToErrorType()))
+            }
+        }
+    }
+
+    override suspend fun recovery(email: String): Flow<Result<Recovery, ErrorType>> = flow {
+        val response = httpNetworkClient.getResponse(
+            HttpMethodType.POST,
+            AuthRequest.Recovery(email)
+        )
+        when (val body = response.body) {
+            is AuthResponse.Recovery -> {
                 emit(Result.Success(body.mapToDomain()))
             }
             else -> {

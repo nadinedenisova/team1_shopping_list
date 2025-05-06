@@ -12,4 +12,6 @@ sealed interface AuthRequest {
     data class RefreshToken(@SerialName("refresh_token") val refresh_token: String, @SerialName("token") val token: String) : AuthRequest
     @Serializable
     data class Validation(@SerialName("token") val token: String) : AuthRequest
+    @Serializable
+    data class Recovery(@SerialName("email") val email: String) : AuthRequest
 }
