@@ -31,6 +31,7 @@ import com.practicum.shoppinglist.common.utils.Constants.PASSWORD_LENGTH
 import com.practicum.shoppinglist.core.presentation.navigation.MainScreen
 import com.practicum.shoppinglist.core.presentation.navigation.RegistrationScreen
 import com.practicum.shoppinglist.core.presentation.navigation.RestorePasswordScreen
+import com.practicum.shoppinglist.core.presentation.ui.components.ClickableTextButton
 import com.practicum.shoppinglist.core.presentation.ui.components.PasswordTextField
 import com.practicum.shoppinglist.core.presentation.ui.components.SLOutlineTextField
 
@@ -131,15 +132,3 @@ fun LoginForm(
     }
 }
 
-@Composable
-fun ClickableTextButton(text: String, onClick: () -> Unit = {},) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        TextButton(
-            onClick = onClick,
-        ) {
-            Text(text = text)
-        }
-    }
-}
