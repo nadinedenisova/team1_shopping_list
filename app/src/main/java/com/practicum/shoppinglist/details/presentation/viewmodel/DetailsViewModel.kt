@@ -2,12 +2,10 @@ package com.practicum.shoppinglist.details.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.practicum.shoppinglist.ProductEntity
 import com.practicum.shoppinglist.common.resources.AuthIntent
 import com.practicum.shoppinglist.common.resources.BaseIntent
 import com.practicum.shoppinglist.common.resources.DetailsScreenIntent
 import com.practicum.shoppinglist.common.resources.ListAction
-import com.practicum.shoppinglist.core.data.mapper.toProductEntity
 import com.practicum.shoppinglist.core.domain.models.ProductItem
 import com.practicum.shoppinglist.details.domain.impl.AddItemOrderUseCase
 import com.practicum.shoppinglist.details.domain.impl.AddProductUseCase
@@ -26,6 +24,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -86,12 +85,11 @@ class DetailsViewModel @Inject constructor(
                 viewModelScope.launch(Dispatchers.IO) {
                     addProductUseCase(
                         shoppingListId = _state.value.shoppingListId,
-                        item = ProductEntity(
-                            id = -1,
+                        item = ProductItem(
                             name = _state.value.product.name,
                             unit = _state.value.product.unit,
-                            count = _state.value.product.count.toLong(),
-                            completed = 0
+                            count = _state.value.product.count,
+                            completed = false
                         )
                     )
                     _state.update { it.copy(product = ProductItem()) }
@@ -106,7 +104,7 @@ class DetailsViewModel @Inject constructor(
 
             is DetailsScreenIntent.EditProduct -> {
                 viewModelScope.launch(Dispatchers.IO) {
-                    updateProductUseCase(_state.value.product.toProductEntity())
+                    updateProductUseCase(_state.value.product)
                 }
             }
 
@@ -118,7 +116,6 @@ class DetailsViewModel @Inject constructor(
                 viewModelScope.launch(Dispatchers.IO) {
                     updateProductUseCase(
                         intent.currentValue.copy(completed = !intent.currentValue.completed)
-                            .toProductEntity()
                     )
                 }
             }
@@ -144,8 +141,19 @@ class DetailsViewModel @Inject constructor(
             }
 
             is DetailsScreenIntent.UpdateManualSortOrder -> {
+
+                val updated = _state.value.productList.toMutableList()
+                    .apply { add(intent.toIndex, removeAt(intent.fromIndex)) }
+
+                _state.update {
+                    it.copy(productList = updated)
+                }
+
                 viewModelScope.launch(Dispatchers.IO) {
-                    addItemOrderUseCase(_state.value.shoppingListId, intent.sortOrder)
+                    addItemOrderUseCase(
+                        _state.value.shoppingListId,
+                        _state.value.productList.mapIndexed { index, item -> item.id to index.toLong() }.toMap()
+                    )
                 }
             }
 
@@ -154,6 +162,7 @@ class DetailsViewModel @Inject constructor(
                     _action.emit(ListAction.RemoveItem)
                 }
             }
+
             is BaseIntent.RemoveListItem -> {
                 viewModelScope.launch(Dispatchers.IO) {
                     deleteProductUseCase(intent.id)
@@ -164,33 +173,30 @@ class DetailsViewModel @Inject constructor(
 
     private fun observeProductList() {
         viewModelScope.launch(Dispatchers.IO) {
-            getProductSortOrderUseCase.invoke(_state.value.shoppingListId).collect { sortOrder ->
-                _state.update { it.copy(sortOrder = sortOrder) }
-            }
-        }
-
-        viewModelScope.launch(Dispatchers.IO) {
-            getProductListUseCase.invoke(_state.value.shoppingListId).transform {
-                val sortedItems = when (_state.value.sortOrderMode) {
-                    ProductSortOrder.Default -> it
-                    is ProductSortOrder.ASC -> it.sortedBy { item -> item.name }
-                    is ProductSortOrder.Manual -> {
-                        if (_state.value.sortOrder.isNotEmpty()) {
-                            it.sortedBy { item -> _state.value.sortOrder[item.id] }
-                        } else {
-                            it
+            getProductListUseCase.invoke(_state.value.shoppingListId)
+                .transform {
+                    val sortedItems = when (_state.value.sortOrderMode) {
+                        ProductSortOrder.Default -> it
+                        is ProductSortOrder.ASC -> it.sortedBy { item -> item.name }
+                        is ProductSortOrder.Manual -> {
+                            val sortOrder = getProductSortOrderUseCase.invoke(_state.value.shoppingListId).firstOrNull()
+                            if (!sortOrder.isNullOrEmpty()) {
+                                it.sortedBy { item -> sortOrder[item.id] }
+                            } else {
+                                it
+                            }
                         }
-                    }
 
+                    }
+                    emit(sortedItems)
                 }
-                emit(sortedItems)
-            }.collect { productList ->
-                _state.update {
-                    it.copy(
-                        productList = productList,
-                        productMenuList = productList.map { it.name })
+                .collect { productList ->
+                    _state.update {
+                        it.copy(
+                            productList = productList,
+                            productMenuList = productList.map { it.name })
+                    }
                 }
-            }
         }
     }
 }

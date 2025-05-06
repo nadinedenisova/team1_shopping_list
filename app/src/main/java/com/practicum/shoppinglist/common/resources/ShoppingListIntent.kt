@@ -15,4 +15,5 @@ sealed interface ShoppingListIntent {
     data object RemoveAllShoppingLists : ShoppingListIntent
     data object GetThemeSettings : ShoppingListIntent
     data object ClearSearchResults : ShoppingListIntent
+    data object Logout : ShoppingListIntent
 }

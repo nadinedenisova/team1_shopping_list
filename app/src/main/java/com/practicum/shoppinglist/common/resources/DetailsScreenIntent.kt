@@ -22,5 +22,5 @@ sealed interface DetailsScreenIntent {
     data object DeteleCompleted : DetailsScreenIntent
 
     class SortOrder(val sortOrder: ProductSortOrder) : DetailsScreenIntent
-    class UpdateManualSortOrder(val sortOrder: Map<Long, Long>) : DetailsScreenIntent
+    class UpdateManualSortOrder(val fromIndex: Int, val toIndex: Int) : DetailsScreenIntent
 }

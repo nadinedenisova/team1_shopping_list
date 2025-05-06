@@ -72,7 +72,7 @@ fun ProductItem(
             swipeOffset = swipeOffset,
             onItemClick = onItemClick,
             onCheckedChange = onCheckedChange,
-            manualSort = manualSort
+            manualSort = manualSort,
         )
     }
 }
@@ -93,10 +93,10 @@ private fun ProductItemUi(
     }
 
     Column(
-        modifier = modifier
+        modifier = Modifier
             .offset { IntOffset(swipeOffset.toInt(), 0) }
+            .then(modifier)
             .height(72.dp)
-            .background(SLTheme.slColorScheme.materialScheme.surface)
             .clickable { onItemClick() },
     ) {
         Row(
