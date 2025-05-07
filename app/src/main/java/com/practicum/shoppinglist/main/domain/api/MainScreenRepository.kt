@@ -7,9 +7,8 @@ interface MainScreenRepository {
     suspend fun showShoppingLists(): Flow<List<ListItem>>
     suspend fun showShoppingListByName(name: String): Flow<List<ListItem>>
     suspend fun addShoppingList(name: String, icon: Long)
+    suspend fun copyShoppingList(list: ListItem)
     suspend fun removeShoppingList(id: Long)
     suspend fun removeAllShoppingLists()
     suspend fun updateShoppingLIst(list: ListItem)
-    fun getThemeSettings(): Boolean
-    fun changeThemeChange(darkTheme: Boolean)
 }

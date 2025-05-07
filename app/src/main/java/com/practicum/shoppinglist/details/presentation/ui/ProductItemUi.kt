@@ -1,6 +1,7 @@
 package com.practicum.shoppinglist.details.presentation.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,6 +18,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -23,16 +26,63 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Devices.PIXEL_6
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.practicum.shoppinglist.R
+import com.practicum.shoppinglist.common.resources.DetailsScreenIntent
+import com.practicum.shoppinglist.common.resources.ListAction
+import com.practicum.shoppinglist.core.domain.models.BaseItem
+import com.practicum.shoppinglist.core.domain.models.ProductItem
 import com.practicum.shoppinglist.core.presentation.ui.components.SLCheckbox
 import com.practicum.shoppinglist.core.presentation.ui.theme.SLTheme
 import com.practicum.shoppinglist.details.presentation.models.ProductItemUiModel
+import com.practicum.shoppinglist.details.utils.mapper.toProductItemUi
+import com.practicum.shoppinglist.main.ui.recycler.SwipeItem
+import kotlinx.coroutines.flow.SharedFlow
 
 @Composable
 fun ProductItem(
     modifier: Modifier = Modifier,
+    onIntent: (DetailsScreenIntent) -> Unit,
+    action: SharedFlow<ListAction>,
+    item: ProductItem,
+    openItem: MutableState<BaseItem?>,
+    onCheckedChange: (Boolean) -> Unit = {},
+    manualSort: Boolean = false,
+    onItemClick: () -> Unit,
+    onItemOpened: () -> Unit,
+    onItemClosed: () -> Unit,
+    onRemove: () -> Unit,
+    onRename: () -> Unit,
+) {
+    SwipeItem(
+        onIntent = onIntent,
+        action = action,
+        item = item,
+        openItem = openItem,
+        onItemOpened = onItemOpened,
+        onItemClosed = onItemClosed,
+        onRemove = onRemove,
+        onRename = onRename,
+        extraPadding = true,
+    ) { swipeOffset ->
+        ProductItemUi(
+            modifier = modifier,
+            item = item.toProductItemUi(),
+            swipeOffset = swipeOffset,
+            onItemClick = onItemClick,
+            onCheckedChange = onCheckedChange,
+            manualSort = manualSort,
+        )
+    }
+}
+
+@Composable
+private fun ProductItemUi(
+    modifier: Modifier = Modifier,
     item: ProductItemUiModel,
+    swipeOffset: Float = 0f,
+    onItemClick: () -> Unit = {},
     onCheckedChange: (Boolean) -> Unit = {},
     manualSort: Boolean = false,
 ) {
@@ -43,7 +93,11 @@ fun ProductItem(
     }
 
     Column(
-        modifier = modifier.height(72.dp),
+        modifier = Modifier
+            .offset { IntOffset(swipeOffset.toInt(), 0) }
+            .then(modifier)
+            .height(72.dp)
+            .clickable { onItemClick() },
     ) {
         Row(
             modifier = Modifier.weight(1f),
@@ -56,7 +110,9 @@ fun ProductItem(
             )
 
             Column(
-                modifier = Modifier.weight(1f).padding(vertical = 8.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(vertical = 8.dp),
                 verticalArrangement = Arrangement.Center,
             ) {
                 Text(
@@ -116,7 +172,7 @@ fun ProductItemUiPreviewLight() {
             Column(modifier = Modifier.padding(it)) {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     items(productMock.size) {
-                        ProductItem(item = productMock[it], manualSort = it % 2 == 0)
+                        //ProductItem(item = productMock[it], manualSort = it % 2 == 0)
                     }
                 }
             }

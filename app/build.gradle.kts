@@ -4,27 +4,28 @@ plugins {
     alias(libs.plugins.jetbrainsKsp)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.sqldelight)
-    id("kotlin-parcelize")
-    kotlin("plugin.serialization") version "2.1.20"
+    alias(libs.plugins.kotlin.parcelize)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
     namespace = "com.practicum.shoppinglist"
-    compileSdk = 35
+    compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
         applicationId = "com.practicum.shoppinglist"
-        minSdk = 29
-        targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        minSdk = libs.versions.minSdk.get().toInt()
+        targetSdk = libs.versions.targetSdk.get().toInt()
+        versionCode = libs.versions.versionCode.get().toInt()
+        versionName = libs.versions.versionName.get()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -36,10 +37,11 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = libs.versions.jvmTarget.get()
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -52,10 +54,8 @@ dependencies {
     ksp(libs.dagger.compiler)
 
     implementation(libs.androidx.core.ktx)
-    implementation(libs.gson)
 
-    val composeBom = platform("androidx.compose:compose-bom:2025.02.00")
-    implementation(composeBom)
+    implementation(platform(libs.androidx.compose.bom))
 
     // Material Design 3
     implementation(libs.androidx.material3)

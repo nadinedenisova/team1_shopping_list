@@ -4,6 +4,7 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import com.practicum.shoppinglist.ListEntity
 import com.practicum.shoppinglist.ProductEntity
+import com.practicum.shoppinglist.ProductSortEntity
 import com.practicum.shoppinglist.ShoppingListDatabase
 import com.practicum.shoppinglist.common.utils.withRetry
 import kotlinx.coroutines.Dispatchers
@@ -18,31 +19,71 @@ class SqlDelightDataSource @Inject constructor(
         return db.listEntityQueries.getAll().asFlow().mapToList(Dispatchers.IO)
     }
 
-    override suspend fun insertList(name: String, icon: Long) = withContext(Dispatchers.IO) {
-        db.listEntityQueries.insert(
-            name = name,
-            icon_res_id = icon,
-        )
+    override suspend fun insertList(name: String, icon: Long): Long = withContext(Dispatchers.IO) {
+        var lastInsertedRowId: Long = withRetry(
+            times = 2,
+            delayMs = 300L,
+            onError = { -1 }
+        ) {
+            db.transactionWithResult {
+                db.listEntityQueries.insert(
+                    name = name,
+                    icon_res_id = icon,
+                )
+                return@transactionWithResult db.commonQueries.selectLastInsertedRowId()
+                    .executeAsOne()
+            }
+        }
+
+        return@withContext lastInsertedRowId
     }
 
-    override suspend fun updateList(item: ListEntity) = withContext(Dispatchers.IO) {
-        db.listEntityQueries.update(
-            name = item.name,
-            icon_res_id = item.icon_res_id,
-            id = item.id
-        )
+    override suspend fun updateList(item: ListEntity): Long = withContext(Dispatchers.IO) {
+        var updatedRows: Long = withRetry(
+            times = 2,
+            delayMs = 300L,
+            onError = { -1 }
+        ) {
+            db.transactionWithResult {
+                db.listEntityQueries.update(
+                    name = item.name,
+                    icon_res_id = item.icon_res_id,
+                    id = item.id
+                )
+
+                return@transactionWithResult db.commonQueries.selectChanges().executeAsOne()
+            }
+        }
+
+        return@withContext updatedRows
     }
 
     override suspend fun getListById(id: Long): ListEntity? = withContext(Dispatchers.IO) {
-        db.listEntityQueries.getById(id).executeAsOneOrNull()
+        return@withContext withRetry(
+            times = 2,
+            delayMs = 300L,
+            onError = { null }
+        ) {
+            db.listEntityQueries.getById(id).executeAsOneOrNull()
+        }
     }
 
     override fun searchListByName(name: String): Flow<List<ListEntity>> {
         return db.listEntityQueries.searchByName(name = name).asFlow().mapToList(Dispatchers.IO)
     }
 
-    override suspend fun deleteListById(id: Long) = withContext(Dispatchers.IO) {
-        db.listEntityQueries.deleteById(id)
+    override suspend fun deleteListById(id: Long): Long = withContext(Dispatchers.IO) {
+        var deletedRows: Long = withRetry(
+            times = 2,
+            delayMs = 300L,
+            onError = { -1 }
+        ) {
+            db.transactionWithResult {
+                db.listEntityQueries.deleteById(id)
+                return@transactionWithResult db.commonQueries.selectChanges().executeAsOne()
+            }
+        }
+        return@withContext deletedRows
     }
 
     override fun getProductsByListId(id: Long): Flow<List<ProductEntity>> {
@@ -50,34 +91,74 @@ class SqlDelightDataSource @Inject constructor(
     }
 
     override suspend fun getProductById(id: Long): ProductEntity? = withContext(Dispatchers.IO) {
-        db.productEntityQueries.getById(id).executeAsOneOrNull()
+        return@withContext withRetry(
+            times = 2,
+            delayMs = 300L,
+            onError = { null }
+        ) {
+            db.productEntityQueries.getById(id).executeAsOneOrNull()
+        }
     }
 
-    override suspend fun insertProduct(listId: Long, item: ProductEntity) = withContext(Dispatchers.IO) {
-        db.productEntityQueries.insert(
-            list_id = listId,
-            name = item.name,
-            unit = item.unit,
-            count = item.count,
-            completed = item.completed,
-        )
+    override suspend fun insertProduct(listId: Long, item: ProductEntity) =
+        withContext(Dispatchers.IO) {
+            var lastInsertedRowId: Long = withRetry(
+                times = 2,
+                delayMs = 300L,
+                onError = { -1 }
+            ) {
+                db.transactionWithResult {
+                    db.productEntityQueries.insert(
+                        list_id = listId,
+                        name = item.name,
+                        unit = item.unit,
+                        count = item.count,
+                        completed = item.completed,
+                    )
+                    return@transactionWithResult db.commonQueries.selectLastInsertedRowId()
+                        .executeAsOne()
+                }
+            }
+            return@withContext lastInsertedRowId
+        }
+
+    override suspend fun updateProduct(item: ProductEntity): Long = withContext(Dispatchers.IO) {
+        var updatedRows: Long = withRetry(
+            times = 2,
+            delayMs = 300L,
+            onError = { -1 }
+        ) {
+            db.transactionWithResult {
+                db.productEntityQueries.update(
+                    id = item.id,
+                    name = item.name,
+                    unit = item.unit,
+                    count = item.count,
+                    completed = item.completed,
+                )
+                return@transactionWithResult db.commonQueries.selectChanges().executeAsOne()
+            }
+        }
+
+        return@withContext updatedRows
     }
 
-    override suspend fun updateProduct(item: ProductEntity) = withContext(Dispatchers.IO) {
-        db.productEntityQueries.update(
-            id = item.id,
-            name = item.name,
-            unit = item.unit,
-            count = item.count,
-            completed = item.completed,
-        )
+    override suspend fun deleteProductById(id: Long): Long = withContext(Dispatchers.IO) {
+        var deletedRows: Long = withRetry(
+            times = 2,
+            delayMs = 300L,
+            onError = { -1 }
+        ) {
+            db.transactionWithResult {
+                db.productEntityQueries.deleteById(id)
+                return@transactionWithResult db.commonQueries.selectChanges().executeAsOne()
+            }
+        }
+
+        return@withContext deletedRows
     }
 
-    override suspend fun deleteProductById(id: Long) = withContext(Dispatchers.IO) {
-        db.productEntityQueries.deleteById(id)
-    }
-
-    override suspend fun deleteAll(): Long = withContext(Dispatchers.IO){
+    override suspend fun deleteAll(): Long = withContext(Dispatchers.IO) {
         var deletedRows: Long = withRetry(
             times = 2,
             delayMs = 300L,
@@ -90,5 +171,60 @@ class SqlDelightDataSource @Inject constructor(
         }
 
         return@withContext deletedRows
+    }
+
+    override suspend fun deleteAllByListId(id: Long): Long = withContext(Dispatchers.IO) {
+        var deletedRows: Long = withRetry(
+            times = 2,
+            delayMs = 300L,
+            onError = { -1 }
+        ) {
+            db.transactionWithResult {
+                db.productEntityQueries.deleteAllByListId(id)
+                return@transactionWithResult db.commonQueries.selectChanges().executeAsOne()
+            }
+        }
+
+        return@withContext deletedRows
+    }
+
+    override suspend fun deleteAllCompletedByListId(id: Long): Long = withContext(Dispatchers.IO) {
+        var deletedRows: Long = withRetry(
+            times = 2,
+            delayMs = 300L,
+            onError = { -1 }
+        ) {
+            db.transactionWithResult {
+                db.productEntityQueries.deleteAllCompletedByListId(id)
+                return@transactionWithResult db.commonQueries.selectChanges().executeAsOne()
+            }
+        }
+
+        return@withContext deletedRows
+    }
+
+    override fun getSortOrderByListId(listId: Long): Flow<List<ProductSortEntity>> {
+        return db.productSortEntityQueries.getProductOrderByListId(listId).asFlow()
+            .mapToList(Dispatchers.IO)
+    }
+
+    override suspend fun addProductSortOrder(
+        shoppingListId: Long,
+        sortOrder: Map<Long, Long>
+    ): Long = withContext(Dispatchers.IO) {
+        var insertedRows: Long = withRetry(
+            times = 2,
+            delayMs = 300L,
+            onError = { -1 }
+        ) {
+            db.transactionWithResult {
+                sortOrder.forEach { productId, pos ->
+                    db.productSortEntityQueries.addProductOrder(productId, pos)
+                }
+
+                return@transactionWithResult db.commonQueries.selectChanges().executeAsOne()
+            }
+        }
+        return@withContext insertedRows
     }
 }

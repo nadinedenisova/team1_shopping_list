@@ -1,6 +1,5 @@
 package com.practicum.shoppinglist.main.ui
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -11,14 +10,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -41,35 +46,46 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
 import com.practicum.shoppinglist.R
+import com.practicum.shoppinglist.common.resources.BaseIntent
+import com.practicum.shoppinglist.common.resources.ListAction
 import com.practicum.shoppinglist.common.resources.ShoppingListIntent
 import com.practicum.shoppinglist.common.resources.ShoppingListState
+import com.practicum.shoppinglist.core.domain.models.BaseItem
 import com.practicum.shoppinglist.core.domain.models.ListItem
-import com.practicum.shoppinglist.core.domain.models.listItemSaver
+import com.practicum.shoppinglist.core.presentation.ui.components.SLInfo
 import com.practicum.shoppinglist.core.presentation.ui.theme.SLTheme
 import com.practicum.shoppinglist.main.ui.recycler.ItemList
 import com.practicum.shoppinglist.main.ui.recycler.ItemListSearch
 import com.practicum.shoppinglist.main.ui.view_model.MainScreenViewModel
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
-    navController: NavController,
-    viewModel: MainScreenViewModel,
-    isSearchActive: MutableState<Boolean>,
-    showAddShoppingListDialog: MutableState<Boolean>,
-    showRemoveAllShoppingListsDialog: MutableState<Boolean>,
+    mainScreenViewModel: MainScreenViewModel,
+    onNavigateToLoginScreen: () -> Unit,
+    onNavigateToDetailsScreen: (Long) -> Unit,
 ) {
+    val shoppingListState by mainScreenViewModel.shoppingListStateFlow.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
-    val state by viewModel.shoppingListStateFlow.collectAsStateWithLifecycle()
-    var showBottomSheet by remember { mutableStateOf(false) }
     val bottomSheetState = rememberModalBottomSheetState()
-    var selectedList by rememberSaveable(stateSaver = listItemSaver) { mutableStateOf(null) }
     val searchQuery = rememberSaveable { mutableStateOf("") }
+    val isSearchActive = rememberSaveable { mutableStateOf(false) }
+
+    var showBottomSheet by rememberSaveable { mutableStateOf(false) }
+    val showAddShoppingListDialog = rememberSaveable { mutableStateOf(false) }
+    val showRemoveAllShoppingListsDialog = rememberSaveable { mutableStateOf(false) }
     val showEditShoppingListDialog = rememberSaveable { mutableStateOf(false) }
     val showRemoveShoppingListDialog = rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(isSearchActive.value) {
+        if (!isSearchActive.value) {
+            searchQuery.value = ""
+            mainScreenViewModel.processIntent(ShoppingListIntent.ClearSearchResults)
+        }
+    }
 
     if (showBottomSheet) {
         IconsBottomSheet(
@@ -83,138 +99,186 @@ fun MainScreen(
                 }
             },
             onIconClick = { icon ->
-                selectedList?.let {
-                    /*selectedList =*/ viewModel.processIntent(ShoppingListIntent.UpdateShoppingList(list = it.copy(iconResId = icon)))
-                }
+               mainScreenViewModel.processIntent(ShoppingListIntent.UpdateShoppingList(list = shoppingListState.selectedList.copy(iconResId = icon)))
             },
         )
     }
 
-    Box(
-        Modifier.fillMaxWidth()
-    ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Search(
-                visible = isSearchActive.value,
-                searchQuery = searchQuery,
-                onBackClick = {
-                    isSearchActive.value = false
-                    searchQuery.value = ""
-                    viewModel.processIntent(ShoppingListIntent.ClearSearchResults)
-                },
-                onValueChange = { newValue ->
-                    searchQuery.value = newValue
-                    viewModel.processIntent(ShoppingListIntent.Search(searchQuery = searchQuery.value))
-                },
-                onBtnClearClick = {
-                    searchQuery.value = ""
-                    viewModel.processIntent(ShoppingListIntent.ClearSearchResults)
-                },
-            )
-            SearchShoppingList(
-                visible = isSearchActive.value
-                        && searchQuery.value.isNotEmpty()
-                        && state.status == ShoppingListState.Status.SEARCH_RESULTS,
-                state = state,
-                onItemClick = {
-                    //TO-DO
-                }
-            )
-            NoData(
-                visible = isSearchActive.value
-                        && searchQuery.value.isNotEmpty()
-                        && state.status == ShoppingListState.Status.NOTHING_FOUND,
-                modifier = Modifier.padding(top = 64.dp).fillMaxSize(),
-                image = R.drawable.nothing_found_light,
-                title = stringResource(R.string.nothing_found_title),
-                message = stringResource(R.string.nothing_found_message),
-            )
+    Scaffold(
+        topBar = {
+            if (!isSearchActive.value) {
 
-            Box {
-                ShoppingList(
-                    visible = state.status == ShoppingListState.Status.CONTENT,
-                    viewModel = viewModel,
-                    state = state,
-                    onItemClick = { list ->
-                        selectedList = list
-                        navController.navigate("${Routes.ProductsScreen.name}/${list.id}")
+                TopBar(
+                    darkTheme = shoppingListState.darkTheme,
+                    onSearchClick = { isSearchActive.value = true },
+                    onRemoveClick = {
+                        showRemoveAllShoppingListsDialog.value = true
                     },
-                    onIconClick = { list ->
-                        selectedList = list
-                        showBottomSheet = true
+                    onDarkModeClick = {
+                       mainScreenViewModel.processIntent(ShoppingListIntent.ChangeThemeSettings(!shoppingListState.darkTheme))
                     },
-                    onItemOpened = { list ->
-                        selectedList = list
+                    onLoginClick = onNavigateToLoginScreen,
+                    onLogoutClick = {
+                        mainScreenViewModel.processIntent(ShoppingListIntent.Logout)
                     },
-                    onRename = {
-                        showEditShoppingListDialog.value = true
-                    },
-                    onCopy = {
-                        selectedList?.let {
-                            viewModel.processIntent(ShoppingListIntent.AddShoppingList(name = it.name, icon = it.iconResId.toLong()))
-                        }
-                    },
-                    onStartRemove = {
-                        showRemoveShoppingListDialog.value = true
-                    },
-                    onFinishRemove = { id ->
-                        viewModel.processIntent(ShoppingListIntent.RemoveShoppingList(id = id))
-                    }
+                    isLoggedIn = shoppingListState.loggedIn
                 )
-                NoData(
-                    visible = state.status == ShoppingListState.Status.NO_SHOPPING_LISTS,
-                    image = SLTheme.images.noShoppingList,
-                    title = stringResource(R.string.no_shopping_lists_title),
-                    message = stringResource(R.string.no_shopping_lists_message),
-                )
-                ShoppingListDialog(
-                    visible = showAddShoppingListDialog.value,
-                    textStyle = MaterialTheme.typography.headlineSmall,
-                    topIcon = R.drawable.ic_add_shopping_list,
-                    title = stringResource(R.string.add_shopping_list),
-                    confirmText = stringResource(R.string.create),
-                    onDismiss = { showAddShoppingListDialog.value = false },
-                    onConfirm = { name ->
-                        viewModel.processIntent(ShoppingListIntent.AddShoppingList(name = name, icon = R.drawable.ic_list.toLong()))
-                    }
-                )
-                ShoppingListDialog(
-                    visible = showEditShoppingListDialog.value,
-                    modifier = Modifier.fillMaxWidth(),
-                    title = stringResource(R.string.edit_shopping_list),
-                    confirmText = stringResource(R.string.edit),
-                    text = selectedList?.name,
-                    onDismiss = { showEditShoppingListDialog.value = false },
-                    onConfirm = { name ->
-                        selectedList?.let {
-                            /*selectedList =*/ viewModel.processIntent(ShoppingListIntent.UpdateShoppingList(list = it.copy(name = name)))
-                        }
-                    }
-                )
-                RemoveShoppingListDialog(
-                    visible = showRemoveShoppingListDialog.value,
-                    title = "${stringResource(R.string.remove_shopping_list)} ${selectedList?.name}?",
-                    onDismiss = { showRemoveShoppingListDialog.value = false },
-                    onConfirm = {
-                        viewModel.processIntent(ShoppingListIntent.IsRemoving(true))
-                    }
-                )
-                RemoveShoppingListDialog(
-                    visible = showRemoveAllShoppingListsDialog.value,
-                    title = stringResource(R.string.remove_all_shopping_lists),
-                    onDismiss = { showRemoveAllShoppingListsDialog.value = false },
-                    onConfirm = {
-                        viewModel.processIntent(ShoppingListIntent.RemoveAllShoppingLists)
-                    }
-                )
-                Scrim(
+            }
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    showAddShoppingListDialog.value = true
+                },
+                shape = MaterialTheme.shapes.small,
+            ) {
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add))
+            }
+        }
+    ) { innerPadding ->
+
+        Box(
+            Modifier
+                .padding(innerPadding)
+                .fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Search(
                     visible = isSearchActive.value,
-                    isSearchActive = isSearchActive
+                    searchQuery = searchQuery,
+                    onBackClick = {
+                        isSearchActive.value = false
+                    },
+                    onValueChange = { newValue ->
+                        searchQuery.value = newValue
+                        mainScreenViewModel.processIntent(ShoppingListIntent.Search(searchQuery = searchQuery.value))
+                    },
+                    onBtnClearClick = {
+                        searchQuery.value = ""
+                        mainScreenViewModel.processIntent(ShoppingListIntent.ClearSearchResults)
+                    },
                 )
+                if (isSearchActive.value && searchQuery.value.isNotEmpty() && !shoppingListState.nothingFound) {
+                    SearchShoppingList(
+                        state = shoppingListState,
+                        onItemClick = { list ->
+                            isSearchActive.value = false
+                            onNavigateToDetailsScreen(list.id)
+                        }
+                    )
+                }
+                if (shoppingListState.nothingFound) {
+                    SLInfo(
+                        modifier = Modifier.padding(top = 64.dp).fillMaxSize(),
+                        image = R.drawable.nothing_found_light,
+                        title = stringResource(R.string.nothing_found_title),
+                        message = stringResource(R.string.nothing_found_message),
+                    )
+                }
+                Box {
+                    if (shoppingListState.content.isNotEmpty()) {
+                        ShoppingList(
+                            onIntent = { intent ->
+                                mainScreenViewModel.processIntent(intent)
+                            },
+                            action = mainScreenViewModel.action,
+                            state = shoppingListState,
+                            onItemClick = { list ->
+                                onNavigateToDetailsScreen(list.id)
+                            },
+                            onIconClick = { list ->
+                                mainScreenViewModel.processIntent(
+                                    ShoppingListIntent.SelectedList(
+                                        list
+                                    )
+                                )
+                                showBottomSheet = true
+                            },
+                            onRemove = {
+                                showRemoveShoppingListDialog.value = true
+                            },
+                            onRename = {
+                                showEditShoppingListDialog.value = true
+                            },
+                            onCopy = {
+                                shoppingListState.selectedList.also {
+                                    mainScreenViewModel.processIntent(
+                                        ShoppingListIntent.CopyShoppingList(
+                                            list = it
+                                        )
+                                    )
+                                }
+                            },
+                        )
+                    }
+                    if (shoppingListState.content.isEmpty()) {
+                        SLInfo(
+                            image = SLTheme.images.noShoppingList,
+                            title = stringResource(R.string.no_shopping_lists_title),
+                            message = stringResource(R.string.no_shopping_lists_message),
+                        )
+                    }
+                    ShoppingListDialog(
+                        visible = showAddShoppingListDialog.value,
+                        textStyle = MaterialTheme.typography.headlineSmall,
+                        topIcon = R.drawable.ic_add_shopping_list,
+                        title = stringResource(R.string.add_shopping_list),
+                        confirmText = stringResource(R.string.create),
+                        onDismiss = { showAddShoppingListDialog.value = false },
+                        onConfirm = { name ->
+                           mainScreenViewModel.processIntent(
+                                ShoppingListIntent.AddShoppingList(
+                                    name = name,
+                                    icon = R.drawable.ic_list.toLong()
+                                )
+                            )
+                        }
+                    )
+                    ShoppingListDialog(
+                        visible = showEditShoppingListDialog.value,
+                        modifier = Modifier.fillMaxWidth(),
+                        title = stringResource(R.string.edit_shopping_list),
+                        confirmText = stringResource(R.string.edit),
+                        text = shoppingListState.selectedList.name,
+                        onDismiss = { showEditShoppingListDialog.value = false },
+                        onConfirm = { name ->
+                           mainScreenViewModel.processIntent(
+                                ShoppingListIntent.UpdateShoppingList(
+                                    list = shoppingListState.selectedList.copy(
+                                        name = name
+                                    )
+                                )
+                            )
+                        }
+                    )
+                    RemoveShoppingListDialog(
+                        visible = showRemoveShoppingListDialog.value,
+                        title = stringResource(
+                            R.string.remove_shopping_list,
+                            shoppingListState.selectedList.name
+                        ),
+                        onDismiss = { showRemoveShoppingListDialog.value = false },
+                        onConfirm = {
+                           mainScreenViewModel.processIntent(BaseIntent.QueryRemoveShoppingList)
+                        }
+                    )
+                    RemoveShoppingListDialog(
+                        visible = showRemoveAllShoppingListsDialog.value,
+                        title = stringResource(R.string.remove_all_shopping_lists),
+                        onDismiss = { showRemoveAllShoppingListsDialog.value = false },
+                        onConfirm = {
+                           mainScreenViewModel.processIntent(ShoppingListIntent.RemoveAllShoppingLists)
+                        }
+                    )
+                    Scrim(
+                        visible = isSearchActive.value,
+                        isSearchActive = isSearchActive
+                    )
+                }
             }
         }
     }
@@ -239,52 +303,47 @@ fun Scrim(
 
 @Composable
 fun ShoppingList(
-    visible: Boolean,
-    viewModel: MainScreenViewModel,
+    onIntent: (ShoppingListIntent) -> Unit,
+    action: SharedFlow<ListAction>,
     state: ShoppingListState,
     onItemClick: (ListItem) -> Unit,
     onIconClick: (ListItem) -> Unit = {},
-    onItemOpened: (ListItem) -> Unit,
+    onRemove: () -> Unit,
     onRename: () -> Unit = {},
     onCopy: () -> Unit = {},
-    onStartRemove: () -> Unit,
-    onFinishRemove: (Long) -> Unit,
 ) {
-    if (!visible) return
-
-    val items = when(state.status) {
-        ShoppingListState.Status.CONTENT -> state.content
-        else -> null
-    }
-
-    if (items == null) return
-
-    var openList by remember { mutableStateOf<ListItem?>(null) }
+    val items = state.content
+    val openList = remember { mutableStateOf<BaseItem?>(null) }
 
     LazyColumn(
-        modifier = Modifier.padding(horizontal = dimensionResource(R.dimen.padding_8x))
+        modifier = Modifier
+            .padding(top = dimensionResource(R.dimen.padding_4x))
             .fillMaxSize(),
     ) {
         items(items, key = { it.id }) { item ->
             ItemList(
-                viewModel = viewModel,
-                list = item,
+                onIntent = { intent ->
+                    onIntent(intent)
+                },
+                action = action,
+                item = item,
                 openList = openList,
                 onItemClick = {
-                    onItemClick(item)
-                    openList = null
+                    if (openList.value?.id != item.id) {
+                        onItemClick(item)
+                    }
+                    openList.value = null
                 },
                 onIconClick = { onIconClick(item) },
-                onItemOpened = { list ->
-                    openList = list
-                    onItemOpened(list)
+                onItemOpened = {
+                    openList.value = item
+                    onIntent(ShoppingListIntent.SelectedList(item))
 
                 },
-                onItemClosed = { if (openList?.id == item.id) openList = null },
+                onItemClosed = { if (openList.value?.id == item.id) openList.value = null },
+                onRemove = onRemove,
                 onRename = onRename,
                 onCopy = onCopy,
-                onStartRemove = onStartRemove,
-                onFinishRemove = { onFinishRemove(item.id) },
             )
         }
     }
@@ -292,18 +351,10 @@ fun ShoppingList(
 
 @Composable
 fun SearchShoppingList(
-    visible: Boolean,
     state: ShoppingListState,
-    onItemClick: () -> Unit,
+    onItemClick: (ListItem) -> Unit,
 ) {
-    if (!visible) return
-
-    val items = when(state.status) {
-        ShoppingListState.Status.SEARCH_RESULTS -> state.results
-        else -> null
-    }
-
-    if (items == null) return
+    val items = state.results
 
     LazyColumn(
         modifier = Modifier
@@ -313,43 +364,9 @@ fun SearchShoppingList(
         items(items) { item ->
             ItemListSearch(
                 list = item,
-                onItemClick = { onItemClick() },
+                onItemClick = { onItemClick(item) },
             )
         }
-    }
-}
-
-@Composable
-fun NoData(
-    visible: Boolean,
-    modifier: Modifier = Modifier,
-    image: Int,
-    title: String,
-    message: String,
-) {
-    if (!visible) return
-
-    Column(
-        modifier,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Image(
-            alignment = Alignment.Center,
-            painter = painterResource(id = image),
-            contentDescription = null,
-        )
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = dimensionResource(R.dimen.padding_image)),
-        )
-        Text(
-            text = message,
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = dimensionResource(R.dimen.padding_4x)),
-        )
     }
 }
 
@@ -368,11 +385,7 @@ fun ShoppingListDialog(
     if (!visible) return
 
     var shoppingListName by remember {
-        mutableStateOf(
-            text?.let {
-                text
-            } ?: ""
-        )
+        mutableStateOf(text ?: "")
     }
     val focusRequester = remember { FocusRequester() }
 
@@ -461,5 +474,58 @@ fun RemoveShoppingListDialog(
                 Text(stringResource(R.string.remove))
             }
         },
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TopBar(
+    darkTheme: Boolean,
+    isLoggedIn: Boolean,
+    onSearchClick: () -> Unit = {},
+    onRemoveClick: () -> Unit = {},
+    onDarkModeClick: () -> Unit = {},
+    onLoginClick: () -> Unit = {},
+    onLogoutClick: () -> Unit = {},
+) {
+
+    TopAppBar(
+        title = {
+            Text(stringResource(R.string.main_screen_title))
+        },
+        actions = {
+            IconButton(onClick = onSearchClick) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_search),
+                    contentDescription = stringResource(R.string.search)
+                )
+            }
+            IconButton(onClick = onRemoveClick) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_remove),
+                    contentDescription = stringResource(R.string.remove)
+                )
+            }
+            IconButton(onClick = onDarkModeClick) {
+                Icon(
+                    painter = if (darkTheme) {
+                        painterResource(id = R.drawable.ic_light_theme)
+                    } else {
+                        painterResource(id = R.drawable.ic_dark_mode)
+                    },
+                    contentDescription = stringResource(R.string.dark_mode)
+                )
+            }
+            
+            if (!isLoggedIn) {
+                Button(onClick = onLoginClick) {
+                    Text(stringResource(R.string.login))
+                }
+            } else {
+                Button(onClick = onLogoutClick) {
+                    Text(stringResource(R.string.logout))
+                }
+            }
+        }
     )
 }

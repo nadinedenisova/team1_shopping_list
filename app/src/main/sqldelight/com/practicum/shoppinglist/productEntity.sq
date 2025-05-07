@@ -1,4 +1,4 @@
-CREATE TABLE productEntity (
+CREATE TABLE IF NOT EXISTS productEntity (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     unit TEXT NOT NULL,
@@ -23,12 +23,12 @@ update:
     WHERE id = :id;
 
 getById:
-    SELECT *
+    SELECT productEntity.id, productEntity.name, productEntity.unit, productEntity.count, productEntity.completed
     FROM productEntity
     WHERE productEntity.id = :id;
 
 getAllByListId:
-    SELECT productEntity.*
+    SELECT productEntity.id, productEntity.name, productEntity.unit, productEntity.count, productEntity.completed
     FROM productEntity INNER JOIN listAndProductEntity
     WHERE listAndProductEntity.product_id = productEntity.id AND listAndProductEntity.list_id = :id;
 
@@ -38,4 +38,20 @@ deleteById {
 
     DELETE FROM listAndProductEntity
     WHERE listAndProductEntity.product_id = :id;
+}
+
+deleteAllByListId {
+    DELETE FROM productEntity
+    WHERE id IN (SELECT listAndProductEntity.product_id FROM listAndProductEntity WHERE listAndProductEntity.list_id = :id);
+
+    DELETE FROM listAndProductEntity
+    WHERE listAndProductEntity.list_id = :id;
+}
+
+deleteAllCompletedByListId {
+    DELETE FROM productEntity
+    WHERE completed = 1 AND id IN (SELECT listAndProductEntity.product_id FROM listAndProductEntity WHERE listAndProductEntity.list_id = :id);
+
+    DELETE FROM listAndProductEntity
+    WHERE listAndProductEntity.product_id NOT IN (SELECT productEntity.id FROM productEntity);
 }
