@@ -4,13 +4,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -66,16 +64,18 @@ fun IconsBottomSheet(
         ),
         modifier = Modifier
             .padding(horizontal = dimensionResource(R.dimen.padding_3x))
-            .windowInsetsPadding(WindowInsets.navigationBars)
     ) {
         Box(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
+                .wrapContentHeight()
                 .align(Alignment.CenterHorizontally),
         ) {
             LazyVerticalGrid(
                 columns = GridCells.Fixed(5),
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight(),
                 contentPadding = PaddingValues(48.dp),
                 horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_10x)),
                 verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_10x))

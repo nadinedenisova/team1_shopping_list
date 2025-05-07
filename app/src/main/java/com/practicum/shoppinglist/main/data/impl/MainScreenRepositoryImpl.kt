@@ -6,6 +6,7 @@ import com.practicum.shoppinglist.core.data.mapper.toListItem
 import com.practicum.shoppinglist.core.domain.models.ListItem
 import com.practicum.shoppinglist.main.domain.api.MainScreenRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
@@ -35,10 +36,9 @@ class MainScreenRepositoryImpl @Inject constructor(
 
     override suspend fun copyShoppingList(list: ListItem) {
         val listId = dataSource.insertList(list.name, list.iconResId.toLong())
-        dataSource.getProductsByListId(list.id).collect { products ->
-            products.forEach { product ->
-                dataSource.insertProduct(listId, product)
-            }
+        val products = dataSource.getProductsByListId(list.id).first()
+        products.forEach { product ->
+            dataSource.insertProduct(listId, product)
         }
     }
 
