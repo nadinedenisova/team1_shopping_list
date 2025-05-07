@@ -1,4 +1,4 @@
-package com.practicum.shoppinglist.core.presentation.ui
+package com.practicum.shoppinglist.core.presentation.ui.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
@@ -16,15 +16,12 @@ import com.practicum.shoppinglist.R
 
 @Stable
 @Composable
-fun Information(
-    visible: Boolean,
+fun SLInfo(
     modifier: Modifier = Modifier,
     image: Int,
     title: String,
     message: String,
 ) {
-    if (!visible) return
-
     Column(
         modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
