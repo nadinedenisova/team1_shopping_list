@@ -3,6 +3,7 @@ package com.practicum.shoppinglist.di
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.practicum.shoppinglist.auth.viewmodel.LoginScreenViewModel
+import com.practicum.shoppinglist.auth.viewmodel.RecoveryScreenViewModel
 import com.practicum.shoppinglist.auth.viewmodel.RegistrationScreenViewModel
 import com.practicum.shoppinglist.core.presentation.ui.FabViewModel
 import com.practicum.shoppinglist.details.presentation.viewmodel.DetailsViewModel
@@ -38,6 +39,13 @@ abstract class ViewModelModule {
     @ViewModelKey(LoginScreenViewModel::class)
     abstract fun bindLoginScreenViewModel(
         registrationViewModel: LoginScreenViewModel,
+    ): ViewModel
+
+    @Binds
+    @IntoMap
+    @ViewModelKey(RecoveryScreenViewModel::class)
+    abstract fun bindRecoveryScreenViewModel(
+        recoveryScreenViewModel: RecoveryScreenViewModel,
     ): ViewModel
 
     @Binds
