@@ -46,10 +46,9 @@
 - Внедрение и настройка ktor
 - Внедрение и настройка detekt
 
-Ссылки:
+Ссылка:
 
-- https://disk.yandex.kz/i/sYGCS3bcuRX3vA
-- https://disk.yandex.kz/i/7UDgUWaL0WCPzA
+- https://disk.yandex.kz/i/ag_PXAMuUB-D6A
 
 ## **Андрей [![Платформа](https://img.shields.io/badge/github-gray)](https://github.com/Xaxaido)**
 - Экраны: главный экран приложения (ui, data, domain)
