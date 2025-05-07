@@ -1,30 +1,27 @@
-# shopping_list_android_app
+# Shopping List [![Платформа](https://img.shields.io/badge/Android-10%2B-green)]()
 
+Приложение для составления списка покупок и отслеживание прогресса.
 
-# Detekt
+//скрины из приложения
 
-In case if you face with issue :
-permission denied: ./gradlew
+## :sparkles: Особенности :sparkles:
 
-Run command
+-   Динамическая M3 тема
+-   Поддержка темной темы
+-   Создание списка покупок с возможностью дублирования
+-   Поиск по спискам
+-	Иконки списков
+-	Пользовательская сортировка списка продуктов
+-	Регистрация/логин? сохранение в облаке?
 
-```
- chmod +x gradlew
-```
+## :wrench: Стек :wrench:
 
-To check lint issues
+-   **UI**: Jetpack Compose + MVI
+-   **DB**: SQDelight
+-   **DI**: Dagger 2
+-   **Network**: Ktor
 
-```
-./gradlew detekt
-```
-Or use
-
-```
-bash gradlew detekt
-```
-
-In folder `build/reports/detekt/detekt.html`
-
-Report details will be located
-
-In gradle tasks `detekt` is located under `verification` task
+## :v: Команда проекта :v:
+- **[Анастасия](https://github.com/nst-personal)**
+- **[Андрей](https://github.com/Xaxaido)**
+- **[Эдуард](https://github.com/Veetver)**
