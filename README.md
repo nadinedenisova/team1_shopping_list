@@ -46,6 +46,10 @@
 - Внедрение и настройка ktor
 - Внедрение и настройка detekt
 
+Ссылка:
+
+- https://disk.yandex.kz/i/ag_PXAMuUB-D6A
+
 ## **Андрей [![Платформа](https://img.shields.io/badge/github-gray)](https://github.com/Xaxaido)**
 - Экраны: главный экран приложения (ui, data, domain)
 - Настройка навигации
