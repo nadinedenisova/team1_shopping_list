@@ -376,6 +376,7 @@ fun DetailsScreenUI(
             Column(
                 modifier = modifier
                     .padding(innerPadding)
+                    .fillMaxWidth()
                     .padding(horizontal = 40.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
