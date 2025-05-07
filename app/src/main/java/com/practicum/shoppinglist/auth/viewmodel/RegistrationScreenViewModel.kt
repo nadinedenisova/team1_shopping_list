@@ -21,10 +21,6 @@ class RegistrationScreenViewModel @Inject constructor(
     private val registrationUseCase: RegistrationUseCase,
 ) : ViewModel() {
 
-    private companion object {
-        const val TAG = "RegistrationScreenViewModel"
-    }
-
     private val _registrationStateFlow = MutableStateFlow(default())
     val registrationStateFlow: StateFlow<AuthState> = _registrationStateFlow.asStateFlow()
 
@@ -66,11 +62,12 @@ class RegistrationScreenViewModel @Inject constructor(
         }
     }
 
-    fun processIntent(intent: BaseIntent) {
-        when (intent) {
-            is AuthIntent.Registration -> handleRegistration(email = intent.email, password = intent.password)
-            else -> {}
-        }
+    fun processRegistration(intent: AuthIntent.Registration) {
+        handleRegistration(email = intent.email, password = intent.password)
+    }
+
+    private companion object {
+        const val TAG = "RegistrationScreenViewModel"
     }
 
 }

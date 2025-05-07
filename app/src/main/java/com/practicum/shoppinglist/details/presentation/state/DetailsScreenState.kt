@@ -12,7 +12,6 @@ data class DetailsScreenState(
     val productMenuList: List<String> = emptyList(),
     val product: ProductItem = ProductItem(),
     val sortOrderMode: ProductSortOrder = ProductSortOrder.Default,
-    val sortOrder: Map<Long, Long> = emptyMap()
 ) {
     companion object {
         fun DetailsScreenState.editProduct(product: ProductItem) = this.copy(product = product)

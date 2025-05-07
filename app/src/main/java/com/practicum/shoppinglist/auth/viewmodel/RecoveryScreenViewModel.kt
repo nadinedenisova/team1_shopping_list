@@ -7,9 +7,8 @@ import com.practicum.shoppinglist.BuildConfig
 import com.practicum.shoppinglist.common.resources.AuthIntent
 import com.practicum.shoppinglist.common.resources.AuthState
 import com.practicum.shoppinglist.common.resources.AuthState.Companion.default
-import com.practicum.shoppinglist.common.resources.BaseIntent
 import com.practicum.shoppinglist.core.domain.models.network.Result
-import com.practicum.shoppinglist.main.domain.impl.LoginUseCase
+import com.practicum.shoppinglist.main.domain.impl.RecoveryUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,40 +17,36 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-class LoginScreenViewModel @Inject constructor(
-    private val loginUseCase: LoginUseCase,
+class RecoveryScreenViewModel @Inject constructor(
+    private val recoveryUseCase: RecoveryUseCase,
 ) : ViewModel() {
 
-    private val _loginStateFlow = MutableStateFlow(default())
-    val loginStateFlow: StateFlow<AuthState> = _loginStateFlow.asStateFlow()
+    private val _recoveryStateFlow = MutableStateFlow(default())
+    val recoveryStateFlow: StateFlow<AuthState> = _recoveryStateFlow.asStateFlow()
 
-    init {
-        resetMode()
-    }
-
-    fun resetMode() {
+    fun reset() {
         viewModelScope.launch(Dispatchers.IO) {
             runCatching {
-                _loginStateFlow.update {
+                _recoveryStateFlow.update {
                     AuthState(AuthState.Status.DEFAULT)
                 }
             }
         }
     }
 
-    private fun handleLogin(email: String, password: String) {
+    private fun handleRecovery(email: String) {
         viewModelScope.launch(Dispatchers.IO) {
             runCatching {
-                _loginStateFlow.update {
+                _recoveryStateFlow.update {
                     AuthState(AuthState.Status.IN_PROGRESS)
                 }
-                loginUseCase(email, password).collect { response ->
+                recoveryUseCase(email).collect { response ->
                     if (response is Result.Success) {
-                        _loginStateFlow.update {
-                            AuthState(AuthState.Status.LOGIN)
+                        _recoveryStateFlow.update {
+                            AuthState(AuthState.Status.RECOVERED)
                         }
                     } else {
-                        _loginStateFlow.update {
+                        _recoveryStateFlow.update {
                             AuthState(AuthState.Status.ERROR)
                         }
                     }
@@ -60,17 +55,17 @@ class LoginScreenViewModel @Inject constructor(
                 if (BuildConfig.DEBUG) {
                     Log.e(TAG, "error in login -> $error")
                 }
-                _loginStateFlow.emit(AuthState(AuthState.Status.ERROR))
+                _recoveryStateFlow.emit(AuthState(AuthState.Status.ERROR))
             }
         }
     }
 
-    fun handleLogin(intent: AuthIntent.Login) {
-        handleLogin(email = intent.email, password = intent.password)
+    fun handleRecovery(intent: AuthIntent.Recovery) {
+        handleRecovery(email = intent.email)
     }
 
     private companion object {
-        const val TAG = "LoginScreenViewModel"
+        const val TAG = "RecoveryScreenViewModel"
     }
 
 }
