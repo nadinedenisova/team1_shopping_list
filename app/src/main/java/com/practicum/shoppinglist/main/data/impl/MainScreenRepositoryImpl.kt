@@ -33,6 +33,16 @@ class MainScreenRepositoryImpl @Inject constructor(
         dataSource.insertList(name, icon)
     }
 
+    override suspend fun copyShoppingList(list: ListItem) {
+        val listId = dataSource.insertList(list.name, list.iconResId.toLong())
+        dataSource.getProductsByListId(list.id).collect { products ->
+            products.forEach { product ->
+                dataSource.insertProduct(listId, product)
+            }
+        }
+    }
+
+
     override suspend fun removeShoppingList(id: Long) {
         dataSource.deleteListById(id)
     }

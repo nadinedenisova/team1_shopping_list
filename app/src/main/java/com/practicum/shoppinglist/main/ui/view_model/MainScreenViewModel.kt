@@ -3,14 +3,15 @@ package com.practicum.shoppinglist.main.ui.view_model
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.practicum.shoppinglist.common.resources.AuthIntent
 import com.practicum.shoppinglist.common.resources.BaseIntent
 import com.practicum.shoppinglist.common.resources.ListAction
 import com.practicum.shoppinglist.common.resources.ShoppingListIntent
 import com.practicum.shoppinglist.common.resources.ShoppingListState
+import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.clearSearchResults
 import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.content
 import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.darkTheme
-import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.default
-import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.noShoppingLists
+import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.loggedIn
 import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.nothingFound
 import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.searchResults
 import com.practicum.shoppinglist.common.resources.ShoppingListState.Companion.selectedList
@@ -19,6 +20,7 @@ import com.practicum.shoppinglist.common.utils.Debounce
 import com.practicum.shoppinglist.core.domain.models.ListItem
 import com.practicum.shoppinglist.main.domain.impl.AddShoppingListUseCase
 import com.practicum.shoppinglist.main.domain.impl.ChangeThemeSettingsUseCase
+import com.practicum.shoppinglist.main.domain.impl.CopyShoppingListUseCase
 import com.practicum.shoppinglist.main.domain.impl.GetThemeSettingsUseCase
 import com.practicum.shoppinglist.main.domain.impl.IsUserLoggedInUseCase
 import com.practicum.shoppinglist.main.domain.impl.LogoutUseCase
@@ -36,12 +38,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class MainScreenViewModel @Inject constructor(
     private val showShoppingListsUseCase: ShowShoppingListsUseCase,
     private val showShoppingListByNameUseCase: ShowShoppingListByNameUseCase,
     private val addShoppingListsUseCase: AddShoppingListUseCase,
+    private val copyShoppingListsUseCase: CopyShoppingListUseCase,
     private val updateShoppingListsUseCase: UpdateShoppingListUseCase,
     private val removeShoppingListUseCase: RemoveShoppingListUseCase,
     private val removeAllShoppingListsUseCase: RemoveAllShoppingListsUseCase,
@@ -56,27 +60,7 @@ class MainScreenViewModel @Inject constructor(
         const val TAG = "MainScreenViewModel"
     }
 
-    private val _isLoggedIn = MutableStateFlow(false)
-    val isLoggedIn: StateFlow<Boolean> = _isLoggedIn
-
-    fun checkLoginStatus() {
-        val isLoggedIn = isUserLoggedInUseCase()
-        _isLoggedIn.value = isLoggedIn
-        if (isLoggedIn) {
-            validateToken()
-        }
-    }
-
-    private fun validateToken() {
-        viewModelScope.launch {
-            val valid = tokenValidationUseCase()
-            if (!valid) {
-                logout()
-            }
-        }
-    }
-
-    private val _shoppingListStateFlow = MutableStateFlow(default())
+    private val _shoppingListStateFlow = MutableStateFlow(ShoppingListState())
     val shoppingListStateFlow: StateFlow<ShoppingListState> = _shoppingListStateFlow.asStateFlow()
 
     private val _action = MutableSharedFlow<ListAction>()
@@ -94,14 +78,10 @@ class MainScreenViewModel @Inject constructor(
         processIntent(ShoppingListIntent.GetThemeSettings)
     }
 
-    fun logout() {
-        logoutUseCase()
-        checkLoginStatus()
-    }
-
     fun processIntent(intent: ShoppingListIntent) {
         when (intent) {
             is ShoppingListIntent.AddShoppingList -> addShoppingList(name = intent.name, icon = intent.icon)
+            is ShoppingListIntent.CopyShoppingList -> copyShoppingList(list = intent.list)
             is ShoppingListIntent.UpdateShoppingList -> updateShoppingList(list = intent.list)
             is BaseIntent.RemoveListItem -> removeShoppingList(id = intent.id)
             is BaseIntent.QueryRemoveShoppingList -> viewModelScope.launch {
@@ -113,29 +93,62 @@ class MainScreenViewModel @Inject constructor(
             is ShoppingListIntent.ChangeThemeSettings -> changeThemeSettings(intent.darkTheme)
             is ShoppingListIntent.GetThemeSettings -> getThemeSettings()
             is ShoppingListIntent.ClearSearchResults -> clearSearchResults()
-            ShoppingListIntent.Logout -> { logoutUseCase() }
+            is ShoppingListIntent.Logout -> logout()
+            is AuthIntent.Login -> TODO()
+            is AuthIntent.Registration -> TODO()
+            is AuthIntent.RestorePassword -> TODO()
         }
     }
 
-    private fun getThemeSettings() {
-        _shoppingListStateFlow.update { currentState ->
-            currentState.darkTheme(darkTheme = getThemeSettingsUseCase())
+    private fun checkLoginStatus() {
+        val loggedIn = isUserLoggedInUseCase()
+
+        updateState(_shoppingListStateFlow.value.loggedIn(loggedIn = loggedIn))
+
+        if (loggedIn) {
+            validateToken()
         }
+    }
+
+    private fun validateToken() {
+        viewModelScope.launch {
+            val valid = tokenValidationUseCase()
+            if (!valid) {
+                logout()
+            }
+        }
+    }
+
+    private fun logout() {
+        logoutUseCase()
+        checkLoginStatus()
+    }
+
+    private fun getThemeSettings() {
+        updateState(_shoppingListStateFlow.value.darkTheme(darkTheme = getThemeSettingsUseCase()))
     }
 
     private fun changeThemeSettings(darkTheme: Boolean) {
         changeThemeSettingsUseCase(darkTheme)
-        _shoppingListStateFlow.update { currentState ->
-            currentState.darkTheme(darkTheme = darkTheme)
-        }
+        updateState(_shoppingListStateFlow.value.darkTheme(darkTheme = darkTheme))
     }
 
     private fun addShoppingList(name: String, icon: Long) {
         viewModelScope.launch(Dispatchers.IO) {
             runCatching {
-                addShoppingListsUseCase(name, icon)
+                addShoppingListsUseCase(name = name, icon = icon)
             }.onFailure { error ->
                 Log.e(TAG, "error in add shopping list -> $error")
+            }
+        }
+    }
+
+    private fun copyShoppingList(list: ListItem) {
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                copyShoppingListsUseCase(list)
+            }.onFailure { error ->
+                Log.e(TAG, "error in copy shopping list -> $error")
             }
         }
     }
@@ -172,19 +185,16 @@ class MainScreenViewModel @Inject constructor(
     }
 
     private fun search(searchQuery: String) {
+        clearSearchResults()
         timer.start(parameter = searchQuery)
     }
 
     private fun selectedList(selectedList: ListItem) {
-        _shoppingListStateFlow.update { currentState ->
-            currentState.selectedList(selectedList)
-        }
+        updateState(_shoppingListStateFlow.value.selectedList(selectedList))
     }
 
     private fun clearSearchResults() {
-        _shoppingListStateFlow.update { currentState ->
-            currentState.content()
-        }
+        updateState(_shoppingListStateFlow.value.clearSearchResults())
     }
 
     private fun doSearch(searchQuery: String?) {
@@ -194,7 +204,9 @@ class MainScreenViewModel @Inject constructor(
             runCatching {
                 showShoppingListByNameUseCase(searchQuery)
                     .collect { results ->
-                        processSearchResult(searchQuery = searchQuery, results = results)
+                        withContext(Dispatchers.Main) {
+                            processSearchResult(searchQuery = searchQuery, results = results)
+                        }
                     }
             }.onFailure { error ->
                 Log.e(TAG, "error in search shopping list -> $error")
@@ -203,12 +215,12 @@ class MainScreenViewModel @Inject constructor(
     }
 
     private fun processSearchResult(searchQuery: String, results: List<ListItem>) {
-        _shoppingListStateFlow.update { currentState ->
+        updateState(
             when {
-                results.isNotEmpty() -> currentState.searchResults(searchQuery = searchQuery, results = results)
-                else -> currentState.nothingFound(searchQuery)
+                results.isNotEmpty() -> _shoppingListStateFlow.value.searchResults(searchQuery = searchQuery, results = results)
+                else -> _shoppingListStateFlow.value.nothingFound()
             }
-        }
+        )
     }
 
     private fun observeShoppingLists() {
@@ -216,7 +228,9 @@ class MainScreenViewModel @Inject constructor(
             runCatching {
                 showShoppingListsUseCase()
                     .collect {
-                        processObserveShoppingListsResult(it)
+                        withContext(Dispatchers.Main) {
+                            processObserveShoppingListsResult(it)
+                        }
                     }
             }.onFailure { error ->
                 Log.e(TAG, "error in show shopping list -> $error")
@@ -225,11 +239,12 @@ class MainScreenViewModel @Inject constructor(
     }
 
     private fun processObserveShoppingListsResult(list: List<ListItem>) {
-        _shoppingListStateFlow.update { currentState ->
-            when {
-                list.isNotEmpty() -> currentState.content(list)
-                else -> currentState.noShoppingLists()
-            }
+        updateState(_shoppingListStateFlow.value.content(list).clearSearchResults())
+    }
+
+    private fun updateState(state: ShoppingListState) {
+        _shoppingListStateFlow.update {
+            state
         }
     }
 }
