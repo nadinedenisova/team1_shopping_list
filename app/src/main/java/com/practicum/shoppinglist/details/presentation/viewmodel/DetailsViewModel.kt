@@ -45,6 +45,7 @@ class DetailsViewModel @Inject constructor(
     private val addItemOrderUseCase: AddItemOrderUseCase,
     private val searchProductHintUseCase: SearchProductHintUseCase,
 ) : ViewModel() {
+
     private var _state: MutableStateFlow<DetailsScreenState> =
         MutableStateFlow(DetailsScreenState())
     val state: StateFlow<DetailsScreenState>

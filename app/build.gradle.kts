@@ -54,8 +54,10 @@ dependencies {
     ksp(libs.dagger.compiler)
 
     implementation(libs.androidx.core.ktx)
-
     implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.adaptive)
+    implementation(libs.androidx.adaptive.layout)
+    implementation(libs.androidx.adaptive.navigation)
 
     // Material Design 3
     implementation(libs.androidx.material3)
