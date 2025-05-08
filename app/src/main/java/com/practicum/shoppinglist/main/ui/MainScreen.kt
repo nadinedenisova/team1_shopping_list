@@ -44,6 +44,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.practicum.shoppinglist.R
@@ -66,7 +67,8 @@ import kotlinx.coroutines.launch
 fun MainScreen(
     mainScreenViewModel: MainScreenViewModel,
     onNavigateToLoginScreen: () -> Unit,
-    onNavigateToDetailsScreen: (Long) -> Unit,
+    onNavigateToDetailsScreen: (Long) -> Unit = {},
+    onItemClick: (Long) -> Unit = {},
 ) {
     val shoppingListState by mainScreenViewModel.shoppingListStateFlow.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
@@ -106,24 +108,21 @@ fun MainScreen(
 
     Scaffold(
         topBar = {
-            if (!isSearchActive.value) {
-
-                TopBar(
-                    darkTheme = shoppingListState.darkTheme,
-                    onSearchClick = { isSearchActive.value = true },
-                    onRemoveClick = {
-                        showRemoveAllShoppingListsDialog.value = true
-                    },
-                    onDarkModeClick = {
-                       mainScreenViewModel.processIntent(ShoppingListIntent.ChangeThemeSettings(!shoppingListState.darkTheme))
-                    },
-                    onLoginClick = onNavigateToLoginScreen,
-                    onLogoutClick = {
-                        mainScreenViewModel.processIntent(ShoppingListIntent.Logout)
-                    },
-                    isLoggedIn = shoppingListState.loggedIn
-                )
-            }
+            TopBar(
+                darkTheme = shoppingListState.darkTheme,
+                onSearchClick = { isSearchActive.value = true },
+                onRemoveClick = {
+                    showRemoveAllShoppingListsDialog.value = true
+                },
+                onDarkModeClick = {
+                   mainScreenViewModel.processIntent(ShoppingListIntent.ChangeThemeSettings(!shoppingListState.darkTheme))
+                },
+                onLoginClick = onNavigateToLoginScreen,
+                onLogoutClick = {
+                    mainScreenViewModel.processIntent(ShoppingListIntent.Logout)
+                },
+                isLoggedIn = shoppingListState.loggedIn
+            )
         },
         floatingActionButton = {
             FloatingActionButton(
@@ -188,7 +187,7 @@ fun MainScreen(
                             action = mainScreenViewModel.action,
                             state = shoppingListState,
                             onItemClick = { list ->
-                                onNavigateToDetailsScreen(list.id)
+                                onItemClick(list.id)
                             },
                             onIconClick = { list ->
                                 mainScreenViewModel.processIntent(
@@ -491,7 +490,12 @@ fun TopBar(
 
     TopAppBar(
         title = {
-            Text(stringResource(R.string.main_screen_title))
+            Text(
+                text = stringResource(R.string.main_screen_title),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+
+            )
         },
         actions = {
             IconButton(onClick = onSearchClick) {

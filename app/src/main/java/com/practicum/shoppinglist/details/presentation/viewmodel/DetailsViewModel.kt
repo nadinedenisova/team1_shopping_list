@@ -2,7 +2,6 @@ package com.practicum.shoppinglist.details.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.practicum.shoppinglist.common.resources.AuthIntent
 import com.practicum.shoppinglist.common.resources.BaseIntent
 import com.practicum.shoppinglist.common.resources.DetailsScreenIntent
 import com.practicum.shoppinglist.common.resources.ListAction
@@ -40,6 +39,7 @@ class DetailsViewModel @Inject constructor(
     private val getProductSortOrderUseCase: GetProductSortOrderUseCase,
     private val addItemOrderUseCase: AddItemOrderUseCase,
 ) : ViewModel() {
+
     private var _state: MutableStateFlow<DetailsScreenState> =
         MutableStateFlow(DetailsScreenState())
     val state: StateFlow<DetailsScreenState>

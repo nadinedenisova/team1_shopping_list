@@ -16,18 +16,20 @@ import com.practicum.shoppinglist.R
 @Composable
 fun TopBarDetailsScreen(
     onMenuClick: () -> Unit = {},
-    onBackClick: () -> Unit = {},
+    onBackClick: (() -> Unit)? = null,
 ) {
     TopAppBar(
         title = {
             Text(stringResource(R.string.products_screen_title))
         },
         navigationIcon = {
-            IconButton(onClick = onBackClick) {
-                Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = ""
-                )
+            onBackClick?.let {
+                IconButton(onClick = it) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = ""
+                    )
+                }
             }
         },
         actions = {
