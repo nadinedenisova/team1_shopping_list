@@ -14,10 +14,10 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
@@ -35,11 +35,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -65,6 +65,7 @@ import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.core.text.isDigitsOnly
 import com.practicum.shoppinglist.App
 import com.practicum.shoppinglist.R
@@ -119,12 +120,38 @@ fun DetailsScreen(
     }
     val showMenuBottomSheet = rememberSaveable { mutableStateOf(false) }
     val showBottomSheet = rememberSaveable { mutableStateOf(false) }
+    val density = LocalDensity.current
     val scaffoldState = rememberBottomSheetScaffoldState(
-        bottomSheetState = rememberStandardBottomSheetState(
+        bottomSheetState = remember {
+            SheetState(
+                initialValue = SheetValue.Hidden,
+                skipHiddenState = false,
+                skipPartiallyExpanded = true,
+                confirmValueChange = { sheetValue ->
+                    if (sheetValue == SheetValue.Hidden) {
+                        showBottomSheet.value = false
+                        fabViewModel.onIntent(FabIntent.CloseDetailsBottomSheet)
+                    }
+                    true
+                },
+                density = density
+            )
+        }
+    )
+
+    /*
+    rememberStandardBottomSheetState(
             initialValue = SheetValue.Hidden,
             skipHiddenState = false,
+            confirmValueChange = { sheetValue ->
+                if (sheetValue == SheetValue.Hidden) {
+                    showBottomSheet.value = false
+                    fabViewModel.onIntent(FabIntent.CloseDetailsBottomSheet)
+                }
+                true
+            }
         )
-    )
+    * */
 
     LaunchedEffect(showBottomSheet.value) {
         scope.launch {
@@ -132,7 +159,6 @@ fun DetailsScreen(
                 scaffoldState.bottomSheetState.show()
             } else {
                 scaffoldState.bottomSheetState.hide()
-                fabViewModel.onIntent(FabIntent.CloseDetailsBottomSheet)
             }
         }
     }
@@ -218,20 +244,36 @@ fun DetailsScreenUI(
         onIntent(DetailsScreenIntent.UpdateManualSortOrder(fromIndex, toIndex))
     }
 
-    val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-
     BottomSheetScaffold(
         topBar = {
+            if (fabState.isOpenDetailsBottomSheetState != null) {
+                val height = WindowInsets.statusBars.asPaddingValues()
+
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(height.calculateTopPadding() + 64.dp)
+                        .background(Color.Black.copy(alpha = .32f))
+                        .clickable(
+                            interactionSource = null,
+                            indication = null,
+                        ) {
+                            showBottomSheet.value = false
+                            onFabIntent(FabIntent.CloseDetailsBottomSheet)
+                            keyboardController?.hide()
+                        }
+                        .zIndex(Float.MAX_VALUE)
+                )
+            }
+
             TopBarDetailsScreen(
                 onMenuClick = { showMenuBottomSheet.value = true },
                 onBackClick = onNavigateToMainScreen
             )
         },
         scaffoldState = scaffoldState,
-        sheetPeekHeight = 195.dp + bottomInset,
         sheetSwipeEnabled = true,
-        sheetDragHandle = {
-        },
+        sheetDragHandle = null,
         sheetShape = RectangleShape,
         sheetContainerColor = Color.Transparent,
         sheetShadowElevation = 0.dp,
@@ -241,6 +283,7 @@ fun DetailsScreenUI(
                     .padding(horizontal = dimensionResource(R.dimen.padding_3x))
                     .fillMaxWidth()
                     .wrapContentHeight()
+                    .navigationBarsPadding()
                     .onGloballyPositioned { layout ->
                         with(density) {
                             if (showBottomSheet.value) {
@@ -262,7 +305,8 @@ fun DetailsScreenUI(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Box(
-                        modifier = Modifier.padding(vertical = dimensionResource(R.dimen.padding_8x))
+                        modifier = Modifier
+                            .padding(vertical = dimensionResource(R.dimen.padding_8x))
                             .width(32.dp)
                             .height(4.dp)
                             .clip(RoundedCornerShape(100))
@@ -348,7 +392,7 @@ fun DetailsScreenUI(
         ) {
             if (state.productList.isEmpty()) {
                 SLInfo(
-                    modifier= Modifier
+                    modifier = Modifier
                         .padding(horizontal = 40.dp)
                         .fillMaxSize(),
                     image = SLTheme.images.noProductList,
@@ -368,7 +412,9 @@ fun DetailsScreenUI(
                         .fillMaxSize(),
                     state = lazyListState,
                 ) {
-                    itemsIndexed(items = state.productList, key = { _, item -> item }) { index, item ->
+                    itemsIndexed(
+                        items = state.productList,
+                        key = { _, item -> item }) { index, item ->
                         DraggableItem(dragDropState, index) { isDragging ->
                             val color by animateColorAsState(
                                 if (isDragging) SLTheme.slColorScheme.materialScheme.onSurface.copy(
@@ -448,8 +494,7 @@ fun DetailsScreenUI(
                     .align(Alignment.BottomEnd)
                     .offset(y = offset)
                     .padding(end = dimensionResource(R.dimen.padding_8x))
-                    .padding(bottom = dimensionResource(R.dimen.padding_8x))
-                    .navigationBarsPadding(),
+                    .padding(bottom = dimensionResource(R.dimen.padding_8x)),
                 onClick = {
                     when (fabState.isOpenDetailsBottomSheetState) {
                         FabState.State.AddProduct.name -> onFabIntent(
