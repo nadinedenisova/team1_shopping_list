@@ -8,6 +8,7 @@ import com.practicum.shoppinglist.details.domain.impl.DeleteCompletedProductsUse
 import com.practicum.shoppinglist.details.domain.impl.DeleteProductUseCase
 import com.practicum.shoppinglist.details.domain.impl.GetProductListUseCase
 import com.practicum.shoppinglist.details.domain.impl.GetProductSortOrderUseCase
+import com.practicum.shoppinglist.details.domain.impl.SearchProductHintUseCase
 import com.practicum.shoppinglist.details.domain.impl.UpdateProductUseCase
 import com.practicum.shoppinglist.main.domain.api.AuthorizationRepository
 import com.practicum.shoppinglist.main.domain.api.MainScreenRepository
@@ -93,10 +94,12 @@ class UseCaseModule {
     fun provideUpdateProductUseCase(repository: DetailsScreenRepository): UpdateProductUseCase {
         return UpdateProductUseCase(repository)
     }
+
     @Provides
     fun provideDeleteAllProductsUseCase(repository: DetailsScreenRepository): DeleteAllProductsUseCase {
         return DeleteAllProductsUseCase(repository)
     }
+
     @Provides
     fun provideDeleteCompletedProductsUseCase(repository: DetailsScreenRepository): DeleteCompletedProductsUseCase {
         return DeleteCompletedProductsUseCase(repository)
@@ -106,10 +109,12 @@ class UseCaseModule {
     fun provideDeleteProductUseCase(repository: DetailsScreenRepository): DeleteProductUseCase {
         return DeleteProductUseCase(repository)
     }
+
     @Provides
     fun provideAddItemOrderUseCase(repository: DetailsScreenRepository): AddItemOrderUseCase {
         return AddItemOrderUseCase(repository)
     }
+
     @Provides
     fun provideGetProductSortOrderUseCase(repository: DetailsScreenRepository): GetProductSortOrderUseCase {
         return GetProductSortOrderUseCase(repository)
@@ -126,7 +131,9 @@ class UseCaseModule {
     }
 
     @Provides
-    fun provideLoginUseCase(repository: AuthorizationRepository, tokenStorage: TokenStorage): LoginUseCase {
+    fun provideLoginUseCase(
+        repository: AuthorizationRepository, tokenStorage: TokenStorage
+    ): LoginUseCase {
         return LoginUseCase(repository, tokenStorage)
     }
 
@@ -141,7 +148,14 @@ class UseCaseModule {
     }
 
     @Provides
-    fun provideTokenValidationUseCase(repository: AuthorizationRepository, tokenStorage: TokenStorage): TokenValidationUseCase {
+    fun provideTokenValidationUseCase(
+        repository: AuthorizationRepository, tokenStorage: TokenStorage
+    ): TokenValidationUseCase {
         return TokenValidationUseCase(tokenStorage, repository)
+    }
+
+    @Provides
+    fun provideSearchProductHintUseCase(repository: DetailsScreenRepository): SearchProductHintUseCase {
+        return SearchProductHintUseCase(repository)
     }
 }

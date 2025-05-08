@@ -13,16 +13,21 @@ import com.practicum.shoppinglist.details.domain.impl.DeleteCompletedProductsUse
 import com.practicum.shoppinglist.details.domain.impl.DeleteProductUseCase
 import com.practicum.shoppinglist.details.domain.impl.GetProductListUseCase
 import com.practicum.shoppinglist.details.domain.impl.GetProductSortOrderUseCase
+import com.practicum.shoppinglist.details.domain.impl.SearchProductHintUseCase
 import com.practicum.shoppinglist.details.domain.impl.UpdateProductUseCase
 import com.practicum.shoppinglist.details.presentation.state.DetailsScreenState
 import com.practicum.shoppinglist.details.presentation.state.DetailsScreenState.Companion.editProduct
 import com.practicum.shoppinglist.details.utils.model.ProductSortOrder
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.flow.update
@@ -38,6 +43,7 @@ class DetailsViewModel @Inject constructor(
     private val deleteCompletedProductsUseCase: DeleteCompletedProductsUseCase,
     private val getProductSortOrderUseCase: GetProductSortOrderUseCase,
     private val addItemOrderUseCase: AddItemOrderUseCase,
+    private val searchProductHintUseCase: SearchProductHintUseCase,
 ) : ViewModel() {
 
     private var _state: MutableStateFlow<DetailsScreenState> =
@@ -48,6 +54,9 @@ class DetailsViewModel @Inject constructor(
     private val _action = MutableSharedFlow<ListAction>()
     val action: SharedFlow<ListAction> = _action
 
+    private var searchHintJob: Job? = null
+
+    @OptIn(FlowPreview::class)
     fun onIntent(intent: DetailsScreenIntent) {
         when (intent) {
             DetailsScreenIntent.CloseAddProductSheet -> {
@@ -152,7 +161,8 @@ class DetailsViewModel @Inject constructor(
                 viewModelScope.launch(Dispatchers.IO) {
                     addItemOrderUseCase(
                         _state.value.shoppingListId,
-                        _state.value.productList.mapIndexed { index, item -> item.id to index.toLong() }.toMap()
+                        _state.value.productList.mapIndexed { index, item -> item.id to index.toLong() }
+                            .toMap()
                     )
                 }
             }
@@ -168,6 +178,20 @@ class DetailsViewModel @Inject constructor(
                     deleteProductUseCase(intent.id)
                 }
             }
+
+            is DetailsScreenIntent.SearchProductHint -> {
+                searchHintJob?.cancel()
+
+                searchHintJob = viewModelScope.launch(Dispatchers.IO) {
+                    delay(300L)
+                    val hintList = searchProductHintUseCase.invoke(intent.query).first()
+                    _state.update {
+                        it.copy(
+                            productMenuList = hintList
+                        )
+                    }
+                }
+            }
         }
     }
 
@@ -179,7 +203,9 @@ class DetailsViewModel @Inject constructor(
                         ProductSortOrder.Default -> it
                         is ProductSortOrder.ASC -> it.sortedBy { item -> item.name }
                         is ProductSortOrder.Manual -> {
-                            val sortOrder = getProductSortOrderUseCase.invoke(_state.value.shoppingListId).firstOrNull()
+                            val sortOrder =
+                                getProductSortOrderUseCase.invoke(_state.value.shoppingListId)
+                                    .firstOrNull()
                             if (!sortOrder.isNullOrEmpty()) {
                                 it.sortedBy { item -> sortOrder[item.id] }
                             } else {
@@ -194,7 +220,7 @@ class DetailsViewModel @Inject constructor(
                     _state.update {
                         it.copy(
                             productList = productList,
-                            productMenuList = productList.map { it.name })
+                        )
                     }
                 }
         }

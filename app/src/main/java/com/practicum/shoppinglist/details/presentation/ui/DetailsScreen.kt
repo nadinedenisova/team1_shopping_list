@@ -269,6 +269,7 @@ fun DetailsScreenUI(
                         value = state.product.name,
                         onValueChanged = { value ->
                             onIntent(DetailsScreenIntent.EditName(value))
+                            onIntent(DetailsScreenIntent.SearchProductHint(value))
                         },
                         placeholder = stringResource(R.string.add_new_product_title),
                         editable = true,

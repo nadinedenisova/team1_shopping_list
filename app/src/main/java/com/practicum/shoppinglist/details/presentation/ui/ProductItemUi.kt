@@ -125,14 +125,16 @@ private fun ProductItemUi(
                     overflow = TextOverflow.Ellipsis,
                     color = SLTheme.slColorScheme.materialScheme.onSurface,
                 )
-                Text(
-                    modifier = Modifier.fillMaxWidth(),
-                    text = item.amount,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    style = SLTheme.typography.bodyMedium,
-                    color = SLTheme.slColorScheme.materialScheme.onSurfaceVariant,
-                )
+                if (item.amount.isNotEmpty()) {
+                    Text(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = item.amount,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = SLTheme.typography.bodyMedium,
+                        color = SLTheme.slColorScheme.materialScheme.onSurfaceVariant,
+                    )
+                }
             }
             if (manualSort) {
                 Icon(

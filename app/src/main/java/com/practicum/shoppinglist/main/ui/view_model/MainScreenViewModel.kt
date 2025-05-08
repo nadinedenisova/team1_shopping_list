@@ -96,7 +96,7 @@ class MainScreenViewModel @Inject constructor(
         }
     }
 
-    private fun checkLoginStatus() {
+    fun checkLoginStatus() {
         val loggedIn = isUserLoggedInUseCase()
 
         updateState(_shoppingListStateFlow.value.loggedIn(loggedIn = loggedIn))

@@ -68,6 +68,7 @@ fun ShoppingList() {
 
                 composable<RegistrationScreen> {
                     RegistrationScreen(
+                        navController,
                         callback = { navController.navigate(MainScreen) },
                         registrationViewModel = registrationScreenViewModel,
                     )
