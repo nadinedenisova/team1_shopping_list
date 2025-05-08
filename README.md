@@ -1,9 +1,14 @@
-
 # Shopping List [![Платформа](https://img.shields.io/badge/Android-10%2B-green)]()
 
 Приложение для составления и работы со списками покупок
 
-//видео работы приложения
+## Демонстрация работы приложения:
+
+Базовый функционал:  
+https://disk.yandex.ru/i/YEOPXeEJ28b0Lg
+
+Авторизация в приложении:  
+https://disk.yandex.kz/i/ag_PXAMuUB-D6A
 
 ## :sparkles: Особенности :sparkles:
 
@@ -45,10 +50,6 @@
 - Экраны: авторизация, регистрация, восстановление пароля (ui, data, domain)
 - Внедрение и настройка ktor
 - Внедрение и настройка detekt
-
-Ссылка:
-
-- https://disk.yandex.kz/i/ag_PXAMuUB-D6A
 
 ## **Андрей [![Платформа](https://img.shields.io/badge/github-gray)](https://github.com/Xaxaido)**
 - Экраны: главный экран приложения (ui, data, domain)
