@@ -53,7 +53,8 @@
     <string name="confirm_password">Повторить пароль</string>
     <string name="password_too_short">Пароль слишком короткий</string>
     <string name="invalid_login">Невалидные данные</string>
-    <string name="invalid_registration">Регистрация не прошла успешна</string>
+    <string name="invalid_registration">Регистрация не прошла успешно</string>
+    <string name="valid_registration">Регистрация прошла успешно</string>
     <string name="invalid_email">Неверный email</string>
     <string name="passwords_do_not_match">Пароль не совпадает</string>
 </resources>

@@ -6,6 +6,6 @@ import com.practicum.shoppinglist.details.presentation.models.ProductItemUiModel
 fun ProductItem.toProductItemUi() = ProductItemUiModel(
     id = id,
     name = name,
-    amount = "$count $unit",
+    amount = if (count > 0) "$count $unit" else "",
     completed = completed
 )

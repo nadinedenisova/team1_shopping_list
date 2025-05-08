@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS productHintEntity (
+    name TEXT NOT NULL PRIMARY KEY
+);
+
+searchProduct:
+    SELECT productHintEntity.name
+    FROM productHintEntity
+    WHERE name LIKE ('%' || :name || '%');

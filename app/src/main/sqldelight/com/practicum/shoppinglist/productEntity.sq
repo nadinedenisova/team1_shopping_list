@@ -12,6 +12,9 @@ insert {
 
     INSERT INTO listAndProductEntity(list_id, product_id)
     VALUES (:list_id, (SELECT last_insert_rowid()));
+
+    INSERT OR IGNORE INTO productHintEntity(name)
+    VALUES (:name);
 }
 
 update:

@@ -49,4 +49,8 @@ class DetailsScreenRepositoryImpl @Inject constructor(
     ): Long {
         return dataSource.addProductSortOrder(shoppingListId, itemSortOrder)
     }
+
+    override fun searchProductHint(query: String): Flow<List<String>> {
+        return dataSource.searchProductHint(query)
+    }
 }

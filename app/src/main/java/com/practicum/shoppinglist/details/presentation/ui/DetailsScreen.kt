@@ -2,7 +2,6 @@ package com.practicum.shoppinglist.details.presentation.ui
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,24 +18,26 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.BottomSheetScaffoldState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -50,6 +51,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.compositeOver
@@ -57,11 +59,11 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.core.text.isDigitsOnly
@@ -75,6 +77,7 @@ import com.practicum.shoppinglist.core.domain.models.ProductItem
 import com.practicum.shoppinglist.core.presentation.ui.FabViewModel
 import com.practicum.shoppinglist.core.presentation.ui.components.SLDropdown
 import com.practicum.shoppinglist.core.presentation.ui.components.SLIconButton
+import com.practicum.shoppinglist.core.presentation.ui.components.SLInfo
 import com.practicum.shoppinglist.core.presentation.ui.components.SLOutlineTextField
 import com.practicum.shoppinglist.core.presentation.ui.dragDrop.DraggableItem
 import com.practicum.shoppinglist.core.presentation.ui.dragDrop.dragContainer
@@ -92,10 +95,9 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailsScreen(
-    modifier: Modifier = Modifier,
     shoppingListId: Long,
     fabViewModel: FabViewModel,
-    onNavigateUp: () -> Unit = {},
+    onNavigateToMainScreen: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val factory = remember {
@@ -117,6 +119,49 @@ fun DetailsScreen(
         )
     }
     val showMenuBottomSheet = rememberSaveable { mutableStateOf(false) }
+    val showBottomSheet = rememberSaveable { mutableStateOf(false) }
+    val density = LocalDensity.current
+    val scaffoldState = rememberBottomSheetScaffoldState(
+        bottomSheetState = remember {
+            SheetState(
+                initialValue = SheetValue.Hidden,
+                skipHiddenState = false,
+                skipPartiallyExpanded = true,
+                confirmValueChange = { sheetValue ->
+                    if (sheetValue == SheetValue.Hidden) {
+                        showBottomSheet.value = false
+                        fabViewModel.onIntent(FabIntent.CloseDetailsBottomSheet)
+                    }
+                    true
+                },
+                density = density
+            )
+        }
+    )
+
+    /*
+    rememberStandardBottomSheetState(
+            initialValue = SheetValue.Hidden,
+            skipHiddenState = false,
+            confirmValueChange = { sheetValue ->
+                if (sheetValue == SheetValue.Hidden) {
+                    showBottomSheet.value = false
+                    fabViewModel.onIntent(FabIntent.CloseDetailsBottomSheet)
+                }
+                true
+            }
+        )
+    * */
+
+    LaunchedEffect(showBottomSheet.value) {
+        scope.launch {
+            if (showBottomSheet.value) {
+                scaffoldState.bottomSheetState.show()
+            } else {
+                scaffoldState.bottomSheetState.hide()
+            }
+        }
+    }
 
     LaunchedEffect(fabState.editProduct) {
         if (fabState.editProduct) {
@@ -157,102 +202,35 @@ fun DetailsScreen(
         )
     }
 
-    Scaffold(
-        topBar = {
-            if (fabState.isOpenDetailsBottomSheetState != null) {
-                val height = WindowInsets.statusBars.asPaddingValues()
-
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(height.calculateTopPadding() + 64.dp)
-                        .background(Color.Black.copy(alpha = .32f))
-                        .clickable(
-                            interactionSource = null,
-                            indication = null,
-                        ) {
-                            fabViewModel.onIntent(FabIntent.CloseDetailsBottomSheet)
-                            keyboardController?.hide()
-                        }
-                        .zIndex(Float.MAX_VALUE)
-                )
-            }
-
-            TopBarDetailsScreen(
-                onMenuClick = { showMenuBottomSheet.value = true },
-                onBackClick = { onNavigateUp() }
-            )
-        },
-        floatingActionButton = {
-            val offset by animateDpAsState(
-                targetValue = -fabState.offsetY,
-            )
-
-            val icon =
-                if (fabState.isOpenDetailsBottomSheetState != null) Icons.Default.Done else Icons.Default.Add
-
-            FloatingActionButton(
-                modifier = Modifier.offset(y = offset),
-                onClick = {
-                    when (fabState.isOpenDetailsBottomSheetState) {
-                        FabState.State.AddProduct.name -> fabViewModel.onIntent(
-                            FabIntent.AddProduct(true)
-                        )
-
-                        FabState.State.EditProduct.name -> fabViewModel.onIntent(
-                            FabIntent.EditProduct(true)
-                        )
-
-                        else -> fabViewModel.onIntent(
-                            FabIntent.OpenDetailsBottomSheet(
-                                state = FabState.State.AddProduct.name
-                            )
-                        )
-                    }
-                },
-                shape = MaterialTheme.shapes.small,
-
-                ) {
-                Icon(icon, contentDescription = stringResource(R.string.add))
-            }
-        },
-    ) { innerPadding ->
-        DetailsScreenUI(
-            modifier = modifier.padding(innerPadding),
-            state = state,
-            onIntent = { intent -> viewModel.onIntent(intent) },
-            fabState = fabState,
-            onFabIntent = { intent -> fabViewModel.onIntent(intent) },
-            action = viewModel.action,
-        )
-    }
+    DetailsScreenUI(
+        state = state,
+        onIntent = { intent -> viewModel.onIntent(intent) },
+        fabState = fabState,
+        onFabIntent = { intent -> fabViewModel.onIntent(intent) },
+        action = viewModel.action,
+        showMenuBottomSheet = showMenuBottomSheet,
+        showBottomSheet = showBottomSheet,
+        onNavigateToMainScreen = onNavigateToMainScreen,
+        scaffoldState = scaffoldState,
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailsScreenUI(
-    modifier: Modifier = Modifier,
     state: DetailsScreenState = DetailsScreenState(),
     onFabIntent: (FabIntent) -> Unit = {},
     fabState: FabState,
     onIntent: (DetailsScreenIntent) -> Unit = {},
     action: SharedFlow<ListAction>,
+    showMenuBottomSheet: MutableState<Boolean>,
+    showBottomSheet: MutableState<Boolean>,
+    onNavigateToMainScreen: (() -> Unit)? = null,
+    scaffoldState: BottomSheetScaffoldState,
 ) {
-    val openProduct = remember { mutableStateOf<ProductItem?>(null) }
     val density = LocalDensity.current
+    val openProduct = remember { mutableStateOf<BaseItem?>(null) }
     val keyboardController = LocalSoftwareKeyboardController.current
-    val scaffoldState = rememberBottomSheetScaffoldState(
-        bottomSheetState = SheetState(
-            initialValue = if (fabState.isOpenDetailsBottomSheetState != null) SheetValue.Expanded else SheetValue.Hidden,
-            confirmValueChange = { sheetValue ->
-                onFabIntent(FabIntent.CloseDetailsBottomSheet)
-                true
-            },
-            skipPartiallyExpanded = false,
-            skipHiddenState = false,
-            density = density
-        )
-    )
 
     LaunchedEffect(fabState.isOpenDetailsBottomSheetState) {
         if (fabState.isOpenDetailsBottomSheetState == FabState.State.AddProduct.name) {
@@ -267,35 +245,80 @@ fun DetailsScreenUI(
     }
 
     BottomSheetScaffold(
+        topBar = {
+            if (fabState.isOpenDetailsBottomSheetState != null) {
+                val height = WindowInsets.statusBars.asPaddingValues()
+
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(height.calculateTopPadding() + 64.dp)
+                        .background(Color.Black.copy(alpha = .32f))
+                        .clickable(
+                            interactionSource = null,
+                            indication = null,
+                        ) {
+                            showBottomSheet.value = false
+                            onFabIntent(FabIntent.CloseDetailsBottomSheet)
+                            keyboardController?.hide()
+                        }
+                        .zIndex(Float.MAX_VALUE)
+                )
+            }
+
+            TopBarDetailsScreen(
+                onMenuClick = { showMenuBottomSheet.value = true },
+                onBackClick = onNavigateToMainScreen
+            )
+        },
         scaffoldState = scaffoldState,
         sheetSwipeEnabled = true,
-        sheetShape = SLTheme.shapes.large.copy(
-            bottomEnd = CornerSize(0),
-            bottomStart = CornerSize(0)
-        ),
+        sheetDragHandle = null,
+        sheetShape = RectangleShape,
+        sheetContainerColor = Color.Transparent,
+        sheetShadowElevation = 0.dp,
         sheetContent = {
-            Column(
+            Surface(
                 modifier = Modifier
+                    .padding(horizontal = dimensionResource(R.dimen.padding_3x))
+                    .fillMaxWidth()
+                    .wrapContentHeight()
                     .navigationBarsPadding()
                     .onGloballyPositioned { layout ->
                         with(density) {
-                            if (scaffoldState.bottomSheetState.isVisible) {
-                                onFabIntent(FabIntent.OffsetY(layout.size.height.toDp() + 64.dp))
+                            if (showBottomSheet.value) {
+                                onFabIntent(FabIntent.OffsetY(layout.size.height.toDp() + 8.dp))
                             } else {
                                 onFabIntent(FabIntent.OffsetY(0.dp))
                             }
                         }
-                    }
+                    },
+                color = MaterialTheme.colorScheme.background,
+                tonalElevation = 8.dp,
+                shape = SLTheme.shapes.large.copy(
+                    bottomEnd = CornerSize(0),
+                    bottomStart = CornerSize(0)
+                )
             ) {
                 Column(
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                    modifier = Modifier.padding(horizontal = dimensionResource(R.dimen.padding_8x)),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    Box(
+                        modifier = Modifier
+                            .padding(vertical = dimensionResource(R.dimen.padding_8x))
+                            .width(32.dp)
+                            .height(4.dp)
+                            .clip(RoundedCornerShape(100))
+                            .background(MaterialTheme.colorScheme.outline),
+                    )
                     SLDropdown(
                         modifier = Modifier.fillMaxWidth(),
                         label = stringResource(R.string.product_title),
                         value = state.product.name,
                         onValueChanged = { value ->
                             onIntent(DetailsScreenIntent.EditName(value))
+                            onIntent(DetailsScreenIntent.SearchProductHint(value))
                         },
                         placeholder = stringResource(R.string.add_new_product_title),
                         editable = true,
@@ -303,7 +326,6 @@ fun DetailsScreenUI(
                     )
                     Spacer(Modifier.height(24.dp))
                     Row(
-                        modifier = Modifier,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         val count = when {
@@ -336,7 +358,13 @@ fun DetailsScreenUI(
                             menuItems = stringArrayResource(R.array.units).toList(),
                             value = state.product.unit,
                             showTrailingIcon = true,
-                            onValueChanged = { value -> onIntent(DetailsScreenIntent.EditUnit(value)) },
+                            onValueChanged = { value ->
+                                onIntent(
+                                    DetailsScreenIntent.EditUnit(
+                                        value
+                                    )
+                                )
+                            },
                             placeholder = stringResource(R.string.add_new_product_title),
                         )
                         SLIconButton(
@@ -354,110 +382,141 @@ fun DetailsScreenUI(
                     Spacer(Modifier.height(24.dp))
                 }
             }
-        }
+        },
     ) { innerPadding ->
-        if (fabState.isOpenDetailsBottomSheetState != null) {
-            Box(
-                Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = .32f))
-                    .clickable(
-                        interactionSource = null,
-                        indication = null,
-                    ) {
-                        onFabIntent(FabIntent.CloseDetailsBottomSheet)
-                        keyboardController?.hide()
-                    }
-                    .zIndex(Float.MAX_VALUE)
-            )
-        }
-
-        if (state.productList.isEmpty()) {
-            Column(
-                modifier = modifier
-                    .padding(innerPadding)
-                    .padding(horizontal = 40.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Spacer(Modifier.height(120.dp))
-                Image(
-                    modifier = Modifier,
-                    painter = painterResource(SLTheme.images.noProductList),
-                    contentDescription = null,
+        Box(
+            modifier = Modifier
+                .navigationBarsPadding()
+                .fillMaxSize(),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            if (state.productList.isEmpty()) {
+                SLInfo(
+                    modifier = Modifier
+                        .padding(horizontal = 40.dp)
+                        .fillMaxSize(),
+                    image = SLTheme.images.noProductList,
+                    title = stringResource(R.string.no_product_lists_title),
+                    message = stringResource(R.string.no_product_lists_message),
                 )
-                Spacer(Modifier.height(48.dp))
-                Text(
-                    text = stringResource(R.string.no_product_lists_title),
-                    style = SLTheme.typography.titleMedium,
-                )
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    text = stringResource(R.string.no_product_lists_message),
-                    style = SLTheme.typography.bodyMedium.copy(textAlign = TextAlign.Center),
-                )
-            }
-        } else {
-            LazyColumn(
-                modifier = modifier
-                    .fillMaxSize()
-                    .then(
-                        if (state.sortOrderMode is ProductSortOrder.Manual) {
-                            Modifier.dragContainer(dragDropState)
-                        } else {
-                            Modifier
-                        }
-                    ),
-                state = lazyListState,
-            ) {
-                itemsIndexed(state.productList, key = { _, item -> item }) { index, item ->
-                    DraggableItem(dragDropState, index) { isDragging ->
-                        val color by animateColorAsState(
-                            if (isDragging) SLTheme.slColorScheme.materialScheme.onSurface.copy(
-                                alpha = 0.16f
-                            ) else SLTheme.slColorScheme.materialScheme.surface
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .then(
+                            if (state.sortOrderMode is ProductSortOrder.Manual) {
+                                Modifier.dragContainer(dragDropState)
+                            } else {
+                                Modifier
+                            }
                         )
-                        val elevation by animateDpAsState(
-                            if (isDragging) SLTheme.elevation.level5
-                            else SLTheme.elevation.level0
-                        )
-                        Surface(
-                            shape = RectangleShape,
-                            color = color.compositeOver(SLTheme.slColorScheme.materialScheme.surface),
-                            shadowElevation = elevation
-                        ) {
-                            ProductItem(
-                                modifier = Modifier.background(color.compositeOver(SLTheme.slColorScheme.materialScheme.surface)),
-                                item = item,
-                                onCheckedChange = {
-                                    onIntent(
-                                        DetailsScreenIntent.ToggleCompleted(
-                                            item
-                                        )
-                                    )
-                                },
-                                manualSort = state.sortOrderMode is ProductSortOrder.Manual,
-                                onItemClick = {
-                                    openProduct.value = null
-                                },
-                                onItemOpened = {
-                                    openProduct.value = item
-
-                                },
-                                onItemClosed = {
-                                    if (openProduct.value?.id == item.id) openProduct.value = null
-                                },
-                                onRename = {
-                                    onFabIntent(FabIntent.OpenDetailsBottomSheet(state = FabState.State.EditProduct.name))
-                                    onIntent(DetailsScreenIntent.SelectedProduct(item))
-                                },
-                                onRemove = { onIntent(BaseIntent.QueryRemoveShoppingList) },
-                                action = action,
-                                openItem = openProduct as MutableState<BaseItem?>,
-                                onIntent = { intent -> onIntent(intent) },
+                        .fillMaxSize(),
+                    state = lazyListState,
+                ) {
+                    itemsIndexed(
+                        items = state.productList,
+                        key = { _, item -> item }) { index, item ->
+                        DraggableItem(dragDropState, index) { isDragging ->
+                            val color by animateColorAsState(
+                                if (isDragging) SLTheme.slColorScheme.materialScheme.onSurface.copy(
+                                    alpha = 0.16f
+                                ) else SLTheme.slColorScheme.materialScheme.surface
                             )
+                            val elevation by animateDpAsState(
+                                if (isDragging) SLTheme.elevation.level5
+                                else SLTheme.elevation.level0
+                            )
+                            Surface(
+                                shape = RectangleShape,
+                                color = color.compositeOver(SLTheme.slColorScheme.materialScheme.surface),
+                                shadowElevation = elevation
+                            ) {
+                                ProductItem(
+                                    modifier = Modifier.background(color.compositeOver(SLTheme.slColorScheme.materialScheme.surface)),
+                                    item = item,
+                                    onCheckedChange = {
+                                        onIntent(
+                                            DetailsScreenIntent.ToggleCompleted(
+                                                item
+                                            )
+                                        )
+                                    },
+                                    manualSort = state.sortOrderMode is ProductSortOrder.Manual,
+                                    onItemClick = {
+                                        openProduct.value = null
+                                    },
+                                    onItemOpened = {
+                                        openProduct.value = item
+
+                                    },
+                                    onItemClosed = {
+                                        if (openProduct.value?.id == item.id) openProduct.value =
+                                            null
+                                    },
+                                    onRename = {
+                                        onFabIntent(FabIntent.OpenDetailsBottomSheet(state = FabState.State.EditProduct.name))
+                                        onIntent(DetailsScreenIntent.SelectedProduct(item))
+                                        showBottomSheet.value = true
+                                    },
+                                    onRemove = { onIntent(BaseIntent.QueryRemoveShoppingList) },
+                                    action = action,
+                                    openItem = openProduct,
+                                    onIntent = { intent -> onIntent(intent) },
+                                )
+                            }
                         }
                     }
                 }
+            }
+
+            if (showBottomSheet.value) {
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = .32f))
+                        .clickable(
+                            interactionSource = null,
+                            indication = null,
+                        ) {
+                            showBottomSheet.value = false
+                            onFabIntent(FabIntent.CloseDetailsBottomSheet)
+                            keyboardController?.hide()
+                        }
+                )
+            }
+
+            val offset by animateDpAsState(
+                targetValue = -fabState.offsetY,
+            )
+            val icon = if (showBottomSheet.value) Icons.Default.Done else Icons.Default.Add
+
+            FloatingActionButton(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .offset(y = offset)
+                    .padding(end = dimensionResource(R.dimen.padding_8x))
+                    .padding(bottom = dimensionResource(R.dimen.padding_8x)),
+                onClick = {
+                    when (fabState.isOpenDetailsBottomSheetState) {
+                        FabState.State.AddProduct.name -> onFabIntent(
+                            FabIntent.AddProduct(true)
+                        )
+
+                        FabState.State.EditProduct.name -> onFabIntent(
+                            FabIntent.EditProduct(true)
+                        )
+
+                        else -> onFabIntent(
+                            FabIntent.OpenDetailsBottomSheet(
+                                state = FabState.State.AddProduct.name
+                            )
+                        )
+                    }
+
+                    showBottomSheet.value = !showBottomSheet.value
+                },
+                shape = MaterialTheme.shapes.small,
+            ) {
+                Icon(icon, contentDescription = stringResource(R.string.add))
             }
         }
     }

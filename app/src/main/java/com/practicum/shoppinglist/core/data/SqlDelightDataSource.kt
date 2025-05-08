@@ -227,4 +227,8 @@ class SqlDelightDataSource @Inject constructor(
         }
         return@withContext insertedRows
     }
+
+    override fun searchProductHint(query: String): Flow<List<String>> {
+        return db.productHintEntityQueries.searchProduct(query).asFlow().mapToList(Dispatchers.IO)
+    }
 }

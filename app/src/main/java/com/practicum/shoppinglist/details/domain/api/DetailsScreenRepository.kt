@@ -13,4 +13,5 @@ interface DetailsScreenRepository {
     suspend fun removeCompletedProducts(shoppingListId: Long): Long
     fun getSortOrderByShoppingListId(shoppingListId: Long): Flow<List<ProductSortEntity>>
     suspend fun addItemSortOrder(shoppingListId: Long, itemSortOrder: Map<Long, Long>): Long
+    fun searchProductHint(query: String): Flow<List<String>>
 }
