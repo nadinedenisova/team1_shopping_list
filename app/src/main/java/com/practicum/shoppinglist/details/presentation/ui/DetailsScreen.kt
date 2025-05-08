@@ -9,9 +9,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -215,6 +218,8 @@ fun DetailsScreenUI(
         onIntent(DetailsScreenIntent.UpdateManualSortOrder(fromIndex, toIndex))
     }
 
+    val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+
     BottomSheetScaffold(
         topBar = {
             TopBarDetailsScreen(
@@ -223,7 +228,7 @@ fun DetailsScreenUI(
             )
         },
         scaffoldState = scaffoldState,
-        sheetPeekHeight = 240.dp,
+        sheetPeekHeight = 195.dp + bottomInset,
         sheetSwipeEnabled = true,
         sheetDragHandle = {
         },
@@ -245,7 +250,7 @@ fun DetailsScreenUI(
                             }
                         }
                     },
-                color = MaterialTheme.colorScheme.surface,
+                color = MaterialTheme.colorScheme.background,
                 tonalElevation = 8.dp,
                 shape = SLTheme.shapes.large.copy(
                     bottomEnd = CornerSize(0),
@@ -334,7 +339,7 @@ fun DetailsScreenUI(
                 }
             }
         },
-    ) { _ ->
+    ) { innerPadding ->
         Box(
             modifier = Modifier
                 .navigationBarsPadding()
