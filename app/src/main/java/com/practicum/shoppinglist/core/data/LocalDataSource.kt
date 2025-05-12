@@ -24,4 +24,6 @@ interface LocalDataSource {
 
     fun getSortOrderByListId(listId: Long): Flow<List<ProductSortEntity>>
     suspend fun addProductSortOrder(listId: Long, sortOrder: Map<Long, Long>): Long
+
+    fun searchProductHint(query: String): Flow<List<String>>
 }

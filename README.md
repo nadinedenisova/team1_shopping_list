@@ -1,30 +1,65 @@
-# shopping_list_android_app
+# Shopping List [![Платформа](https://img.shields.io/badge/Android-10%2B-green)]()
+
+Приложение для составления и работы со списками покупок
+
+## Демонстрация работы приложения:
+
+Базовый функционал:  
+https://disk.yandex.ru/i/YEOPXeEJ28b0Lg
+
+Авторизация в приложении:  
+https://disk.yandex.kz/i/ag_PXAMuUB-D6A
+
+## :sparkles: Особенности :sparkles:
+
+- Создание списка покупок с возможностью дублирования
+
+- Поиск по спискам
+
+- Иконки списков
+
+- Пользовательская сортировка списка продуктов
+
+- Сохранения списков в облаке
+
+- Динамическая M3 тема
+
+## :wrench: Стек :wrench:
 
 
-# Detekt
+- **UI**: Jetpack Compose + MVI
 
-In case if you face with issue :
-permission denied: ./gradlew
+#### Jetpack Compose это современный подход к построению UI, а для управления содержимым и реагированием на действия пользователя выбран паттерн MVI, так как он подходит для compose больше остальных популярных паттернов.
 
-Run command
+- **DB**: SQLDelight
 
-```
- chmod +x gradlew
-```
+#### SQLDelight - популярная мультиплатформенная библиотека. Выбор в основном был основан ради изучения новой библиотеки.
 
-To check lint issues
+- **DI**: Dagger 2
 
-```
-./gradlew detekt
-```
-Or use
+#### Dagger мощный инструмент для внедрения зависимостей. По сравнению с другой популярной библиотекой Koin, Dagger имеет преимущество проверки зависимостей во время компиляции.
 
-```
-bash gradlew detekt
-```
+- **Network**: Ktor
+#### Еще одна новая библиотека для изучения.
 
-In folder `build/reports/detekt/detekt.html`
 
-Report details will be located
 
-In gradle tasks `detekt` is located under `verification` task
+## :v: Команда проекта :v:
+
+## **Анастасия [![Платформа](https://img.shields.io/badge/github-gray)](https://github.com/nst-personal)**
+- Экраны: авторизация, регистрация, восстановление пароля (ui, data, domain)
+- Внедрение и настройка ktor
+- Внедрение и настройка detekt
+
+## **Андрей [![Платформа](https://img.shields.io/badge/github-gray)](https://github.com/Xaxaido)**
+- Экраны: главный экран приложения (ui, data, domain)
+- Настройка навигации
+- Смена темы приложения
+- Splash screen
+- Внедрение и настройка DI
+
+## **Эдуард [![Платформа](https://img.shields.io/badge/github-gray)](https://github.com/Veetver)**
+- Экраны: второй экран (детали) (ui, data, domain)
+- Внедрение и настройка базы данных
+- UI kit
+- Тема приложения
